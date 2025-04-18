@@ -44,7 +44,7 @@ public class Queries {
         String pass = "6e6zJ2BwSj";
         
         try{
-            conn = DriverManager.getConnection(DB_URL, "sql12773093", "6e6zJ2BwSj");
+            conn = DriverManager.getConnection(DB_URL, user, pass);
             stmt = conn.createStatement();
             
             JOptionPane.showMessageDialog(mainFrame, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -91,6 +91,6 @@ public class Queries {
     }
 
     public void updateInventory(){
-        
+
     }
 }
