@@ -43,6 +43,7 @@ public class GraphicalUserInterface implements ActionListener{
     private JButton upinBackBtn;
     private JButton tranBackBtn;
     private JButton lgnLoginBtn;
+    public JLabel lgnStatusLabel;
     private JPanel loginPanel, mainPanel, mainRibbonPanel, mainContentPanel, ctntMenuPanel, ctntBorrowItemPanel, ctntBorrowerListPanel, ctntUpdateInventoryPanel, ctntTransactionHistoryPanel;
     private BufferedImage upLogo, lgnUPLogoResized, rbbnUPLogoResized;
     private Font sizedFontPalatinoSmall, sizedFontPalatinoBig;
@@ -131,7 +132,7 @@ public class GraphicalUserInterface implements ActionListener{
         lgnLoginBtn.setPreferredSize(new Dimension(250, 35));
         lgnLoginBtn.addActionListener(this);
 
-        JLabel lgnStatusLabel = new JLabel("<Status Goes Here>", SwingConstants.CENTER); //.setText("Login Confirmed, Login Denied")
+        lgnStatusLabel = new JLabel("Please enter login credentials.", SwingConstants.CENTER); //.setText("Login Confirmed, Login Denied")
         lgnStatusLabel.setForeground(maroon);
         
         GridBagConstraints lgnInputPanelGBC = new GridBagConstraints();
@@ -440,10 +441,11 @@ public class GraphicalUserInterface implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == lgnLoginBtn) {
-            queries.login(lgnInputUsernameField, lgnInputPasswordField, loginPanel, mainFrame, mainPanel);
+            queries.login(lgnInputUsernameField, lgnInputPasswordField, loginPanel, mainFrame, mainPanel, lgnStatusLabel);
         } else if (e.getSource() == ctntBorrowItemBtn) {
             mainContentPanel.removeAll();
             mainContentPanel.add(ctntBorrowItemPanel);
+            queries.borrowItems();
             mainContentPanel.revalidate();
             mainContentPanel.repaint();
         } else if (e.getSource() == ctntBorrowerListBtn) {

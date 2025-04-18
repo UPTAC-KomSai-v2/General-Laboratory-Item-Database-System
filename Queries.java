@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -6,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -31,16 +33,23 @@ public class Queries {
         return ptmt;
     }
 
-    public void login(JTextField username, JPasswordField password, JPanel loginPanel, JFrame mainFrame, JPanel mainPanel){
-        String user = username.getText();
-        String pass = new String(password.getPassword());
+    public void login(JTextField username, JPasswordField password, JPanel loginPanel, JFrame mainFrame, JPanel mainPanel, JLabel statusLabel){
+        statusLabel.setText("Logging in...");
+        statusLabel.setForeground(Color.BLACK);
+
+        //String user = username.getText();
+        //String pass = new String(password.getPassword());
+
+        String user = "sql12773093";
+        String pass = "6e6zJ2BwSj";
         
         try{
-            conn = DriverManager.getConnection(DB_URL, user, pass);
+            conn = DriverManager.getConnection(DB_URL, "sql12773093", "6e6zJ2BwSj");
             stmt = conn.createStatement();
             
             JOptionPane.showMessageDialog(mainFrame, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-
+            statusLabel.setText("Login Success");
+            statusLabel.setForeground(Color.GREEN);
             mainFrame.remove(loginPanel);
             mainFrame.add(mainPanel);
             mainFrame.revalidate();
@@ -50,6 +59,38 @@ public class Queries {
                 "Login failed: " + e.getMessage(), 
                 "Error", 
                 JOptionPane.ERROR_MESSAGE);
+                statusLabel.setText("Login Denied.\n Please Try Again.");
+                statusLabel.setForeground(Color.RED);
         }
+    }
+
+    public void borrowItems(){
+        String query = "SELECT * FROM item WHERE status = 'Available' ORDER BY category_id, item_name";
+        try{
+            ptmt = conn.prepareStatement(query);
+            ResultSet rs = ptmt.executeQuery();
+            while(rs.next()){
+                System.out.println("Item ID: " + rs.getInt("item_id") + ", Item Name: " + rs.getString("item_name"));
+            }
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+    }
+
+    public void showBorrowerList(){
+        String query = "SELECT * FROM borrower ORDER BY borrower_id";
+        try{
+            ptmt = conn.prepareStatement(query);
+            ResultSet rs = ptmt.executeQuery();
+            while(rs.next()){
+                System.out.println("Borrower ID: " + rs.getInt("borrower_id") + ", Borrower Name: " + rs.getString("borrower_name"));
+            }
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+    }
+
+    public void updateInventory(){
+        
     }
 }
