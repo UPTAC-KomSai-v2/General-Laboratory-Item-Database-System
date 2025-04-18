@@ -35,6 +35,7 @@ import javax.swing.UIManager;
 
 
 public class GraphicalUserInterface implements ActionListener{
+    // GUI Components
     private JButton ctntBorrowItemBtn, ctntBorrowerListBtn, ctntUpdateInventoryBtn, ctntTransactionHistoryBtn;
     private JButton rbbnLogoutBtn, rbbnUserBtn, rbbnAboutBtn;
     private JButton bitmBackBtn;
@@ -49,6 +50,8 @@ public class GraphicalUserInterface implements ActionListener{
     private JPasswordField lgnInputPasswordField;
     private JTextField lgnInputUsernameField;
     private JFrame mainFrame;
+
+    private Queries queries = new Queries();
 
     public GraphicalUserInterface(){
         initializeBranding();
@@ -437,10 +440,7 @@ public class GraphicalUserInterface implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == lgnLoginBtn) {
-            mainFrame.remove(loginPanel);
-            mainFrame.add(mainPanel);
-            mainFrame.revalidate();
-            mainFrame.repaint();
+            queries.login(lgnInputUsernameField, lgnInputPasswordField, loginPanel, mainFrame, mainPanel);
         } else if (e.getSource() == ctntBorrowItemBtn) {
             mainContentPanel.removeAll();
             mainContentPanel.add(ctntBorrowItemPanel);
