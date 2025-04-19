@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.InputMismatchException;
+import java.util.Scanner;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -64,7 +66,7 @@ public class Queries {
         }
     }
 
-    public void borrowItems(){
+    public void borrowItems(Scanner scn){
         String query = "SELECT * FROM item WHERE status = 'Available' ORDER BY category_id, item_name";
         try{
             ptmt = conn.prepareStatement(query);
@@ -75,6 +77,8 @@ public class Queries {
         }catch(SQLException e){
             System.err.println("SQL Error: " + e.getMessage());
         }
+
+        selectItems(scn);
     }
 
     public void showBorrowerList(){
@@ -90,6 +94,42 @@ public class Queries {
         }
     }
 
+    public void selectItems(Scanner scn){
+        int itemID[] = new int[50];
+        int itemCount = 0;
+        System.out.println("Enter the item ID you want to borrow (0 to finish): ");
+        
+         do{
+            try{
+                System.out.print("Item ID: ");
+                itemID[itemCount] = scn.nextInt();
+                if(itemID[itemCount] == 0){
+                    break;
+                }
+                itemCount++;
+            }catch(InputMismatchException e){
+                System.out.println("Error: " + e.getMessage());
+                scn.nextLine(); // Clear the invalid input
+            }
+        }while (itemID[itemCount] != 0);
+
+        System.out.println("You have selected the following items: ");
+        String query = "SELECT item_id, item_name FROM item WHERE item_id = ?";
+        
+        try{
+            ptmt = conn.prepareStatement(query);
+            for(int i = 0; i < itemCount; i++){
+                ptmt.setInt(1, itemID[i]);
+                ResultSet rs = ptmt.executeQuery();
+                while(rs.next()){
+                    System.out.println("Item ID: " + rs.getInt("item_id") + ", Item Name: " + rs.getString("item_name"));
+                }
+            }
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+
+    }
     public void updateInventory(){
 
     }
