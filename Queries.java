@@ -7,13 +7,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.InputMismatchException;
 import java.util.Scanner;
-
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 public class Queries {
     static final String DB_URL = "jdbc:mysql://sql12.freesqldatabase.com:3306/sql12773093?useSSL=false";
@@ -49,9 +49,9 @@ public class Queries {
             conn = DriverManager.getConnection(DB_URL, user, pass);
             stmt = conn.createStatement();
             
-            JOptionPane.showMessageDialog(mainFrame, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
             statusLabel.setText("Login Success");
             statusLabel.setForeground(Color.GREEN);
+            JOptionPane.showMessageDialog(mainFrame, new JLabel("Login successful!", SwingConstants.CENTER), "Success", JOptionPane.PLAIN_MESSAGE );
             mainFrame.remove(loginPanel);
             mainFrame.add(mainPanel);
             mainFrame.revalidate();
@@ -77,8 +77,9 @@ public class Queries {
         }catch(SQLException e){
             System.err.println("SQL Error: " + e.getMessage());
         }
-
-        selectItems(scn);
+        
+        //selectItems(scn);   
+        
     }
 
     public void showBorrowerList(){
@@ -128,7 +129,7 @@ public class Queries {
         }catch(SQLException e){
             System.err.println("SQL Error: " + e.getMessage());
         }
-
+        
     }
     public void updateInventory(){
 

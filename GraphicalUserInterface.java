@@ -5,20 +5,13 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.FontFormatException;
-import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
+import java.util.Scanner;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -31,7 +24,6 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.OverlayLayout;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 
 
 public class GraphicalUserInterface implements ActionListener{
@@ -43,54 +35,59 @@ public class GraphicalUserInterface implements ActionListener{
     private JButton upinBackBtn;
     private JButton tranBackBtn;
     private JButton lgnLoginBtn;
-    public JLabel lgnStatusLabel;
+    private JLabel lgnStatusLabel;
     private JPanel loginPanel, mainPanel, mainRibbonPanel, mainContentPanel, ctntMenuPanel, ctntBorrowItemPanel, ctntBorrowerListPanel, ctntUpdateInventoryPanel, ctntTransactionHistoryPanel;
-    private BufferedImage upLogo, lgnUPLogoResized, rbbnUPLogoResized;
-    private Font sizedFontPalatinoSmall, sizedFontPalatinoBig;
-    private Color maroon, lightgray, white, lightergray; 
     private JPasswordField lgnInputPasswordField;
     private JTextField lgnInputUsernameField;
     private JFrame mainFrame;
-
-    private Queries queries = new Queries();
+    private Queries queries;
+    private Branding branding;
 
     public GraphicalUserInterface(){
-        initializeBranding();
-        intializeMainFrame();
-        initializeLoginPanel();
-        initializeMainPanel();
+        queries = new Queries();    // Logic/backend interactions
+        branding = new Branding();  // Color, font, and image assets
+        
+        intializeMainFrame();       // Set up the frame (window) structure
+        initializeLoginPanel();     // Load the login interface
+        initializeMainPanel();      // Load the main UI but do not yet display it
     }
 
     public void intializeMainFrame(){
+        // Create the main window
         mainFrame = new JFrame("UPTC General Laboratory Database");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setSize(1280, 720);
-        mainFrame.setLocationRelativeTo(null);
-        mainFrame.setLayout(new BorderLayout());
-        mainFrame.setMinimumSize(new Dimension(1000, 700));
+        mainFrame.setLocationRelativeTo(null);                            // Center the window
+        mainFrame.setLayout(new BorderLayout());                            // Use BorderLayout as layout manager
+        mainFrame.setMinimumSize(new Dimension(1000, 700));    // Prevent resizing too small
     }
 
     public void initializeLoginPanel(){
+        // Main login panel with maroon background
         loginPanel = new JPanel();
-        loginPanel.setBackground(maroon);
+        loginPanel.setBackground(branding.maroon);
         loginPanel.setLayout(new GridBagLayout());
         
+        // Title section with logo and text
         JPanel lgnTitlePanel = new JPanel();
-        lgnTitlePanel.setBackground(white);
+        lgnTitlePanel.setBackground(branding.white);
         lgnTitlePanel.setLayout(new GridBagLayout());
-        lgnTitlePanel.setOpaque(false);
+        lgnTitlePanel.setOpaque(false); // Transparent panel for layering
 
+        // UP logo
         JLabel lgnUPLogo = new JLabel();
-        lgnUPLogo.setIcon(new ImageIcon(lgnUPLogoResized));
+        lgnUPLogo.setIcon(new ImageIcon(branding.lgnUPLogoResized));
         
+        // Title labels
         JLabel lgnTitleLabel1 = new JLabel("UP TACLOBAN COLLEGE");
         JLabel lgnTitleLabel2 = new JLabel("General Laboratory Database");
         
-        lgnTitleLabel1.setFont(sizedFontPalatinoBig);
-        lgnTitleLabel2.setFont(sizedFontPalatinoSmall);
-        lgnTitleLabel1.setForeground(white);
-        lgnTitleLabel2.setForeground(white);
+        lgnTitleLabel1.setFont(branding.sizedFontPalatinoBig);
+        lgnTitleLabel2.setFont(branding.sizedFontPalatinoSmall);
+        lgnTitleLabel1.setForeground(branding.white);
+        lgnTitleLabel2.setForeground(branding.white);
 
+        // Position the elements inside title panel
         GridBagConstraints lgnTitlePanelGBC = new GridBagConstraints();
         lgnTitlePanelGBC.insets = new Insets(0, 0, 30, 0);
         lgnTitlePanelGBC.gridy = 0;
@@ -100,16 +97,19 @@ public class GraphicalUserInterface implements ActionListener{
         lgnTitlePanel.add(lgnTitleLabel1, lgnTitlePanelGBC);
         lgnTitlePanelGBC.gridy = 2;
         lgnTitlePanel.add(lgnTitleLabel2, lgnTitlePanelGBC);
-    
+        
+        // Input section for username and password
         JPanel lgnInputPanel = new JPanel();
-        lgnInputPanel.setBackground(lightgray);
+        lgnInputPanel.setBackground(branding.lightgray);
         lgnInputPanel.setLayout(new GridBagLayout());
         lgnInputPanel.setBorder(BorderFactory.createRaisedBevelBorder());
         
+        // "Login" title inside input panel
         JLabel lgnLoginLabel = new JLabel("Login", SwingConstants.CENTER);
         lgnLoginLabel.setFont(new Font("Roboto", Font.PLAIN, 25));
-        lgnLoginLabel.setForeground(maroon);
+        lgnLoginLabel.setForeground(branding.maroon);
 
+        // Username and password labels
         GridLayout gridLayoutForLabels = new GridLayout(1,2);
         JPanel inputUserPanel = new JPanel(gridLayoutForLabels);
         JPanel inputPasswordPanel = new JPanel(gridLayoutForLabels);
@@ -117,24 +117,28 @@ public class GraphicalUserInterface implements ActionListener{
         JLabel lgnIputPasswordLabel = new JLabel("Enter Password: ");
         inputUserPanel.add(lgnIputUsernameLabel);
         inputPasswordPanel.add(lgnIputPasswordLabel);
-        lgnIputUsernameLabel.setForeground(maroon);
-        lgnIputPasswordLabel.setForeground(maroon);
+        lgnIputUsernameLabel.setForeground(branding.maroon);
+        lgnIputPasswordLabel.setForeground(branding.maroon);
 
+        // Input fields
         lgnInputUsernameField = new JTextField(10);
         lgnInputPasswordField = new JPasswordField(10);
         lgnInputUsernameField.setPreferredSize(new Dimension(200, 30));
         lgnInputPasswordField.setPreferredSize(new Dimension(200, 30));
 
+        // Login button
         lgnLoginBtn = new JButton("Login");
-        lgnLoginBtn.setBackground(maroon);
-        lgnLoginBtn.setForeground(white);
+        lgnLoginBtn.setBackground(branding.maroon);
+        lgnLoginBtn.setForeground(branding.white);
         lgnLoginBtn.setFocusable(false);
         lgnLoginBtn.setPreferredSize(new Dimension(250, 35));
         lgnLoginBtn.addActionListener(this);
 
+         // Status label for feedback (e.g. "Login Confirmed" or "Login Denied")
         lgnStatusLabel = new JLabel("Please enter login credentials.", SwingConstants.CENTER); //.setText("Login Confirmed, Login Denied")
-        lgnStatusLabel.setForeground(maroon);
+        lgnStatusLabel.setForeground(branding.maroon);
         
+        // Position the components inside lgnInputPanel
         GridBagConstraints lgnInputPanelGBC = new GridBagConstraints();
         lgnInputPanelGBC.fill = GridBagConstraints.HORIZONTAL;
         lgnInputPanelGBC.weightx = 0.01;
@@ -157,11 +161,13 @@ public class GraphicalUserInterface implements ActionListener{
         lgnInputPanelGBC.gridy = 6;
         lgnInputPanel.add(lgnLoginBtn, lgnInputPanelGBC);
 
+        // Container for title and input panel
         JPanel lgnContainer = new JPanel();
         lgnContainer.setPreferredSize(new Dimension(900, 400));
         lgnContainer.setLayout(new GridBagLayout());
         lgnContainer.setOpaque(false);
 
+        // Position title and input panels inside container
         GridBagConstraints lgnContainerGBC = new GridBagConstraints();
         lgnContainerGBC.fill = GridBagConstraints.BOTH;
         lgnContainerGBC.weightx = 1;
@@ -172,19 +178,23 @@ public class GraphicalUserInterface implements ActionListener{
         lgnContainerGBC.gridx = 1;
         lgnContainer.add(lgnInputPanel, lgnContainerGBC);
 
+        // Add login container to login panel and show it in the main frame
         loginPanel.add(lgnContainer);
         mainFrame.add(loginPanel);
         mainFrame.setVisible(true);
     }
 
     public void initializeMainPanel(){
+        // Main panel holds the mainRibbonPanel and mainContentPanel sections
         mainPanel = new JPanel();
         mainPanel.setBackground(Color.black);
         mainPanel.setLayout(new GridBagLayout());
 
+        // Initialize both the top ribbon and the main content area (Gin separate kola idk para d ada malipong hehe)
         initializeMainRibbonPanel();
         initializeMainContentPanel();
 
+        // Position ribbon at the top and content below
         GridBagConstraints mainPanelGBC = new GridBagConstraints();
         mainPanelGBC.fill = 1;
         mainPanelGBC.weightx = 1;
@@ -200,12 +210,13 @@ public class GraphicalUserInterface implements ActionListener{
     }
 
     public void initializeMainRibbonPanel(){
+        // Top banner panel (ribbon)
         // Main Ribbon Panel
         mainRibbonPanel = new JPanel();
-        mainRibbonPanel.setBackground(maroon);
+        mainRibbonPanel.setBackground(branding.maroon);
         mainRibbonPanel.setLayout(new GridLayout(1,1));
 
-        // Ribbon Title Panel
+        // Title section of the ribbon
         JPanel rbbnTitlePanel = new JPanel();
         rbbnTitlePanel.setLayout(new BoxLayout(rbbnTitlePanel, BoxLayout.Y_AXIS));
         rbbnTitlePanel.setOpaque(false);
@@ -213,95 +224,107 @@ public class GraphicalUserInterface implements ActionListener{
         JLabel rbbnTitleLabel2 = new JLabel("General Laboratory Database");
         rbbnTitleLabel1.setAlignmentX(Component.CENTER_ALIGNMENT);
         rbbnTitleLabel2.setAlignmentX(Component.CENTER_ALIGNMENT);
-        rbbnTitleLabel1.setFont(sizedFontPalatinoBig);
-        rbbnTitleLabel2.setFont(sizedFontPalatinoSmall);
-        rbbnTitleLabel1.setForeground(white);
-        rbbnTitleLabel2.setForeground(white);
+        rbbnTitleLabel1.setFont(branding.sizedFontPalatinoBig);
+        rbbnTitleLabel2.setFont(branding.sizedFontPalatinoSmall);
+        rbbnTitleLabel1.setForeground(branding.white);
+        rbbnTitleLabel2.setForeground(branding.white);
         rbbnTitlePanel.add(rbbnTitleLabel1);
         rbbnTitlePanel.add(rbbnTitleLabel2);
 
-        // Ribbon Menu Panel
+        // Menu section of the ribbon
+        // Button group (User, About, Logout) aligned to the right
         JPanel rbbnMenuPanel = new JPanel();
-        rbbnMenuPanel.setBackground(lightgray);
+        rbbnMenuPanel.setBackground(branding.lightgray);
         rbbnMenuPanel.setOpaque(false);
         rbbnMenuPanel.setLayout(new FlowLayout(FlowLayout.RIGHT, 35, 8));
         rbbnLogoutBtn = new JButton("Logout");
         rbbnUserBtn = new JButton("User");
         rbbnAboutBtn = new JButton("About");
+
+        // Button styling
         rbbnLogoutBtn.setContentAreaFilled(true);
-        rbbnLogoutBtn.setBackground(maroon);
+        rbbnLogoutBtn.setBackground(branding.maroon);
         rbbnLogoutBtn.setBorderPainted(false);
         rbbnLogoutBtn.setFocusable(false);
-        rbbnLogoutBtn.setForeground(white);
+        rbbnLogoutBtn.setForeground(branding.white);
         rbbnUserBtn.setContentAreaFilled(true);
-        rbbnUserBtn.setBackground(maroon);
+        rbbnUserBtn.setBackground(branding.maroon);
         rbbnUserBtn.setBorderPainted(false);
         rbbnUserBtn.setFocusable(false);
-        rbbnUserBtn.setForeground(white);
+        rbbnUserBtn.setForeground(branding.white);
         rbbnAboutBtn.setContentAreaFilled(true);
-        rbbnAboutBtn.setBackground(maroon);
+        rbbnAboutBtn.setBackground(branding.maroon);
         rbbnAboutBtn.setBorderPainted(false);
         rbbnAboutBtn.setFocusable(false);
-        rbbnAboutBtn.setForeground(white);
+        rbbnAboutBtn.setForeground(branding.white);
+
+        // Add button actions
         rbbnLogoutBtn.addActionListener(this);
         rbbnUserBtn.addActionListener(this);
         rbbnAboutBtn.addActionListener(this);
+
+        // Add buttons to the menu panel
         rbbnMenuPanel.add(rbbnUserBtn);
         rbbnMenuPanel.add(rbbnAboutBtn);
         rbbnMenuPanel.add(rbbnLogoutBtn);
 
-        // Ribbon Logo
+        // // UP Logo on the left
         JLabel rbbnLogoLabel = new JLabel();
-        rbbnLogoLabel.setIcon(new ImageIcon(rbbnUPLogoResized));
+        rbbnLogoLabel.setIcon(new ImageIcon(branding.rbbnUPLogoResized));
 
-        // Main Ribbon Panel
+        // Container 1: title and buttons
         JPanel rbbnPanelContainer1 = new JPanel(new BorderLayout());
         rbbnPanelContainer1.setOpaque(false);
         rbbnPanelContainer1.setBorder(BorderFactory.createEmptyBorder(15,0,0,0));
         rbbnPanelContainer1.add(rbbnTitlePanel, BorderLayout.NORTH); 
         rbbnPanelContainer1.add(rbbnMenuPanel, BorderLayout.SOUTH);
 
+        // Container 2: logo
         JPanel rbbnPanelContainer2 = new JPanel(new BorderLayout());
         rbbnPanelContainer2.setBorder(BorderFactory.createEmptyBorder(0,40,0,0));
         rbbnPanelContainer2.add(rbbnLogoLabel, BorderLayout.WEST);
         rbbnPanelContainer2.setOpaque(false);
 
+        // Overlay both containers for left-right layout
         JPanel rbbnOverlayPanel = new JPanel();
         rbbnOverlayPanel.setLayout(new OverlayLayout(rbbnOverlayPanel));
         rbbnOverlayPanel.setOpaque(false);
-
         rbbnOverlayPanel.add(rbbnPanelContainer1);
         rbbnOverlayPanel.add(rbbnPanelContainer2);
-    
+        
+        // Add everything to the ribbon
         mainRibbonPanel.add(rbbnOverlayPanel);
     }
 
     public void initializeMainContentPanel(){
-        // Main Content Panel 
+        // Main content panel holds either the menu or one of the sub-panels
         mainContentPanel = new JPanel();
-        mainContentPanel.setBackground(white);
+        mainContentPanel.setBackground(branding.white);
         mainContentPanel.setLayout(new GridBagLayout());
 
+        // Menu panel shown initially (main dashboard)
         ctntMenuPanel = new JPanel(); 
         ctntMenuPanel.setPreferredSize(new Dimension(600, 400)); // 900x500 Big, 600x400 Small
-        ctntMenuPanel.setBorder(BorderFactory.createMatteBorder(40, 5, 5, 5, maroon));
-        ctntMenuPanel.setBackground(lightgray);
+        ctntMenuPanel.setBorder(BorderFactory.createMatteBorder(40, 5, 5, 5, branding.maroon));
+        ctntMenuPanel.setBackground(branding.lightgray);
         ctntMenuPanel.setLayout(new GridBagLayout());
 
+        // Buttons for each content section
         ctntBorrowItemBtn = new JButton("Borrow Item");
         ctntBorrowerListBtn = new JButton("Borrower List");
         ctntUpdateInventoryBtn = new JButton("Update Inventory");
         ctntTransactionHistoryBtn = new JButton("Transaction History");
         
-        ctntBorrowItemBtn.setForeground(maroon);
-        ctntBorrowerListBtn.setForeground(maroon);
-        ctntUpdateInventoryBtn.setForeground(maroon);
-        ctntTransactionHistoryBtn.setForeground(maroon);
+        // Button styles
+        ctntBorrowItemBtn.setForeground(branding.maroon);
+        ctntBorrowerListBtn.setForeground(branding.maroon);
+        ctntUpdateInventoryBtn.setForeground(branding.maroon);
+        ctntTransactionHistoryBtn.setForeground(branding.maroon);
 
-        ctntBorrowItemBtn.setBackground(lightergray);
-        ctntBorrowerListBtn.setBackground(lightergray);
-        ctntUpdateInventoryBtn.setBackground(lightergray);
-        ctntTransactionHistoryBtn.setBackground(lightergray);
+        ctntBorrowItemBtn.setBackground(branding.lightergray);
+        ctntBorrowerListBtn.setBackground(branding.lightergray);
+        ctntUpdateInventoryBtn.setBackground(branding.lightergray);
+        ctntTransactionHistoryBtn.setBackground(branding.lightergray);
 
         ctntBorrowItemBtn.setFocusable(false);
         ctntBorrowerListBtn.setFocusable(false);
@@ -313,11 +336,14 @@ public class GraphicalUserInterface implements ActionListener{
         ctntUpdateInventoryBtn.setPreferredSize(new Dimension(270, 35));
         ctntTransactionHistoryBtn.setPreferredSize(new Dimension(270, 35));
 
+        // Button listeners
         ctntBorrowItemBtn.addActionListener(this);
         ctntBorrowerListBtn.addActionListener(this);
         ctntUpdateInventoryBtn.addActionListener(this);
         ctntTransactionHistoryBtn.addActionListener(this);
 
+
+        // Place the buttons vertically in ctntMenuPanel
         GridBagConstraints contentPanelGBC = new GridBagConstraints();
         contentPanelGBC.insets = new Insets(0, 0, 25, 0);
         contentPanelGBC.gridx = 0;
@@ -333,121 +359,40 @@ public class GraphicalUserInterface implements ActionListener{
         contentPanelGBC.gridy = 3;
         ctntMenuPanel.add(ctntTransactionHistoryBtn, contentPanelGBC);
 
+        // Add the menu to the content panel
         mainContentPanel.add(ctntMenuPanel);
-        initializeBorrowItemPanel();
-        initializeBorrowerListPanel();
-        initializeUpdateInventoryPanel();
-        initializeTransactionHistoryPanel();
-    }
 
-
-    public void initializeBorrowItemPanel(){
-        ctntBorrowItemPanel = new JPanel();
-        ctntBorrowItemPanel.setLayout(new GridBagLayout());
-        ctntBorrowItemPanel.setBackground(lightgray);
-        ctntBorrowItemPanel.setPreferredSize(new Dimension(900, 500));
-        ctntBorrowItemPanel.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, maroon));
+        // Back buttons for sub-panels
         bitmBackBtn = new JButton("Go Back");
-        bitmBackBtn.setBackground(lightergray);
-        bitmBackBtn.setForeground(maroon);
-        bitmBackBtn.addActionListener(this);
-        ctntBorrowItemPanel.add(bitmBackBtn);
-    }
-
-    public void initializeBorrowerListPanel(){
-        ctntBorrowerListPanel = new JPanel();
-        ctntBorrowerListPanel.setLayout(new GridBagLayout());
-        ctntBorrowerListPanel.setBackground(lightgray);
-        ctntBorrowerListPanel.setPreferredSize(new Dimension(900, 500));
-        ctntBorrowerListPanel.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, maroon));
         blstBackBtn = new JButton("Go Back");
-        blstBackBtn.setBackground(lightergray);
-        blstBackBtn.setForeground(maroon);
-        blstBackBtn.addActionListener(this);
-        ctntBorrowerListPanel.add(blstBackBtn);
-    }
-
-    public void initializeUpdateInventoryPanel(){
-        ctntUpdateInventoryPanel = new JPanel();
-        ctntUpdateInventoryPanel.setLayout(new GridBagLayout());
-        ctntUpdateInventoryPanel.setBackground(lightgray);
-        ctntUpdateInventoryPanel.setPreferredSize(new Dimension(900, 500));
-        ctntUpdateInventoryPanel.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, maroon));
         upinBackBtn = new JButton("Go Back");
-        upinBackBtn.setBackground(lightergray);
-        upinBackBtn.setForeground(maroon);
-        upinBackBtn.addActionListener(this);
-        ctntUpdateInventoryPanel.add(upinBackBtn);
-    }
-
-    public void initializeTransactionHistoryPanel(){
-        ctntTransactionHistoryPanel = new JPanel();
-        ctntTransactionHistoryPanel.setLayout(new GridBagLayout());
-        ctntTransactionHistoryPanel.setBackground(lightgray);
-        ctntTransactionHistoryPanel.setPreferredSize(new Dimension(900, 500));
-        ctntTransactionHistoryPanel.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, maroon));
         tranBackBtn = new JButton("Go Back");
-        tranBackBtn.setBackground(lightergray);
-        tranBackBtn.setForeground(maroon);
+        bitmBackBtn.addActionListener(this);
+        blstBackBtn.addActionListener(this);
+        upinBackBtn.addActionListener(this);
         tranBackBtn.addActionListener(this);
-        ctntTransactionHistoryPanel.add(tranBackBtn);
+
+        // Initialize sub-panels (they will always be added inside mainContentPanel)
+        ctntBorrowItemPanel = new GUIBorrowItemPanel(branding, bitmBackBtn);
+        ctntBorrowerListPanel = new GUIBorrowItemPanel(branding, blstBackBtn);
+        ctntUpdateInventoryPanel = new GUIBorrowItemPanel(branding, upinBackBtn);
+        ctntTransactionHistoryPanel = new GUIBorrowItemPanel(branding, tranBackBtn);
     }
 
-    @SuppressWarnings("CallToPrintStackTrace")
-    public void initializeBranding(){
-        maroon = new Color(94,38,5);
-        lightgray = new Color(238, 224, 229);
-        lightergray = new Color(242, 242, 242); 
-        white = new Color(255, 255, 255);
-
-        try {
-            Font palatinoFont = Font.createFont(Font.TRUETYPE_FONT, new File("Assets/Font/Palatino.ttf"));
-            sizedFontPalatinoBig = palatinoFont.deriveFont(Font.PLAIN, 35);
-            sizedFontPalatinoSmall = palatinoFont.deriveFont(Font.PLAIN, 27);
-        } catch (FontFormatException | IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            upLogo = ImageIO.read(new File("Assets/Logo/UP Logo.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        lgnUPLogoResized = resizeImage(upLogo, 150, 150);
-        rbbnUPLogoResized = resizeImage(upLogo, 110, 110);
-        
-        UIManager.put("OptionPane.background", lightgray);
-        UIManager.put("Panel.background", lightgray);
-        UIManager.put("OptionPane.messageForeground", maroon);
-        UIManager.put("Button.background", maroon);
-        UIManager.put("Button.foreground", white);
-        UIManager.put("Label.font", new Font("Roboto", Font.PLAIN, 15));
-        UIManager.put("Button.font", new Font("Roboto", Font.PLAIN, 15));
-        UIManager.put("Button.focus", new Color(0, 0, 0, 0));
-    }
-
-    private BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
-        Image tmp = originalImage.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-        BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = resizedImage.createGraphics();
-        g2d.drawImage(tmp, 0, 0, null);
-        g2d.dispose();
-        return resizedImage;
-    }
 
     // Button Logic
-
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == lgnLoginBtn) {
             queries.login(lgnInputUsernameField, lgnInputPasswordField, loginPanel, mainFrame, mainPanel, lgnStatusLabel);
+            lgnInputUsernameField.setText("");
+            lgnInputPasswordField.setText("");
         } else if (e.getSource() == ctntBorrowItemBtn) {
             mainContentPanel.removeAll();
             mainContentPanel.add(ctntBorrowItemPanel);
-            queries.borrowItems();
             mainContentPanel.revalidate();
             mainContentPanel.repaint();
+            queries.borrowItems(new Scanner(System.in));
         } else if (e.getSource() == ctntBorrowerListBtn) {
             mainContentPanel.removeAll();
             mainContentPanel.add(ctntBorrowerListPanel);
@@ -472,7 +417,8 @@ public class GraphicalUserInterface implements ActionListener{
             JOptionPane.PLAIN_MESSAGE
             );
             if (result == JOptionPane.YES_OPTION) {
-                System.out.println("LOGOUT");
+                lgnStatusLabel.setText("Please enter login credentials.");
+                lgnStatusLabel.setForeground(branding.maroon);
                 mainFrame.add(loginPanel);
                 mainFrame.remove(mainPanel);
                 mainContentPanel.removeAll();
