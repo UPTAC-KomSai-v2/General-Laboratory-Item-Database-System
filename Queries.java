@@ -20,6 +20,7 @@ public class Queries {
     private Connection conn;
     private Statement stmt;
     private PreparedStatement ptmt;
+    private boolean bypassDB = true;
     
     public Queries(){}
 
@@ -41,6 +42,18 @@ public class Queries {
 
         //String user = username.getText();
         //String pass = new String(password.getPassword());
+
+        if (bypassDB) {
+            // Skip DB connection and go straight to mainPanel
+            JOptionPane.showMessageDialog(mainFrame, "Login bypassed for testing.", "Bypass Mode", JOptionPane.INFORMATION_MESSAGE);
+            statusLabel.setText("Login Success (bypassed)");
+            statusLabel.setForeground(Color.GREEN);
+            mainFrame.remove(loginPanel);
+            mainFrame.add(mainPanel);
+            mainFrame.revalidate();
+            mainFrame.repaint();
+            return;
+        }
 
         String user = "sql12773093";
         String pass = "6e6zJ2BwSj";

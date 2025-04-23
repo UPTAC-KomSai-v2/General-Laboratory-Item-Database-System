@@ -316,15 +316,15 @@ public class GraphicalUserInterface implements ActionListener{
         ctntTransactionHistoryBtn = new JButton("Transaction History");
         
         // Button styles
-        ctntBorrowItemBtn.setForeground(branding.maroon);
-        ctntBorrowerListBtn.setForeground(branding.maroon);
-        ctntUpdateInventoryBtn.setForeground(branding.maroon);
-        ctntTransactionHistoryBtn.setForeground(branding.maroon);
+        ctntBorrowItemBtn.setForeground(branding.white);
+        ctntBorrowerListBtn.setForeground(branding.white);
+        ctntUpdateInventoryBtn.setForeground(branding.white);
+        ctntTransactionHistoryBtn.setForeground(branding.white);
 
-        ctntBorrowItemBtn.setBackground(branding.lightergray);
-        ctntBorrowerListBtn.setBackground(branding.lightergray);
-        ctntUpdateInventoryBtn.setBackground(branding.lightergray);
-        ctntTransactionHistoryBtn.setBackground(branding.lightergray);
+        ctntBorrowItemBtn.setBackground(branding.maroon);
+        ctntBorrowerListBtn.setBackground(branding.maroon);
+        ctntUpdateInventoryBtn.setBackground(branding.maroon);
+        ctntTransactionHistoryBtn.setBackground(branding.maroon);
 
         ctntBorrowItemBtn.setFocusable(false);
         ctntBorrowerListBtn.setFocusable(false);
