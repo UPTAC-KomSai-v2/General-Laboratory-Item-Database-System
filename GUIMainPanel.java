@@ -14,7 +14,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.OverlayLayout;
-import java.awt.event.ActionListener;
 
 public class GUIMainPanel extends JPanel {
 
@@ -25,7 +24,6 @@ public class GUIMainPanel extends JPanel {
 
     public GUIMainPanel(
         Branding branding,
-        ActionListener actionListener,
         JButton rbbnLogoutBtn,
         JButton rbbnUserBtn,
         JButton rbbnAboutBtn,

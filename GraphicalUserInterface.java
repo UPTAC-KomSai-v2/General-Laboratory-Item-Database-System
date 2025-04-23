@@ -98,7 +98,6 @@ public class GraphicalUserInterface implements ActionListener {
         // Main panel layout with buttons
         mainPanel = new GUIMainPanel(
             branding,
-            this,
             rbbnLogoutBtn, rbbnUserBtn, rbbnAboutBtn,
             ctntBorrowItemBtn, ctntBorrowerListBtn, ctntUpdateInventoryBtn, ctntTransactionHistoryBtn
         );
