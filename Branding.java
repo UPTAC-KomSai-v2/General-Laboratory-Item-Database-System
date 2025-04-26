@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Graphics2D;
@@ -7,18 +8,24 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.JButton;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
 import javax.swing.UIManager;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 
 public class Branding {
-    BufferedImage upLogo, lgnUPLogoResized, rbbnUPLogoResized;
-    Color maroon, lightgray, white, lightergray; 
+    BufferedImage upLogo, lgnUPLogoResized, rbbnUPLogoResized, borrowIcon, returnIcon, arrowIcon;
+    Color darkermaroon, maroon, lightgray, white, gray, lightergray; 
     Font sizedFontPalatinoBig, sizedFontPalatinoSmall;
 
 
     public Branding(){
         maroon = new Color(94,38,5);
+        darkermaroon = new Color(60,28,14);
         lightgray = new Color(238, 224, 229);
-        lightergray = new Color(242, 242, 242); 
+        lightergray = new Color(242, 242, 242);
+        gray = new Color(200, 200, 200); 
         white = new Color(255, 255, 255);
 
         try {
@@ -31,13 +38,21 @@ public class Branding {
 
         try {
             upLogo = ImageIO.read(new File("Assets/Logo/UP Logo.png"));
+            borrowIcon = ImageIO.read(new File("Assets/Icons/borrow.png"));
+            returnIcon = ImageIO.read(new File("Assets/Icons/return.png"));
+            arrowIcon = ImageIO.read(new File("Assets/Icons/arrow.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+
         lgnUPLogoResized = resizeImage(upLogo, 150, 150);
         rbbnUPLogoResized = resizeImage(upLogo, 110, 110);
-        
+        borrowIcon = resizeImage(borrowIcon, 35, 45);
+        returnIcon = resizeImage(returnIcon, 35, 45);  
+        arrowIcon = resizeImage(arrowIcon, 30,30);
+
+
         UIManager.put("OptionPane.background", lightgray);
         UIManager.put("Panel.background", lightgray);
         UIManager.put("OptionPane.messageForeground", maroon);
@@ -55,5 +70,40 @@ public class Branding {
         g2d.drawImage(tmp, 0, 0, null);
         g2d.dispose();
         return resizedImage;
+    }
+
+    public void reskinScrollBar(JScrollPane scrollPane){
+        scrollPane.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
+                @Override
+                protected void configureScrollBarColors() {
+                    thumbColor = gray;
+                    trackColor = lightgray;
+                }
+
+                @Override
+                protected JButton createDecreaseButton(int orientation) {
+                    return createZeroButton();
+                }
+
+                @Override
+                protected JButton createIncreaseButton(int orientation) {
+                    return createZeroButton();
+                }
+
+                private JButton createZeroButton() {
+                    JButton button = new JButton();
+                    button.setPreferredSize(new Dimension(0, 0));
+                    button.setMinimumSize(new Dimension(0, 0));
+                    button.setMaximumSize(new Dimension(0, 0));
+                    return button;
+                }
+        });
+        
+        JScrollBar verticalBar = scrollPane.getVerticalScrollBar();
+        verticalBar.setPreferredSize(new Dimension(12, Integer.MAX_VALUE)); // 12px width
+
+        JScrollBar horizontalBar = scrollPane.getHorizontalScrollBar();
+        horizontalBar.setPreferredSize(new Dimension(Integer.MAX_VALUE, 12)); // 12px height    
+
     }
 }

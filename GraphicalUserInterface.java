@@ -2,9 +2,9 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -104,9 +104,9 @@ public class GraphicalUserInterface implements ActionListener {
 
         // Sub-panel views with back buttons
         ctntBorrowItemPanel = new GUIBorrowItemPanel(branding, bitmBackBtn);
-        ctntBorrowerListPanel = new GUIBorrowItemPanel(branding, blstBackBtn);
-        ctntUpdateInventoryPanel = new GUIBorrowItemPanel(branding, upinBackBtn);
-        ctntTransactionHistoryPanel = new GUIBorrowItemPanel(branding, tranBackBtn);
+        ctntBorrowerListPanel = new GUIBorrowerListPanel(branding, blstBackBtn);
+        ctntUpdateInventoryPanel = new GUIUpdateInventoryPanel(branding, upinBackBtn);
+        ctntTransactionHistoryPanel = new GUITransactionHistoryPanel(branding, tranBackBtn);
     }
 
     @Override
@@ -115,9 +115,6 @@ public class GraphicalUserInterface implements ActionListener {
 
         if (src == lgnLoginBtn) {
             queries.login(loginPanel.lgnInputUsernameField, loginPanel.lgnInputPasswordField, loginPanel, mainFrame, mainPanel, loginPanel.lgnStatusLabel);
-            loginPanel.lgnInputUsernameField.setText("");
-            loginPanel.lgnInputPasswordField.setText("");
-
             mainFrame.remove(loginPanel);
             mainFrame.add(mainPanel);
             mainFrame.revalidate();
@@ -146,7 +143,8 @@ public class GraphicalUserInterface implements ActionListener {
 
                 mainFrame.add(loginPanel);
                 mainFrame.remove(mainPanel);
-                //mainPanel.contentPanel.removeAll();
+                mainPanel.contentPanel.removeAll();
+                mainPanel.contentPanel.add(mainPanel.menuButtonsPanel);
                 mainPanel.revalidate();
                 mainPanel.repaint();
                 mainFrame.revalidate();

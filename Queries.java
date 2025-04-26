@@ -65,6 +65,8 @@ public class Queries {
             statusLabel.setText("Login Success");
             statusLabel.setForeground(Color.GREEN);
             JOptionPane.showMessageDialog(mainFrame, new JLabel("Login successful!", SwingConstants.CENTER), "Success", JOptionPane.PLAIN_MESSAGE );
+            username.setText("");
+            password.setText("");
             mainFrame.remove(loginPanel);
             mainFrame.add(mainPanel);
             mainFrame.revalidate();

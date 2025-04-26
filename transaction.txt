@@ -1,5 +1,6 @@
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -13,28 +14,22 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 public class GUITransactionHistoryPanel extends JPanel{
+    private CardLayout cardLayout;
     private Branding branding;
+    private JButton screen1BackBtn;
     private JPanel screen1;
-    private JButton screen1BackButton;
 
     public GUITransactionHistoryPanel(Branding branding, JButton tranBackBtn ){
+        this.screen1BackBtn = tranBackBtn;
         this.branding = branding;
-        this.screen1BackButton = tranBackBtn;
-        this.setLayout(new GridBagLayout());
+        this.setLayout(cardLayout);
         this.setBackground(branding.lightgray);
         this.setPreferredSize(new Dimension(900, 500));
         this.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, branding.maroon));
-        
-        // Different Screens Inside GUITransactionHistoryPanel (in this case 1 screen lang)
+
         initializeScreen1();
-        
 
-        GridBagConstraints transactionHistoryPanelGBC = new GridBagConstraints();
-        transactionHistoryPanelGBC.fill = GridBagConstraints.BOTH;
-        transactionHistoryPanelGBC.weightx = 1;
-        transactionHistoryPanelGBC.weighty = 1;
-        this.add(screen1, transactionHistoryPanelGBC);
-
+        this.add(screen1, "Panel 1");
     }
     
     public void initializeScreen1(){
@@ -46,7 +41,7 @@ public class GUITransactionHistoryPanel extends JPanel{
         JPanel scrn1TransactionContentPanel = new JPanel(new GridLayout(0,1,0,20));
         scrn1TransactionContentPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
 
-        // Temporary data only. To be replaced by the final sql to java implementation 
+        // To be replaced by the final sql to java implementation 
         String[][] entries = {
             {"Borrow", "Roberto, Jack Cole", "202300000", "2:43 PM", "1 03 Feb 2023"},
             {"Return", "Roberto, Jack Cole", "202300000", "5:23 PM", "2 03 Feb 2023"},
@@ -150,10 +145,10 @@ public class GUITransactionHistoryPanel extends JPanel{
         scrn1MenuPanel.setBackground(branding.maroon);
         scrn1MenuPanel.setOpaque(false);
 
-        screen1BackButton.setPreferredSize(new Dimension(150, 30));
-        screen1BackButton.setBackground(branding.maroon);
-        screen1BackButton.setForeground(branding.lightergray);
-        scrn1MenuPanel.add(screen1BackButton);
+        screen1BackBtn.setPreferredSize(new Dimension(150, 30));
+        screen1BackBtn.setBackground(branding.maroon);
+        screen1BackBtn.setForeground(branding.lightergray);
+        scrn1MenuPanel.add(screen1BackBtn);
 
         GridBagConstraints screen1GBC = new GridBagConstraints();
         screen1GBC.fill = GridBagConstraints.BOTH;
@@ -165,5 +160,8 @@ public class GUITransactionHistoryPanel extends JPanel{
         screen1GBC.weighty = 0.01;
         screen1GBC.gridy = 1;
         screen1.add(scrn1MenuPanel, screen1GBC);
+
+
+        System.out.println("hello");
     }
 }
