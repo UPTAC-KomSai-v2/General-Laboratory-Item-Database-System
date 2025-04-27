@@ -40,7 +40,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         this.add(screen2, "Panel2");
     }
 
-    public void initializeScreen1(JButton blstBackBtn){
+    private void initializeScreen1(JButton blstBackBtn){
         screen1 = new JPanel();
         screen1.setLayout(new GridBagLayout());
         screen1.setBorder(BorderFactory.createCompoundBorder(

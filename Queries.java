@@ -20,7 +20,7 @@ public class Queries {
     private Connection conn;
     private Statement stmt;
     private PreparedStatement ptmt;
-    private boolean bypassDB = true;
+    private boolean bypassDB = false;
     
     public Queries(){}
 
