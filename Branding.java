@@ -72,12 +72,18 @@ public class Branding {
         return resizedImage;
     }
 
-    public void reskinScrollBar(JScrollPane scrollPane){
+    public void reskinScrollBar(JScrollPane scrollPane, Color color){
         scrollPane.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
                 @Override
                 protected void configureScrollBarColors() {
-                    thumbColor = gray;
-                    trackColor = lightgray;
+                    if (color.equals(gray)){
+                        thumbColor = gray;
+                        trackColor = lightgray;
+                    }else if (color.equals(maroon)) {
+                        thumbColor = darkermaroon;
+                        trackColor = maroon;
+                    }
+                    
                 }
 
                 @Override

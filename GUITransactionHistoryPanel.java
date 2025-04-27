@@ -4,8 +4,9 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -43,7 +44,8 @@ public class GUITransactionHistoryPanel extends JPanel{
         screen1.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
         screen1.setBackground(branding.lightgray);
 
-        JPanel scrn1TransactionContentPanel = new JPanel(new GridLayout(0,1,0,20));
+        JPanel scrn1TransactionContentPanel = new JPanel();
+        scrn1TransactionContentPanel.setLayout(new BoxLayout(scrn1TransactionContentPanel, BoxLayout.Y_AXIS));
         scrn1TransactionContentPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
 
         // Temporary data only. To be replaced by the final sql to java implementation 
@@ -111,9 +113,12 @@ public class GUITransactionHistoryPanel extends JPanel{
             datePanel.add(dateLabel, BorderLayout.WEST);
 
             JPanel tupleInfoPanel = new JPanel();
+            tupleInfoPanel.setMaximumSize(new Dimension(900, 70));
             tupleInfoPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
             tupleInfoPanel.setLayout(new GridBagLayout());
             tupleInfoPanel.setBackground(branding.maroon);
+
+
             GridBagConstraints tupleInfoPanelGBC = new GridBagConstraints();
             tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
             tupleInfoPanelGBC.gridx = 0;
@@ -137,13 +142,14 @@ public class GUITransactionHistoryPanel extends JPanel{
             tupleInfoPanelGBC.weightx = 0.2;
             tupleInfoPanel.add(datePanel, tupleInfoPanelGBC);
             scrn1TransactionContentPanel.add(tupleInfoPanel);
+            scrn1TransactionContentPanel.add(Box.createVerticalStrut(10)); //add gaps between touples
         }
 
         JScrollPane scrollContentPanel = new JScrollPane(scrn1TransactionContentPanel);
         scrollContentPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollContentPanel.getVerticalScrollBar().setUnitIncrement(16);
         scrollContentPanel.setBorder(null);
-        branding.reskinScrollBar(scrollContentPanel);
+        branding.reskinScrollBar(scrollContentPanel, branding.gray);
 
         JPanel scrn1MenuPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
         scrn1MenuPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 28));
