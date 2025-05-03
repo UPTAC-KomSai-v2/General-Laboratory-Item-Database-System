@@ -19,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 
 public class GUIBorrowItemPanel extends JPanel{
     private CardLayout cardLayout;
@@ -35,19 +36,23 @@ public class GUIBorrowItemPanel extends JPanel{
     // Map to quickly check if an item is in the basket
     private Map<String, BasketItem> basketItemsMap = new HashMap<>();
     
+    private Map<String, JPanel> itemPanelsMap = new HashMap<>();
+    
     // Class to represent an item in the basket
     private static class BasketItem {
         String category;
         String itemName;
+        int itemQuantity;
         
         public BasketItem(String category, String itemName) {
             this.category = category;
             this.itemName = itemName;
+            this.itemQuantity = 1;
         }
         
         @Override
         public String toString() {
-            return "Category: " + category + ", Item: " + itemName;
+            return "Category: " + category + ", Item: " + itemName + ", Quantity: " + itemQuantity;
         }
     }
     
@@ -124,62 +129,41 @@ public class GUIBorrowItemPanel extends JPanel{
         showNoCategorySelectedMessage();
     }
     
-    private void initializeScreen2(){
+    private void initializeScreen2() {
         screen2 = new JPanel();
         screen2.setLayout(new GridBagLayout());
         screen2.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         screen2.setBackground(branding.maroon);
-
+    
         scrn2BorrowedItemsContentPanel = new JPanel();
-        scrn2BorrowedItemsContentPanel.setLayout(new BoxLayout(scrn2BorrowedItemsContentPanel, BoxLayout.Y_AXIS));
+        scrn2BorrowedItemsContentPanel.setLayout(new BoxLayout(scrn2BorrowedItemsContentPanel, BoxLayout.Y_AXIS)); // Set to vertical stack
         scrn2BorrowedItemsContentPanel.setBackground(branding.maroon);
         scrn2BorrowedItemsContentPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
-        
-        
-
-        String[] borrowerInfo = {"Example, John Pork", "69696969", "12:01 PM", "13 Feb 2023"};
-
+    
+    
         JPanel scrn2BorrowerInfoPanel = new JPanel();
         scrn2BorrowerInfoPanel.setBorder(BorderFactory.createEmptyBorder(10, 50, 20, 0));
         scrn2BorrowerInfoPanel.setLayout(new GridBagLayout());
         scrn2BorrowerInfoPanel.setOpaque(false);
-        int i = 0;
-        JLabel borrowerLabel = new JLabel("Borrower: ");
-        JLabel borrowerNameLabel = new JLabel(borrowerInfo[i++]);
-        JLabel studentIdLabel = new JLabel(borrowerInfo[i++]);
-        JLabel timeLabel = new JLabel(borrowerInfo[i++]);
-        JLabel dateLabel = new JLabel(borrowerInfo[i++]);
-
-        borrowerLabel.setForeground(branding.white);
-        borrowerNameLabel.setForeground(branding.white);
-        studentIdLabel.setForeground(branding.white);
-        timeLabel.setForeground(branding.white);
-        dateLabel.setForeground(branding.white);
-
+    
         JPanel borrowerPanel = new JPanel();
         JPanel borrowerNamePanel = new JPanel();
         JPanel studentIdPanel = new JPanel();
         JPanel timePanel = new JPanel();
         JPanel datePanel = new JPanel();
-
+    
         borrowerPanel.setLayout(new BorderLayout());
         borrowerNamePanel.setLayout(new BorderLayout());
         studentIdPanel.setLayout(new BorderLayout());
         timePanel.setLayout(new BorderLayout());
         datePanel.setLayout(new BorderLayout());
-
+    
         borrowerPanel.setOpaque(false);
         borrowerNamePanel.setOpaque(false);
         studentIdPanel.setOpaque(false);
         timePanel.setOpaque(false);
         datePanel.setOpaque(false);
-
-        borrowerPanel.add(borrowerLabel, BorderLayout.WEST);
-        borrowerNamePanel.add(borrowerNameLabel, BorderLayout.WEST);
-        studentIdPanel.add(studentIdLabel, BorderLayout.WEST);
-        timePanel.add(timeLabel, BorderLayout.WEST);
-        datePanel.add(dateLabel, BorderLayout.WEST);
-
+    
         GridBagConstraints scrn2BorrowerInfoPanelGBC = new GridBagConstraints();
         scrn2BorrowerInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
         scrn2BorrowerInfoPanelGBC.gridx = 0;
@@ -202,42 +186,39 @@ public class GUIBorrowItemPanel extends JPanel{
         scrn2BorrowerInfoPanelGBC.ipadx = 20;
         scrn2BorrowerInfoPanelGBC.weightx = 0.5;
         scrn2BorrowerInfoPanel.add(datePanel, scrn2BorrowerInfoPanelGBC);
-
+    
         JScrollPane scrn2ScrollContentPanel = new JScrollPane(scrn2BorrowedItemsContentPanel);
         scrn2ScrollContentPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrn2ScrollContentPanel.getVerticalScrollBar().setUnitIncrement(16);
         scrn2ScrollContentPanel.setBackground(branding.maroon);
         scrn2ScrollContentPanel.setBorder(null);
         branding.reskinScrollBar(scrn2ScrollContentPanel, branding.maroon);
-
+    
         JPanel scrn2MenuPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
         scrn2MenuPanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 33));
         scrn2MenuPanel.setBackground(branding.lightgray);
         scrn2MenuPanel.setOpaque(true);
-
+    
         JButton screen2BackBtn = new JButton("Go Back");
         JButton screen2ContinueBtn = new JButton("Continue");
-
-
+    
         screen2BackBtn.setPreferredSize(new Dimension(150, 30));
         screen2BackBtn.setBackground(branding.maroon);
         screen2BackBtn.setForeground(branding.white);
         screen2BackBtn.addActionListener(e -> {
             cardLayout.previous(GUIBorrowItemPanel.this);
         });
-
+    
         screen2ContinueBtn.setPreferredSize(new Dimension(150, 30));
         screen2ContinueBtn.setBackground(branding.maroon);
         screen2ContinueBtn.setForeground(branding.white);
         screen2ContinueBtn.addActionListener(e -> {
             cardLayout.next(GUIBorrowItemPanel.this);
         });
-
-
-
+    
         scrn2MenuPanel.add(screen2BackBtn);
         scrn2MenuPanel.add(screen2ContinueBtn);
-
+    
         GridBagConstraints screen2GBC = new GridBagConstraints();
         screen2GBC.fill = GridBagConstraints.BOTH;
         screen2GBC.weightx = 1;
@@ -250,9 +231,8 @@ public class GUIBorrowItemPanel extends JPanel{
         screen2GBC.weighty = 0.01;
         screen2GBC.gridy++;
         screen2.add(scrn2MenuPanel, screen2GBC);
-
     }
-
+    
     private void initializeScreen3(){
         screen3 = new JPanel();
         screen3.setLayout(new GridBagLayout());
@@ -267,86 +247,134 @@ public class GUIBorrowItemPanel extends JPanel{
         screen3.add(screen3BackBtn);
     }
 
-    private void updateBasketDisplayPanel(){
-        String[][] entries = {
-            {"2x", "Beaker", "100 ml"},
-            {"1x", "Petri Dish", ""}
-        };
-        
-        for (String[] tuple: entries){
-            int i = 0;
-            
-            JLabel quantityLabel = new JLabel(tuple[i++]);
-            JLabel itemLabel = new JLabel(tuple[i++]);
-            JLabel unitLabel = new JLabel(tuple[i++]);
+private void updateBasketDisplayPanel() {
+    String[][] entries = new String[basketItems.size()][2]; // Update this to store both item name and quantity
 
-            quantityLabel.setForeground(branding.maroon);
-            itemLabel.setForeground(branding.maroon);
-            unitLabel.setForeground(branding.maroon);
-
-            JButton returnItemBtn = new JButton("Return");
-            returnItemBtn.setPreferredSize(new Dimension(100, 35));
-            returnItemBtn.setBackground(branding.maroon);
-            returnItemBtn.setForeground(branding.white);
-            
-            
-            JPanel quantityPanel = new JPanel();
-            JPanel itemPanel = new JPanel();
-            JPanel unitPanel = new JPanel();
-            JPanel returnPanel = new JPanel();
-
-            quantityPanel.setLayout(new BorderLayout());
-            itemPanel.setLayout(new BorderLayout());
-            unitPanel.setLayout(new BorderLayout());
-            returnPanel.setLayout(new GridBagLayout());
-
-            quantityPanel.setPreferredSize(new Dimension(10, 70));
-            itemPanel.setPreferredSize(new Dimension(10, 70));
-            unitPanel.setPreferredSize(new Dimension(10, 70));
-            returnPanel.setPreferredSize(new Dimension(10, 70));
-            
-            quantityPanel.setOpaque(false);
-            itemPanel.setOpaque(false);
-            unitPanel.setOpaque(false);
-            returnPanel.setOpaque(false);
-
-            quantityPanel.add(quantityLabel, BorderLayout.WEST);
-            itemPanel.add(itemLabel, BorderLayout.WEST);
-            unitPanel.add(unitLabel, BorderLayout.WEST);
-            returnPanel.add(returnItemBtn);
-
-            JPanel tupleInfoPanel = new JPanel();
-            tupleInfoPanel.setMaximumSize(new Dimension(900, 70));
-            tupleInfoPanel.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 20));
-            tupleInfoPanel.setLayout(new GridBagLayout());
-            tupleInfoPanel.setBackground(branding.lightgray);
-            
-            GridBagConstraints tupleInfoPanelGBC = new GridBagConstraints();
-            tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
-            tupleInfoPanelGBC.gridx = 0;
-            tupleInfoPanelGBC.ipadx = 20;
-            tupleInfoPanelGBC.weightx = 0.05;
-            tupleInfoPanel.add(quantityPanel, tupleInfoPanelGBC);
-            tupleInfoPanelGBC.gridx++;
-            tupleInfoPanelGBC.ipadx = 20;
-            tupleInfoPanelGBC.weightx = 0.1;
-            tupleInfoPanel.add(itemPanel, tupleInfoPanelGBC);
-            tupleInfoPanelGBC.gridx++;
-            tupleInfoPanelGBC.ipadx = 20;
-            tupleInfoPanelGBC.weightx = 0.1;
-            tupleInfoPanel.add(unitPanel, tupleInfoPanelGBC);
-            tupleInfoPanelGBC.fill = GridBagConstraints.NONE;
-            tupleInfoPanelGBC.anchor = GridBagConstraints.EAST; // optional
-            tupleInfoPanelGBC.gridx++;
-            tupleInfoPanelGBC.ipadx = 100;
-            tupleInfoPanelGBC.weightx = 0.2;
-            tupleInfoPanel.add(returnPanel, tupleInfoPanelGBC);
-
-            scrn2BorrowedItemsContentPanel.add(tupleInfoPanel);
-            scrn2BorrowedItemsContentPanel.add(Box.createVerticalStrut(10)); //add gaps between touples
-        }
+    for (int i = 0; i < basketItems.size(); i++) {
+        entries[i][0] = basketItems.get(i).itemName;
+        entries[i][1] = String.valueOf(basketItems.get(i).itemQuantity); // Store the quantity
     }
 
+    scrn2BorrowedItemsContentPanel.removeAll(); // Clear previous entries
+
+    for (String[] tuple : entries) {
+        int i = 0;
+
+        JLabel itemLabel = new JLabel(tuple[i++]);
+        JLabel quantityLabel = new JLabel(tuple[i]); // Display quantity from the entry
+        quantityLabel.setForeground(branding.maroon);
+        quantityLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+        itemLabel.setForeground(branding.maroon);
+        quantityLabel.setForeground(branding.maroon);
+
+        JButton addBtn = new JButton("+");
+        addBtn.setPreferredSize(new Dimension(50, 35));
+        addBtn.setBackground(branding.maroon);
+        addBtn.setForeground(branding.white);
+
+        JButton subtractBtn = new JButton("-");
+        subtractBtn.setPreferredSize(new Dimension(50, 35));
+        subtractBtn.setBackground(branding.maroon);
+        subtractBtn.setForeground(branding.white);
+
+        JPanel itemPanel = new JPanel();
+        JPanel quantityPanel = new JPanel();
+
+        itemPanel.setLayout(new BorderLayout());
+        quantityPanel.setLayout(new GridBagLayout());
+
+        itemPanel.setPreferredSize(new Dimension(10, 70));
+        quantityPanel.setPreferredSize(new Dimension(10, 70));
+
+        itemPanel.setOpaque(false);
+        quantityPanel.setOpaque(false);
+
+        itemPanel.add(itemLabel, BorderLayout.WEST);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(0, 5, 0, 5);
+
+        gbc.gridx = 0;
+        quantityPanel.add(addBtn, gbc);
+        gbc.gridx = 1;
+        quantityPanel.add(quantityLabel, gbc);
+        gbc.gridx = 2;
+        quantityPanel.add(subtractBtn, gbc);
+
+        // Add ActionListener to update item quantity on "+" button click
+        addBtn.addActionListener(e -> {
+            String itemName = itemLabel.getText(); // Get the item name
+            BasketItem item = basketItemsMap.get(itemName);
+            if (item != null) {
+                item.itemQuantity++; // Increment quantity
+                quantityLabel.setText(String.valueOf(item.itemQuantity)); // Update quantity label
+                scrn2BorrowedItemsContentPanel.revalidate();
+                scrn2BorrowedItemsContentPanel.repaint();
+            }
+        });
+
+        // Add ActionListener to update item quantity on "-" button click
+        subtractBtn.addActionListener(e -> {
+            String itemName = itemLabel.getText(); // Get the item name
+            BasketItem item = basketItemsMap.get(itemName);
+            
+            if (item != null) {
+                if (item.itemQuantity > 1) {
+                    item.itemQuantity--; // Decrement quantity
+                    quantityLabel.setText(String.valueOf(item.itemQuantity)); // Update quantity label
+                } else {
+                    // If quantity is 1, remove the item from the basket
+                    basketItems.remove(item); // Remove item from basket
+                    basketItemsMap.remove(itemName); // Remove from map
+                    scrn2BorrowedItemsContentPanel.remove(itemPanelsMap.get(itemName)); // Remove the UI component for this item
+                    itemPanelsMap.remove(itemName); // Remove from the map
+        
+                    // Reset the background and foreground of the item card to original
+                    if (itemPanelsMap.containsKey(itemName)) {
+                        JPanel itemCard = itemPanelsMap.get(itemName);
+                        itemCard.setBackground(Color.WHITE); // Reset background color
+                        itemCard.setForeground(branding.maroon); // Reset foreground color
+                    }
+        
+                    // Refresh the UI after removal
+                    scrn2BorrowedItemsContentPanel.revalidate();
+                    scrn2BorrowedItemsContentPanel.repaint();
+                }
+            }
+        });
+
+        JPanel tupleInfoPanel = new JPanel();
+        tupleInfoPanel.setMaximumSize(new Dimension(900, 70));
+        tupleInfoPanel.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 20));
+        tupleInfoPanel.setLayout(new GridBagLayout());
+        tupleInfoPanel.setBackground(branding.lightgray);
+
+        GridBagConstraints tupleInfoPanelGBC = new GridBagConstraints();
+        tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+        tupleInfoPanelGBC.gridx = 0;
+        tupleInfoPanelGBC.ipadx = 20;
+        tupleInfoPanelGBC.weightx = 0.05;
+        tupleInfoPanel.add(itemPanel, tupleInfoPanelGBC);
+        tupleInfoPanelGBC.fill = GridBagConstraints.NONE;
+        tupleInfoPanelGBC.anchor = GridBagConstraints.EAST;
+        tupleInfoPanelGBC.gridx++;
+        tupleInfoPanelGBC.ipadx = 100;
+        tupleInfoPanelGBC.weightx = 0.2;
+        tupleInfoPanel.add(quantityPanel, tupleInfoPanelGBC);
+
+        // Add the tupleInfoPanel to the map to be able to remove it later
+        itemPanelsMap.put(tuple[0], tupleInfoPanel); // Store by item name
+
+        scrn2BorrowedItemsContentPanel.add(tupleInfoPanel);
+        scrn2BorrowedItemsContentPanel.add(Box.createVerticalStrut(10)); // Add gaps between tuples
+    }
+
+    scrn2BorrowedItemsContentPanel.revalidate();
+    scrn2BorrowedItemsContentPanel.repaint();
+}
+
+    
     private JPanel createCategoryPanel() {
         // The panel that contains the category buttons (BoxLayout for vertical stack)
         JPanel categoryPanel = new JPanel();
