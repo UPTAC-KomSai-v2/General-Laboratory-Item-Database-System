@@ -150,9 +150,115 @@ public class GraphicalUserInterface implements ActionListener {
                 mainFrame.revalidate();
                 mainFrame.repaint();
             }
+        } else if (src == rbbnAboutBtn) {
+                showAboutDialog();
         } else if (src == bitmBackBtn || src == blstBackBtn || src == upinBackBtn || src == tranBackBtn) {
             showMainMenu();
         }
+    }
+
+    private void showAboutDialog(){
+        JDialog aboutDialog = new JDialog(mainFrame, "About", true);
+        aboutDialog.setUndecorated(true); // Remove default window decoration
+    
+        // Create main panel with maroon background
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout());
+        mainPanel.setBackground(branding.maroon);
+        mainPanel.setBorder(BorderFactory.createLineBorder(branding.darkermaroon, 2));
+    
+        // Header panel with logo
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        headerPanel.setBackground(branding.maroon);
+        JLabel logoLabel = new JLabel(new ImageIcon(branding.rbbnUPLogoResized));
+        headerPanel.add(logoLabel);
+    
+        // Content panel
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(branding.lightgray);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        
+        // Title with custom font
+        JLabel titleLabel = new JLabel("UPTC General Laboratory Database");
+        titleLabel.setFont(branding.sizedFontPalatinoBig);
+        titleLabel.setForeground(branding.maroon);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Version info
+        JLabel versionLabel = new JLabel("Version 1.0");
+        versionLabel.setFont(branding.sizedFontPalatinoSmall);
+        versionLabel.setForeground(branding.darkermaroon);
+        versionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Developer panel
+        JPanel devPanel = new JPanel();
+        devPanel.setLayout(new BoxLayout(devPanel, BoxLayout.Y_AXIS));
+        devPanel.setBackground(branding.lightgray);
+        devPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 10, 0));
+        
+        JLabel devHeaderLabel = new JLabel("Developed by:");
+        devHeaderLabel.setFont(new Font("Roboto", Font.BOLD, 14));
+        devHeaderLabel.setForeground(branding.darkermaroon);
+        devHeaderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Add developers with their roles
+        String[] developers = {
+            "Sean Harvey Bantanos - Database Architect",
+            "MacDarren Louis Calimba - Frontend Developer",
+            "Norman Enrico Eulin - Frontend Developer",
+            "Rolf Genree Garces - Backend Developer",
+            "Jhun Kenneth Iniego - Backend Developer",
+            "Jade Eric Petilla - Database Architect",
+            "Gian Angelo Tongzon - Frontend Developer"
+        };
+    
+        devPanel.add(devHeaderLabel);
+        devPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+    
+        for (String dev : developers) {
+            JLabel devLabel = new JLabel(dev);
+            devLabel.setFont(new Font("Roboto", Font.PLAIN, 10));
+            devLabel.setForeground(branding.darkermaroon);
+            devLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            devPanel.add(devLabel);
+            devPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        }
+    
+        // Add everything to content panel
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(titleLabel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(versionLabel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        contentPanel.add(devPanel);
+    
+        // Close button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setBackground(branding.lightgray);
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+    
+        JButton backButton = new JButton("Back");
+        backButton.setBackground(branding.maroon);
+        backButton.setForeground(branding.white);
+        backButton.setFocusPainted(false);
+        backButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        backButton.addActionListener(e -> aboutDialog.dispose());
+    
+        buttonPanel.add(backButton);
+    
+        // Add panels to main panel
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+    
+        // Add main panel to dialog
+        aboutDialog.add(mainPanel);
+        aboutDialog.pack();
+        aboutDialog.setSize(800, 525); // Set appropriate size
+        aboutDialog.setLocationRelativeTo(mainFrame); // Center on main frame
+        aboutDialog.setVisible(true);
     }
 
     private void showPanel(JPanel panel) {
