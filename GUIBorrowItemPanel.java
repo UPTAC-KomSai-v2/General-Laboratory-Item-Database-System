@@ -8,6 +8,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -20,6 +24,29 @@ public class GUIBorrowItemPanel extends JPanel {
     private JPanel mainContentPanel;
     private JButton selectedCategoryButton = null;
     private JPanel equipmentPanel;  // Declare equipmentPanel as an instance variable
+    private JPanel selectedItemCard = null; // Track the currently selected equipment item
+    private JButton addToBasketButton; // Track the Add To Basket button
+    
+    // Data structure to keep track of items in the basket
+    private List<BasketItem> basketItems = new ArrayList<>();
+    // Map to quickly check if an item is in the basket
+    private Map<String, BasketItem> basketItemsMap = new HashMap<>();
+    
+    // Class to represent an item in the basket
+    private static class BasketItem {
+        String category;
+        String itemName;
+        
+        public BasketItem(String category, String itemName) {
+            this.category = category;
+            this.itemName = itemName;
+        }
+        
+        @Override
+        public String toString() {
+            return "Category: " + category + ", Item: " + itemName;
+        }
+    }
     
     public GUIBorrowItemPanel(Branding branding, JButton backButton) {
         this.branding = branding;
@@ -229,11 +256,15 @@ public class GUIBorrowItemPanel extends JPanel {
         JPanel gridPanel = (JPanel) equipmentPanel.getClientProperty("gridPanel");
         if (gridPanel == null) return;
         
-        // Clear the grid panel
+        // Clear the grid panel and reset selected item
         gridPanel.removeAll();
+        selectedItemCard = null;
         
         // Reset to GridLayout for displaying equipment items
         gridPanel.setLayout(new GridLayout(0, 4, 20, 20));
+        
+        // Get the current category name
+        String currentCategory = categories[categoryIndex];
         
         // Add the equipment items for the selected category
         String[] categoryItems = equipmentItems[categoryIndex];
@@ -242,7 +273,15 @@ public class GUIBorrowItemPanel extends JPanel {
         for (String itemName : categoryItems) {
             JPanel itemCard = new JPanel();
             itemCard.setLayout(new BoxLayout(itemCard, BoxLayout.Y_AXIS));
-            itemCard.setBackground(Color.WHITE);
+            
+            // Check if this item is in the basket and set background color accordingly
+            BasketItem basketItem = basketItemsMap.get(itemName);
+            if (basketItem != null) {
+                itemCard.setBackground(Color.YELLOW);
+            } else {
+                itemCard.setBackground(Color.WHITE);
+            }
+            
             itemCard.setBorder(BorderFactory.createLineBorder(branding.maroon, 1));
             itemCard.setPreferredSize(new Dimension(cardWidth, cardHeight));
 
@@ -263,6 +302,54 @@ public class GUIBorrowItemPanel extends JPanel {
             itemCard.add(Box.createVerticalStrut(5));
             itemCard.add(nameLabel);
             itemCard.add(javax.swing.Box.createVerticalGlue());
+            
+            // Store the item name and category as client properties for reference
+            itemCard.putClientProperty("itemName", itemName);
+            itemCard.putClientProperty("category", currentCategory);
+            
+            // Add click listener to select the item
+            itemCard.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    // Check if this item is already in basket
+                    boolean isInBasket = basketItemsMap.containsKey(itemName);
+                    
+                    // Reset the previously selected item if any
+                    if (selectedItemCard != null && selectedItemCard != itemCard) {
+                        // Only reset to white if it's not in basket
+                        String prevItemName = (String) selectedItemCard.getClientProperty("itemName");
+                        if (!basketItemsMap.containsKey(prevItemName)) {
+                            selectedItemCard.setBackground(Color.WHITE);
+                        }
+                    }
+                    
+                    // Select the current item if it's not already in basket
+                    if (!isInBasket) {
+                        itemCard.setBackground(Color.GRAY);
+                        selectedItemCard = itemCard;
+                    }
+                }
+                
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    // Only highlight if not already selected or in basket
+                    boolean isInBasket = basketItemsMap.containsKey(itemName);
+                    if (!itemCard.getBackground().equals(Color.GRAY) && !isInBasket) {
+                        itemCard.setBackground(new Color(245, 245, 245)); // Light hover effect
+                    }
+                    setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+                }
+                
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    // Reset hover effect if not selected or in basket
+                    boolean isInBasket = basketItemsMap.containsKey(itemName);
+                    if (!itemCard.getBackground().equals(Color.GRAY) && !isInBasket) {
+                        itemCard.setBackground(Color.WHITE);
+                    }
+                    setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+                }
+            });
 
             gridPanel.add(itemCard);
         }
@@ -278,12 +365,38 @@ public class GUIBorrowItemPanel extends JPanel {
         
         // Ensure the back button is visible and has appropriate size
         backButton.setText("Go Back");
-        JButton addToBasketButton = new JButton("Add To Basket");
+        addToBasketButton = new JButton("Add To Basket");
         JButton continueButton = new JButton("Continue");
         
         styleActionButton(backButton);
         styleActionButton(addToBasketButton);
         styleActionButton(continueButton);
+        
+        // Add action listener to the Add To Basket button
+        addToBasketButton.addActionListener(e -> {
+            if (selectedItemCard != null) {
+                String itemName = (String) selectedItemCard.getClientProperty("itemName");
+                String category = (String) selectedItemCard.getClientProperty("category");
+                
+                // Check if this item is already in the basket
+                if (!basketItemsMap.containsKey(itemName)) {
+                    // Add to basket
+                    BasketItem newItem = new BasketItem(category, itemName);
+                    basketItems.add(newItem);
+                    basketItemsMap.put(itemName, newItem);
+                    
+                    // Change the background color to yellow
+                    selectedItemCard.setBackground(Color.YELLOW);
+                    
+                    // Print the basket contents for debugging
+                    System.out.println("\n--- Current Basket Contents ---");
+                    for (int i = 0; i < basketItems.size(); i++) {
+                        System.out.println((i + 1) + ". " + basketItems.get(i));
+                    }
+                    System.out.println("-----------------------------\n");
+                }
+            }
+        });
         
         // Ensure all buttons are added properly to the button panel
         buttonPanel.add(backButton);
