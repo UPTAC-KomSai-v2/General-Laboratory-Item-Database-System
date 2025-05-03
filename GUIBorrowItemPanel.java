@@ -16,9 +16,12 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 public class GUIBorrowItemPanel extends JPanel{
@@ -237,14 +240,330 @@ public class GUIBorrowItemPanel extends JPanel{
         screen3 = new JPanel();
         screen3.setLayout(new GridBagLayout());
         screen3.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-        screen3.setBackground(branding.lightgray);
+        screen3.setBackground(branding.maroon);
+    
+        JPanel scrn3BorrowerInformationFormsPanel = new JPanel();
+        scrn3BorrowerInformationFormsPanel.setLayout(new GridBagLayout());
+        scrn3BorrowerInformationFormsPanel.setBackground(branding.maroon);
+        scrn3BorrowerInformationFormsPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
+    
+        JPanel formsHeaderPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        JLabel formsHeaderLabel = new JLabel("Borrower(s) Information");
+        formsHeaderLabel.setFont(new Font("Roboto", Font.PLAIN, 20));
+        formsHeaderLabel.setForeground(branding.white);
+        formsHeaderPanel.add(formsHeaderLabel);
+        formsHeaderPanel.setOpaque(false);
+    
+        JPanel formsBorrowerInfoInputPanel = new JPanel();
+        formsBorrowerInfoInputPanel.setLayout(new GridBagLayout());
+        formsBorrowerInfoInputPanel.setPreferredSize(new Dimension(700, 200));
+        formsBorrowerInfoInputPanel.setBorder(BorderFactory.createLineBorder(branding.white, 1));
+        formsBorrowerInfoInputPanel.setBackground(Color.BLUE);
+        formsBorrowerInfoInputPanel.setOpaque(false);
+    
+        JLabel formStudentNumberLabel = new JLabel("Student Number");
+        JLabel formFullNameLabel = new JLabel("Full Name");
+        JLabel formEmailAddressLabel = new JLabel("Email Address");
+        JLabel formContactNumberLabel = new JLabel("Contact Number");
+        JLabel formDegreeProgramLabel = new JLabel("Degree Program");
+    
+        formStudentNumberLabel.setForeground(branding.white);
+        formFullNameLabel.setForeground(branding.white);
+        formEmailAddressLabel.setForeground(branding.white);
+        formContactNumberLabel.setForeground(branding.white);
+        formDegreeProgramLabel.setForeground(branding.white);
+        
+        JPanel borrowerInfoInputHeaderPanel = new JPanel(new GridBagLayout());
+        borrowerInfoInputHeaderPanel.setPreferredSize(new Dimension(800, 20));
+        borrowerInfoInputHeaderPanel.setOpaque(false);
+        GridBagConstraints borrowerInfoInputHeaderPanelGBC = new GridBagConstraints();
+        borrowerInfoInputHeaderPanelGBC.fill = GridBagConstraints.BOTH;
+        borrowerInfoInputHeaderPanelGBC.insets = new Insets(0,0,0,0);
+        borrowerInfoInputHeaderPanelGBC.weightx = 0.003;
+        borrowerInfoInputHeaderPanelGBC.gridx = 0;
+        borrowerInfoInputHeaderPanel.add(formStudentNumberLabel, borrowerInfoInputHeaderPanelGBC);
+        borrowerInfoInputHeaderPanelGBC.weightx = 0.015;
+        borrowerInfoInputHeaderPanelGBC.gridx++;
+        borrowerInfoInputHeaderPanel.add(formFullNameLabel, borrowerInfoInputHeaderPanelGBC);
+        borrowerInfoInputHeaderPanelGBC.weightx = 0.008;
+        borrowerInfoInputHeaderPanelGBC.gridx++;
+        borrowerInfoInputHeaderPanel.add(formEmailAddressLabel, borrowerInfoInputHeaderPanelGBC);
+        borrowerInfoInputHeaderPanelGBC.weightx = 0.003;
+        borrowerInfoInputHeaderPanelGBC.gridx++;
+        borrowerInfoInputHeaderPanel.add(formContactNumberLabel, borrowerInfoInputHeaderPanelGBC);
+        borrowerInfoInputHeaderPanelGBC.weightx = 0.01;
+        borrowerInfoInputHeaderPanelGBC.gridx++;
+        borrowerInfoInputHeaderPanel.add(formDegreeProgramLabel, borrowerInfoInputHeaderPanelGBC);
+    
+        // Create a panel to hold all borrower info panels
+        JPanel borrowerInfoInputPanel = new JPanel();
+        borrowerInfoInputPanel.setLayout(new BoxLayout(borrowerInfoInputPanel, BoxLayout.Y_AXIS));
+        borrowerInfoInputPanel.setBackground(branding.maroon);
+    
+        // Lists to store all borrower components for later data retrieval
+        List<JPanel> borrowerPanels = new ArrayList<>();
+        List<JTextField> studentNumberFields = new ArrayList<>();
+        List<JTextField> fullNameFields = new ArrayList<>();
+        List<JTextField> emailAddressFields = new ArrayList<>();
+        List<JTextField> contactNumberFields = new ArrayList<>();
+        List<JComboBox<String>> degreeProgramComboBoxes = new ArrayList<>();
+        
+        // Create first borrower panel and add it
+        JPanel firstBorrowerPanel = createBorrowerInfoPanel(
+            studentNumberFields, fullNameFields, emailAddressFields, 
+            contactNumberFields, degreeProgramComboBoxes
+        );
+        borrowerPanels.add(firstBorrowerPanel);
+        borrowerInfoInputPanel.add(firstBorrowerPanel);
+    
+        JScrollPane borrowerInfoInputScrollPanel = new JScrollPane(borrowerInfoInputPanel);
+        borrowerInfoInputScrollPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        borrowerInfoInputScrollPanel.getVerticalScrollBar().setUnitIncrement(16);
+        borrowerInfoInputScrollPanel.setBackground(branding.maroon);
+        borrowerInfoInputScrollPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, branding.maroon));
+        branding.reskinScrollBar(borrowerInfoInputScrollPanel, branding.maroon);
+        
+        GridBagConstraints formsBorrowerInfoInputPanelGBC = new GridBagConstraints();
+        formsBorrowerInfoInputPanelGBC.fill = GridBagConstraints.BOTH;
+        formsBorrowerInfoInputPanelGBC.weightx = 1;
+        formsBorrowerInfoInputPanelGBC.weighty = 0.001;
+        formsBorrowerInfoInputPanelGBC.gridy = 0;
+        formsBorrowerInfoInputPanel.add(borrowerInfoInputHeaderPanel, formsBorrowerInfoInputPanelGBC);
+        formsBorrowerInfoInputPanelGBC.weighty = 0.8;
+        formsBorrowerInfoInputPanelGBC.gridy++;
+        formsBorrowerInfoInputPanel.add(borrowerInfoInputScrollPanel, formsBorrowerInfoInputPanelGBC);
+    
+        JPanel formsAddBorrowerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        JButton formsAddBorrowerBtn = new JButton("Add More Borrower");
+        formsAddBorrowerBtn.setPreferredSize(new Dimension(165, 30));
+        formsAddBorrowerBtn.setBackground(branding.lightergray);
+        formsAddBorrowerBtn.setForeground(branding.maroon);
+        
+        // Add action listener to the Add More Borrower button
+        formsAddBorrowerBtn.addActionListener(e -> {
+            JPanel newBorrowerPanel = createBorrowerInfoPanel(
+                studentNumberFields, fullNameFields, emailAddressFields, 
+                contactNumberFields, degreeProgramComboBoxes
+            );
+            borrowerPanels.add(newBorrowerPanel);
+            borrowerInfoInputPanel.add(newBorrowerPanel);
+            borrowerInfoInputPanel.revalidate();
+            borrowerInfoInputPanel.repaint();
+            
+            // Scroll to the bottom to show the new panel
+            SwingUtilities.invokeLater(() -> {
+                JScrollBar verticalScrollBar = borrowerInfoInputScrollPanel.getVerticalScrollBar();
+                verticalScrollBar.setValue(verticalScrollBar.getMaximum());
+            });
+        });
+        
+        formsAddBorrowerPanel.add(formsAddBorrowerBtn);
+        formsAddBorrowerPanel.setOpaque(false);
+        
+        JPanel formsCourseInfoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        JLabel formsCourseInfoLabel = new JLabel("Course Information");
+        formsCourseInfoLabel.setFont(new Font("Roboto", Font.PLAIN, 20));
+        formsCourseInfoLabel.setForeground(branding.white);
+        formsCourseInfoPanel.add(formsCourseInfoLabel);
+        formsCourseInfoPanel.setOpaque(false);
+    
+        JPanel formsCourseInfoInputPanel = new JPanel();
+        formsCourseInfoInputPanel.setPreferredSize(new Dimension(700, 60));
+        formsCourseInfoInputPanel.setBorder(BorderFactory.createLineBorder(branding.white, 1));
+        formsCourseInfoInputPanel.setBackground(branding.maroon);
+        formsCourseInfoInputPanel.setLayout(new GridBagLayout());
+        formsCourseInfoInputPanel.setOpaque(false);
 
+        JPanel coursInfCoursePanel = new JPanel();
+        JPanel coursInfSectionPanel = new JPanel();
+        JPanel coursInfInstructorPanel = new JPanel();
+
+
+        coursInfCoursePanel.setLayout(new BoxLayout(coursInfCoursePanel, BoxLayout.Y_AXIS));
+        coursInfSectionPanel.setLayout(new BoxLayout(coursInfSectionPanel, BoxLayout.Y_AXIS));
+        coursInfInstructorPanel.setLayout(new BoxLayout(coursInfInstructorPanel, BoxLayout.Y_AXIS));
+
+        coursInfCoursePanel.setOpaque(false);
+        coursInfSectionPanel.setOpaque(false);
+        coursInfInstructorPanel.setOpaque(false);
+
+        JLabel coursInfCourseLabel  = new JLabel("Course");
+        JLabel coursInfSectionLabel = new JLabel("Section");
+        JLabel coursInfInstructorLabel = new JLabel("Instructor");
+        coursInfCourseLabel.setForeground(branding.white);
+        coursInfSectionLabel.setForeground(branding.white);
+        coursInfInstructorLabel.setForeground(branding.white);
+
+        String[] courseOptionsData = {"Select an Option", "BIO 123", "CMSC 127", "MATH 55"};
+        JComboBox<String> courseOptions = new JComboBox<>(courseOptionsData);
+
+        String[] sectionOptionsData = {"Select an Option", "A", "NM", "MF"};
+        JComboBox<String> sectionOptions = new JComboBox<>(sectionOptionsData);
+
+        String[] instructorOptionsData = {"Select an Option", "Prof A.", "Prof B.", "Prof C."};
+        JComboBox<String> instructorOptions = new JComboBox<>(instructorOptionsData);
+
+        coursInfCoursePanel.add(coursInfCourseLabel);
+        coursInfCoursePanel.add(courseOptions);
+
+        coursInfSectionPanel.add(coursInfSectionLabel);
+        coursInfSectionPanel.add(sectionOptions);
+
+        coursInfInstructorPanel.add(coursInfInstructorLabel);
+        coursInfInstructorPanel.add(instructorOptions);
+
+        GridBagConstraints formsCourseInfoInputPanelGBC = new GridBagConstraints();
+        formsCourseInfoInputPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+        formsCourseInfoInputPanelGBC.insets = new Insets(10,10,10,10);
+        formsCourseInfoInputPanelGBC.weightx = 0.1;
+        formsCourseInfoInputPanelGBC.gridx = 0;
+        formsCourseInfoInputPanel.add(coursInfCoursePanel, formsCourseInfoInputPanelGBC);
+        formsCourseInfoInputPanelGBC.weightx = 0.1;
+        formsCourseInfoInputPanelGBC.gridx++;
+        formsCourseInfoInputPanel.add(coursInfSectionPanel, formsCourseInfoInputPanelGBC);
+        formsCourseInfoInputPanelGBC.weightx = 0.1;
+        formsCourseInfoInputPanelGBC.gridx++;
+        formsCourseInfoInputPanel.add(coursInfInstructorPanel, formsCourseInfoInputPanelGBC);
+
+
+
+        GridBagConstraints scrn3BorrowerInformationFormsPanelGBC = new GridBagConstraints();
+        scrn3BorrowerInformationFormsPanelGBC.fill = GridBagConstraints.BOTH;
+        scrn3BorrowerInformationFormsPanelGBC.weightx = 1;
+        scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
+        scrn3BorrowerInformationFormsPanelGBC.gridy = 0;
+        scrn3BorrowerInformationFormsPanel.add(formsHeaderPanel, scrn3BorrowerInformationFormsPanelGBC);
+        scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
+        scrn3BorrowerInformationFormsPanelGBC.gridy++;
+        scrn3BorrowerInformationFormsPanel.add(formsBorrowerInfoInputPanel, scrn3BorrowerInformationFormsPanelGBC);
+        scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
+        scrn3BorrowerInformationFormsPanelGBC.gridy++;
+        scrn3BorrowerInformationFormsPanel.add(formsAddBorrowerPanel, scrn3BorrowerInformationFormsPanelGBC);
+        scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
+        scrn3BorrowerInformationFormsPanelGBC.gridy++;
+        scrn3BorrowerInformationFormsPanel.add(formsCourseInfoPanel, scrn3BorrowerInformationFormsPanelGBC);
+        scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
+        scrn3BorrowerInformationFormsPanelGBC.gridy++;
+        scrn3BorrowerInformationFormsPanel.add(formsCourseInfoInputPanel, scrn3BorrowerInformationFormsPanelGBC);
+    
+        JScrollPane scrn3ScrollContentPanel = new JScrollPane(scrn3BorrowerInformationFormsPanel);
+        scrn3ScrollContentPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrn3ScrollContentPanel.getVerticalScrollBar().setUnitIncrement(16);
+        scrn3ScrollContentPanel.setBackground(branding.maroon);
+        scrn3ScrollContentPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, branding.maroon));
+        branding.reskinScrollBar(scrn3ScrollContentPanel, branding.maroon);
+    
+        JPanel scrn3MenuPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+        scrn3MenuPanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 33));
+        scrn3MenuPanel.setBackground(branding.lightgray);
+        scrn3MenuPanel.setOpaque(true);
+    
         JButton screen3BackBtn = new JButton("Go Back");
-        screen3BackBtn.addActionListener(e ->{
+        JButton screen3BorrowBtn = new JButton("Borrow Now");
+    
+        screen3BackBtn.setPreferredSize(new Dimension(150, 30));
+        screen3BackBtn.setBackground(branding.maroon);
+        screen3BackBtn.setForeground(branding.white);
+        screen3BackBtn.addActionListener(e -> {
             cardLayout.previous(GUIBorrowItemPanel.this);
         });
+    
+        screen3BorrowBtn.setPreferredSize(new Dimension(150, 30));
+        screen3BorrowBtn.setBackground(branding.maroon);
+        screen3BorrowBtn.setForeground(branding.white);
+        screen3BorrowBtn.addActionListener(e -> {
+            System.out.println("======== BORROWER INFORMATION ========");
+            
+            // Print all borrower information
+            for (int i = 0; i < studentNumberFields.size(); i++) {
+                System.out.println("Borrower #" + (i + 1) + ":");
+                System.out.println("Student Number: " + studentNumberFields.get(i).getText());
+                System.out.println("Full Name: " + fullNameFields.get(i).getText());
+                System.out.println("Email Address: " + emailAddressFields.get(i).getText());
+                System.out.println("Contact Number: " + contactNumberFields.get(i).getText());
+                System.out.println("Degree Program: " + degreeProgramComboBoxes.get(i).getSelectedItem());
+                System.out.println("-------------------------------------");
+            }
 
-        screen3.add(screen3BackBtn);
+            System.out.println("======== COURSE INFORMATION ========");
+            System.out.println("Course: " + courseOptions.getSelectedItem());
+            System.out.println("Section: " + sectionOptions.getSelectedItem());
+            System.out.println("Instructor: " + instructorOptions.getSelectedItem());
+            System.out.println("-------------------------------------");
+            
+            // Continue with borrowing process
+            // cardLayout.next(GUIBorrowItemPanel.this);
+        });
+    
+        scrn3MenuPanel.add(screen3BackBtn);
+        scrn3MenuPanel.add(screen3BorrowBtn);
+    
+        GridBagConstraints screen3GBC = new GridBagConstraints();
+        screen3GBC.fill = GridBagConstraints.BOTH;
+        screen3GBC.weightx = 1;
+        screen3GBC.gridy = 0;
+        screen3GBC.weighty = 0.9;
+        screen3.add(scrn3ScrollContentPanel, screen3GBC);
+        screen3GBC.weighty = 0.001;
+        screen3GBC.gridy++;
+        screen3.add(scrn3MenuPanel, screen3GBC);
+    
+    }
+
+// Helper method to create new borrower info panels
+    private JPanel createBorrowerInfoPanel(
+        List<JTextField> studentNumberFields,
+        List<JTextField> fullNameFields,
+        List<JTextField> emailAddressFields,
+        List<JTextField> contactNumberFields,
+        List<JComboBox<String>> degreeProgramComboBoxes) {
+
+        JPanel panel = new JPanel();
+        panel.setMaximumSize(new Dimension(800, 25));
+        panel.setLayout(new GridBagLayout());
+        panel.setOpaque(false);
+        panel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
+    
+        JTextField studentNumberTextField = new JTextField(11);
+        JTextField fullNameTextField = new JTextField(16);
+        JTextField emailAddressTextField = new JTextField(14);
+        JTextField contactNumberTextField = new JTextField(12);
+
+        String[] degreeProgram = {"Select an Option", "BS Biology", "BS Computer Science", "BS Applied Mathematics"};
+        JComboBox<String> degreeProgramOptions = new JComboBox<>(degreeProgram);
+
+        // Add all components to respective lists for later data retrieval
+        studentNumberFields.add(studentNumberTextField);
+        fullNameFields.add(fullNameTextField);
+        emailAddressFields.add(emailAddressTextField);
+        contactNumberFields.add(contactNumberTextField);
+        degreeProgramComboBoxes.add(degreeProgramOptions);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.insets = new Insets(0, 0, 0, 4);
+        gbc.gridx = 0;
+        gbc.weighty = 1;
+        gbc.weightx = 0.001;
+        panel.add(studentNumberTextField, gbc);
+
+        gbc.gridx++;
+        gbc.weightx = 0.001;
+        panel.add(fullNameTextField, gbc);
+
+        gbc.gridx++;
+        gbc.weightx = 0.001;
+        panel.add(emailAddressTextField, gbc);
+
+        gbc.gridx++;
+        gbc.weightx = 0.001;
+        panel.add(contactNumberTextField, gbc);
+
+        gbc.gridx++;
+        gbc.weightx = 0.001;
+        panel.add(degreeProgramOptions, gbc);
+
+        return panel;
     }
 
 private void updateBasketDisplayPanel() {
