@@ -8,7 +8,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -20,6 +19,7 @@ public class GUIBorrowItemPanel extends JPanel {
     private Branding branding;
     private JPanel mainContentPanel;
     private JButton selectedCategoryButton = null;
+    private JPanel equipmentPanel;  // Declare equipmentPanel as an instance variable
     
     public GUIBorrowItemPanel(Branding branding, JButton backButton) {
         this.branding = branding;
@@ -31,26 +31,40 @@ public class GUIBorrowItemPanel extends JPanel {
         // Create main content panel
         initializeMainContentPanel(backButton);
         add(mainContentPanel, BorderLayout.CENTER);
+        
     }
 
     // Categories of laboratory equipment
     private String[] categories = {
         "Glassware and Plasticware",
-        "Measuring and Weighing",
-        "Observation and Analysis",
-        "Heating and Cooling",
-        "Safety and Protective", 
-        "Electrical and Electronic"
+        "Measuring and Analytical Instruments",
+        "Lab Tools and Accessories",
+        "Consumables and Miscellaneous",
+        "Storage Containers", 
+        "Biological Materials",
+        "Electrical Equipment",
+        "Safety Equipment"
     };
     
-    // Equipment items to display in a 4x3 grid
+    // Equipment items
     private String[][] equipmentItems = {
-        {"Beaker", "Erlenmeyer Flask", "Graduated Cylinder", "Test Tube"},
-        {"Petri Dish", "Pipette", "Funnel", "Erlenmeyer Flask"},
-        {"Funnel", "Beaker", "Petri Dish", "Test Tube"},
-        {"Multimeter", "Power Supplies", "Face Shield", "Electrode"}
+        {"Beaker", "Erlenmeyer Flask", "Graduated Cylinder", "Test Tube", "Burette", "Pipette", "Funnel", "Test Tube Rack", 
+         "Glass Stirring Rod", "Volumetric Flask", "Conical Flask", "Burette Stand", "Wash Bottle", "Dropping Bottle", "Desiccator", "Reagent Bottle"},
+        {"Petri Dish", "Pipette", "Funnel", "Erlenmeyer Flask", "Bunsen Burner", "Thermometer", "Hydrometer", "Refractometer", 
+         "Measuring Cup", "Beaker", "Volumetric Pipette", "Conical Flask", "Alcohol Lamp", "Glass Rod", "Chemical Balance", "Titrator"},
+        {"Funnel", "Beaker", "Petri Dish", "Test Tube", "Pipette", "Volumetric Flask", "Safety Goggles", "Tongs", 
+         "Bunsen Burner", "Forceps", "Test Tube Holder", "Iron Stand", "Clamp", "Lab Coat", "Face Shield", "Microscope"},
+        {"Multimeter", "Power Supplies", "Face Shield", "Electrode", "Soldering Iron", "Oscilloscope", "Power Cord", "Extension Cord", 
+         "Welding Machine", "Oscilloscope Probe", "Power Meter", "DC Motor", "Induction Motor", "Electric Fan", "Multimeter Probe", "Inverter"},
+        {"Storage Box", "Plastic Bin", "Glass Bottle", "Storage Jar", "File Box", "Plastic Container", "Storage Drawer", "Tupperware", 
+         "Trash Bin", "Cardboard Box", "Plastic Bucket", "Metal Container", "Metal Box", "Plastic Shelf", "Storage Cart", "Tool Box"},
+        {"Petri Dish", "Microscope Slide", "Sterile Culture Medium", "Pipette", "Beaker", "Test Tube", "Dissection Kit", "Agar Plate", 
+         "Culture Tube", "Test Tube Rack", "Inoculating Loop", "Sterile Pipette", "Gloves", "Safety Goggles", "Specimen Tray", "Incubator"},
+        {"Multimeter", "Oscilloscope", "Power Supply", "Soldering Iron", "Test Leads", "Electrode", "Power Cord", "DC Motor", 
+         "Induction Motor", "Electrical Wire", "Connector", "Electric Switch", "Breadboard", "Resistor", "Capacitor", "Battery Pack"},
+        {"Face Shield", "Lab Coat", "Gloves", "Safety Goggles", "Fire Extinguisher", "First Aid Kit", "Eye Wash Station", "Fire Blanket", 
+         "Safety Boots", "Gas Mask", "Lab Apron", "Safety Signs", "Ear Protection", "Fire Hose", "Spill Kit", "Fume Hood"}
     };
-    
     
     private void initializeMainContentPanel(JButton backButton) {
         // Main panel with border layout
@@ -66,11 +80,13 @@ public class GUIBorrowItemPanel extends JPanel {
         contentPanel.add(categoryPanel, BorderLayout.WEST);
         
         // Create equipment display panel
-        JPanel equipmentPanel = createEquipmentPanel(backButton);
+        equipmentPanel = createEquipmentPanel(backButton);
         contentPanel.add(equipmentPanel, BorderLayout.CENTER);
         
         mainContentPanel.add(contentPanel, BorderLayout.CENTER);
         
+        // Show the initial "No Category is Selected" message
+        showNoCategorySelectedMessage();
     }
     
     private JPanel createCategoryPanel() {
@@ -81,8 +97,9 @@ public class GUIBorrowItemPanel extends JPanel {
         categoryPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         categoryPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
     
-        for (String category : categories) {
-            JButton categoryButton = new JButton(category);
+        for (int i = 0; i < categories.length; i++) {
+            final int categoryIndex = i;
+            JButton categoryButton = new JButton(categories[i]);
             categoryButton.setAlignmentX(Component.CENTER_ALIGNMENT);
             categoryButton.setPreferredSize(new Dimension(200, 40));
             categoryButton.setMaximumSize(new Dimension(200, 40));
@@ -107,19 +124,24 @@ public class GUIBorrowItemPanel extends JPanel {
                         categoryButton.setBackground(branding.lightergray);
                     }
                 }
-    
-                @Override
-                public void mouseClicked(java.awt.event.MouseEvent evt) {
-                    if (selectedCategoryButton != null) {
-                        selectedCategoryButton.setBackground(branding.lightergray);
-                    }
-                    categoryButton.setBackground(branding.gray);
-                    selectedCategoryButton = categoryButton;
+            });
+            
+            // Action listener to update equipment panel when a category is selected
+            categoryButton.addActionListener(e -> {
+                if (selectedCategoryButton != null) {
+                    selectedCategoryButton.setBackground(branding.lightergray);
                 }
+                categoryButton.setBackground(branding.gray);
+                selectedCategoryButton = categoryButton;
+                
+                // Update equipment display with items from the selected category
+                updateEquipmentPanel(categoryIndex);
             });
     
             categoryPanel.add(categoryButton);
             categoryPanel.add(Box.createVerticalStrut(10)); // Small space between buttons
+            
+            // No default selection - all buttons start unselected
         }
     
         // Wrapper panel to center the category panel vertically
@@ -139,53 +161,15 @@ public class GUIBorrowItemPanel extends JPanel {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(branding.lightgray);
     
-        // Layout settings
-        int rows = 3;
-        int cols = 4;
-        int cardWidth = 140, cardHeight = 140;
-        int hgap = 20, vgap = 20;
-    
-        JPanel gridPanel = new JPanel(new GridLayout(0, cols, hgap, vgap)); // 0 rows = auto, 4 columns fixed
+        // Layout with button panel at the bottom
+        JPanel itemsContainerPanel = new JPanel(new BorderLayout());
+        itemsContainerPanel.setBackground(branding.lightgray);
+        
+        // Create scrollable grid panel
+        JPanel gridPanel = new JPanel(new GridLayout(0, 4, 20, 20)); // 0 rows = auto, 4 columns fixed
         gridPanel.setBackground(branding.lightgray);
         gridPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-    
-        // Calculate preferred size to force 4 columns
-        int panelWidth = (cardWidth + hgap) * cols;
-        int panelHeight = (cardHeight + vgap + 10) * rows;
-        gridPanel.setPreferredSize(new Dimension(panelWidth, panelHeight)); // ensures fixed width and triggers vertical scroll
-    
-        for (int row = 0; row < equipmentItems.length; row++) {
-            for (int col = 0; col < equipmentItems[row].length; col++) {
-                String itemName = equipmentItems[row][col];
-    
-                JPanel itemCard = new JPanel();
-                itemCard.setLayout(new BoxLayout(itemCard, BoxLayout.Y_AXIS));
-                itemCard.setBackground(Color.WHITE);
-                itemCard.setBorder(BorderFactory.createLineBorder(branding.maroon, 1));
-                itemCard.setPreferredSize(new Dimension(cardWidth, cardHeight));
-    
-                // Placeholder space (simulates an image)
-                JPanel imagePlaceholder = new JPanel();
-                imagePlaceholder.setPreferredSize(new Dimension(80, 60));
-                imagePlaceholder.setMaximumSize(new Dimension(80, 60));
-                imagePlaceholder.setBackground(new Color(240, 240, 240)); // light gray
-                imagePlaceholder.setAlignmentX(Component.CENTER_ALIGNMENT);
-    
-                JLabel nameLabel = new JLabel(itemName, JLabel.CENTER);
-                nameLabel.setForeground(branding.maroon);
-                nameLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-                nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    
-                itemCard.add(Box.createVerticalStrut(10));
-                itemCard.add(imagePlaceholder);
-                itemCard.add(Box.createVerticalStrut(5));
-                itemCard.add(nameLabel);
-                itemCard.add(javax.swing.Box.createVerticalGlue());
-    
-                gridPanel.add(itemCard);
-            }
-        }
-    
+        
         // Scroll pane with vertical-only scrolling
         JScrollPane scrollPane = new JScrollPane(gridPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -193,31 +177,115 @@ public class GUIBorrowItemPanel extends JPanel {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setBorder(null);
         branding.reskinScrollBar(scrollPane, branding.gray);
-    
-        // Add components
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        itemsContainerPanel.add(scrollPane, BorderLayout.CENTER);
+        mainPanel.add(itemsContainerPanel, BorderLayout.CENTER);
+        
+        // Add button panel at the bottom
         JPanel buttonPanel = createButtonPanel(backButton);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        // Store the gridPanel as a property of the main panel for later access
+        mainPanel.putClientProperty("gridPanel", gridPanel);
     
         return mainPanel;
     }
     
+    // Method to show "No Category is Selected" message
+    private void showNoCategorySelectedMessage() {
+        if (equipmentPanel == null) return;
+        
+        // Get the grid panel from the equipment panel
+        JPanel gridPanel = (JPanel) equipmentPanel.getClientProperty("gridPanel");
+        if (gridPanel == null) return;
+        
+        // Clear the grid panel
+        gridPanel.removeAll();
+        
+        // Create a message panel
+        JPanel messagePanel = new JPanel(new GridBagLayout());
+        messagePanel.setBackground(branding.lightgray);
+        
+        JLabel messageLabel = new JLabel("No Category is Selected");
+        messageLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        messageLabel.setForeground(branding.maroon);
+        
+        messagePanel.add(messageLabel);
+        
+        // Add the message panel to the grid panel
+        gridPanel.setLayout(new BorderLayout());
+        gridPanel.add(messagePanel, BorderLayout.CENTER);
+        
+        // Refresh the panel
+        gridPanel.revalidate();
+        gridPanel.repaint();
+    }
     
+    // Method to update equipment panel based on selected category
+    private void updateEquipmentPanel(int categoryIndex) {
+        if (equipmentPanel == null) return;
+        
+        // Get the grid panel from the equipment panel
+        JPanel gridPanel = (JPanel) equipmentPanel.getClientProperty("gridPanel");
+        if (gridPanel == null) return;
+        
+        // Clear the grid panel
+        gridPanel.removeAll();
+        
+        // Reset to GridLayout for displaying equipment items
+        gridPanel.setLayout(new GridLayout(0, 4, 20, 20));
+        
+        // Add the equipment items for the selected category
+        String[] categoryItems = equipmentItems[categoryIndex];
+        int cardWidth = 140, cardHeight = 140;
+        
+        for (String itemName : categoryItems) {
+            JPanel itemCard = new JPanel();
+            itemCard.setLayout(new BoxLayout(itemCard, BoxLayout.Y_AXIS));
+            itemCard.setBackground(Color.WHITE);
+            itemCard.setBorder(BorderFactory.createLineBorder(branding.maroon, 1));
+            itemCard.setPreferredSize(new Dimension(cardWidth, cardHeight));
+
+            // Placeholder space (simulates an image)
+            JPanel imagePlaceholder = new JPanel();
+            imagePlaceholder.setPreferredSize(new Dimension(80, 60));
+            imagePlaceholder.setMaximumSize(new Dimension(80, 60));
+            imagePlaceholder.setBackground(new Color(240, 240, 240)); // light gray
+            imagePlaceholder.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            JLabel nameLabel = new JLabel(itemName, JLabel.CENTER);
+            nameLabel.setForeground(branding.maroon);
+            nameLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+            nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            itemCard.add(Box.createVerticalStrut(10));
+            itemCard.add(imagePlaceholder);
+            itemCard.add(Box.createVerticalStrut(5));
+            itemCard.add(nameLabel);
+            itemCard.add(javax.swing.Box.createVerticalGlue());
+
+            gridPanel.add(itemCard);
+        }
+        
+        // Refresh the panel to show the updated items
+        gridPanel.revalidate();
+        gridPanel.repaint();
+    }
     
     private JPanel createButtonPanel(JButton backButton) {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         buttonPanel.setBackground(branding.lightgray);
         
-        // Use the provided back button
+        // Ensure the back button is visible and has appropriate size
         backButton.setText("Go Back");
-        styleActionButton(backButton);
-        
         JButton addToBasketButton = new JButton("Add To Basket");
         JButton continueButton = new JButton("Continue");
         
+        styleActionButton(backButton);
         styleActionButton(addToBasketButton);
         styleActionButton(continueButton);
         
+        // Ensure all buttons are added properly to the button panel
         buttonPanel.add(backButton);
         buttonPanel.add(addToBasketButton);
         buttonPanel.add(continueButton);
@@ -226,7 +294,7 @@ public class GUIBorrowItemPanel extends JPanel {
     }
     
     private void styleActionButton(JButton button) {
-        button.setPreferredSize(new Dimension(170, 40));
+        button.setPreferredSize(new Dimension(150, 40));
         button.setBackground(branding.maroon);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
