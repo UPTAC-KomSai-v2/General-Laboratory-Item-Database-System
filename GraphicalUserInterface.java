@@ -33,8 +33,9 @@ public class GraphicalUserInterface implements ActionListener {
     private Branding branding;
 
     private GUIBorrowerListPanel borrowerListPanel;
+    private GUIUpdateInventoryPanel updateInventoryPanel;
     private GUITransactionHistoryPanel transactionHistoryPanel;
-    
+
     public GraphicalUserInterface() {
         queries = new Queries();
         branding = new Branding();
@@ -117,12 +118,16 @@ public class GraphicalUserInterface implements ActionListener {
 
         // Sub-panel views with back buttons
         borrowerListPanel = new GUIBorrowerListPanel(branding, blstBackBtn);
+        updateInventoryPanel = new GUIUpdateInventoryPanel(branding, upinBackBtn);
         transactionHistoryPanel = new GUITransactionHistoryPanel(branding, tranBackBtn);
 
         ctntBorrowItemPanel = new GUIBorrowItemPanel(branding, bitmBackBtn);
         ctntBorrowerListPanel = borrowerListPanel;
-        ctntUpdateInventoryPanel = new GUIUpdateInventoryPanel(branding, upinBackBtn);
+        ctntUpdateInventoryPanel = updateInventoryPanel;
         ctntTransactionHistoryPanel = transactionHistoryPanel;
+
+        // Set up Queries queries in GUI panels
+        updateInventoryPanel.setQueries(queries);
     }
 
     @Override

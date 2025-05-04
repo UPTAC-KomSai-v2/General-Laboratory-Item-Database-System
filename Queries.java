@@ -157,13 +157,96 @@ public class Queries {
     // ----------------------------------------------------------
     //                 JHUN KENNETH INIEGO QUERIES
     // ----------------------------------------------------------
+    public int getCategoryID(String categoryName) {
+        String query = "SELECT category_id FROM category WHERE category_name = ?";
+        int categoryID = 0;
+
+        try{
+            ptmt = conn.prepareStatement(query);
+            ptmt.setString(1, categoryName);
+            ResultSet rs = ptmt.executeQuery();
+
+            while(rs.next()) {
+                categoryID = rs.getInt("category_id");
+            }
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+
+        return categoryID;
+    }
+
+    public String[][] getItemsPerCategory(int categoryID) {
+        String query = "SELECT item_id, item_name, unit, qty FROM item WHERE category_id = ?";
+        String[][] data = null;
+
+        try{
+            ptmt = conn.prepareStatement(query);
+            ptmt.setInt(1, categoryID);
+            ResultSet rs1 = ptmt.executeQuery();
+
+            int rows = 0;
+            while (rs1.next()) {
+                rows++;
+            }
+
+            PreparedStatement ptmt1 = conn.prepareStatement(query);
+            ptmt1.setInt(1, categoryID);
+            ResultSet rs = ptmt1.executeQuery();
+
+            data = new String[rows][4];
+            int rowIndex = 0;
+            while (rs.next()) {
+                data[rowIndex][0] = rs.getString("item_id");
+                data[rowIndex][1] = rs.getString("item_name");
+                data[rowIndex][2] = rs.getString("unit");
+                data[rowIndex][3] = rs.getString("qty");
+                rowIndex++;
+            }
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+
+        return data;
+    }
+
+    public void addItemToDatabase(String itemName, String unit, int qty, int categoryID) {
+        String insertQuery = "INSERT INTO item(item_name, unit, qty, category_id, status) VALUES(?, ?, ?, ?, ?)";
+
+        try{
+            ptmt = conn.prepareStatement(insertQuery);
+            ptmt.setString(1, itemName);
+            if(unit.equals("null")) ptmt.setNull(2, java.sql.Types.VARCHAR);
+            else ptmt.setString(2, unit);
+            ptmt.setInt(3, qty);
+            ptmt.setInt(4, categoryID);
+            ptmt.setString(5, "Available");
+
+            ptmt.executeUpdate();
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+    }
+
+    public void removeItemFromDatabase(int itemID) {
+        String deleteQuery = "DELETE FROM item WHERE item_id = ?";
+
+        try{
+            ptmt = conn.prepareStatement(deleteQuery);
+            ptmt.setInt(1, itemID);
+            ptmt.executeUpdate();
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+    }
+
     public void updateActualReturnDate(int borrowID) {
         String updateQuery = "UPDATE borrow SET actual_return_date = CURRENT_DATE WHERE borrow_id = ?";
 
         try{
             ptmt = conn.prepareStatement(updateQuery);
             ptmt.setInt(1, borrowID);
-            int rowsUpdated1 = ptmt.executeUpdate();
+            ptmt.executeUpdate();
         }catch(SQLException e){
             System.err.println("SQL Error: " + e.getMessage());
         }
@@ -177,7 +260,7 @@ public class Queries {
             PreparedStatement ptmt1 = conn.prepareStatement(addQuery);
             ptmt1.setInt(1, borrowID);
             ptmt1.setString(2, "Good Condition");
-            int rowsUpdated2 = ptmt1.executeUpdate();
+            ptmt1.executeUpdate();
         }catch(SQLException e){
             System.err.println("SQL Error: " + e.getMessage());
         }

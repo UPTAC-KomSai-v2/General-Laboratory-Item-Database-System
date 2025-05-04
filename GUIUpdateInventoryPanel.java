@@ -21,11 +21,14 @@ import javax.swing.table.DefaultTableModel;
 
 public class GUIUpdateInventoryPanel extends JPanel {
     private Branding branding;
-    private JPanel mainContentPanel;
+    private JPanel mainContentPanel, categoryPanel;
     private JButton selectedCategoryButton = null;
     private JTable inventoryTable;
     private DefaultTableModel tableModel;
     private JPanel inventoryPanel; // Panel to hold the inventory table
+
+    private Queries queries;
+    private int selectedCategoryIndexDatabase, selectedCategoryIndexArray;
     
     public GUIUpdateInventoryPanel(Branding branding, JButton backButton) {
         this.branding = branding;
@@ -41,82 +44,82 @@ public class GUIUpdateInventoryPanel extends JPanel {
 
     // Categories of laboratory equipment
     private String[] categories = {
-        "Glassware and Plasticware",
+        "Glassware/Plasticware",
         "Measuring and Analytical Instruments",
         "Lab Tools and Accessories",
         "Consumables and Miscellaneous",
-        "Storage Containers", 
+        "Storage Containers",
         "Biological Materials",
         "Electrical Equipment",
         "Safety Equipment"
     };
     
-    // Sample inventory data for each category
-    private String[][][] categoryInventoryData = {
-        // Glassware and Plasticware
-        {
-            {"LAB001", "Beaker (100ml)", "Unit", "35"},
-            {"LAB002", "Erlenmeyer Flask", "Unit", "18"},
-            {"LAB009", "Graduated Cylinder", "Unit", "22"},
-            {"LAB013", "Test Tube", "Pack", "45"},
-            {"LAB017", "Pipette", "Unit", "12"},
-            {"LAB024", "Glass Funnel", "Unit", "10"}
-        },
-        // Measuring and Analytical Instruments
-        {
-            {"LAB003", "Digital Scale", "Unit", "7"},
-            {"LAB014", "Microscope", "Unit", "5"},
-            {"LAB021", "Thermometers", "Unit", "18"},
-            {"LAB028", "pH Meter", "Unit", "4"},
-            {"LAB033", "Lab Timer", "Unit", "14"}
-        },
-        // Lab Tools and Accessories
-        {
-            {"LAB005", "Bunsen Burner", "Unit", "8"},
-            {"LAB018", "Forceps", "Unit", "20"},
-            {"LAB019", "Scalpel Blades", "Box", "10"},
-            {"LAB028", "Stirring Rods", "Pack", "15"},
-            {"LAB035", "Burette Stand", "Unit", "6"}
-        },
-        // Consumables and Miscellaneous
-        {
-            {"LAB006", "Laboratory Gloves", "Box", "45"},
-            {"LAB011", "pH Test Strips", "Box", "40"},
-            {"LAB012", "Distilled Water", "Liter", "50"},
-            {"LAB022", "Alcohol Swabs", "Box", "35"},
-            {"LAB026", "Filter Paper", "Pack", "25"},
-            {"LAB031", "Ethanol Solution", "Liter", "12"},
-            {"LAB036", "Rubber Stoppers", "Pack", "20"}
-        },
-        // Storage Containers
-        {
-            {"LAB004", "Specimen Containers", "Pack", "30"},
-            {"LAB017", "Centrifuge Tubes", "Pack", "25"},
-            {"LAB027", "Reagent Bottles", "Unit", "20"},
-            {"LAB032", "Autoclave Bags", "Pack", "18"}
-        },
-        // Biological Materials
-        {
-            {"LAB001", "Microscope Slides", "Box", "15"},
-            {"LAB003", "Petri Dishes", "Pack", "30"},
-            {"LAB023", "Glass Slides", "Box", "22"},
-            {"LAB024", "Cover Slips", "Box", "22"}
-        },
-        // Electrical Equipment
-        {
-            {"LAB014", "Digital Scale", "Unit", "7"},
-            {"LAB020", "Multimeter", "Unit", "5"},
-            {"LAB029", "Power Supply", "Unit", "3"},
-            {"LAB034", "Hot Plate", "Unit", "8"}
-        },
-        // Safety Equipment
-        {
-            {"LAB007", "Safety Goggles", "Unit", "20"},
-            {"LAB013", "Lab Coats", "Unit", "15"},
-            {"LAB025", "Lab Notebook", "Unit", "30"},
-            {"LAB030", "Safety Face Shield", "Unit", "8"}
-        }
-    };
+    // // Sample inventory data for each category
+    // private String[][][] categoryInventoryData = {
+    //     // Glassware and Plasticware
+    //     {
+    //         {"LAB001", "Beaker (100ml)", "Unit", "35"},
+    //         {"LAB002", "Erlenmeyer Flask", "Unit", "18"},
+    //         {"LAB009", "Graduated Cylinder", "Unit", "22"},
+    //         {"LAB013", "Test Tube", "Pack", "45"},
+    //         {"LAB017", "Pipette", "Unit", "12"},
+    //         {"LAB024", "Glass Funnel", "Unit", "10"}
+    //     },
+    //     // Measuring and Analytical Instruments
+    //     {
+    //         {"LAB003", "Digital Scale", "Unit", "7"},
+    //         {"LAB014", "Microscope", "Unit", "5"},
+    //         {"LAB021", "Thermometers", "Unit", "18"},
+    //         {"LAB028", "pH Meter", "Unit", "4"},
+    //         {"LAB033", "Lab Timer", "Unit", "14"}
+    //     },
+    //     // Lab Tools and Accessories
+    //     {
+    //         {"LAB005", "Bunsen Burner", "Unit", "8"},
+    //         {"LAB018", "Forceps", "Unit", "20"},
+    //         {"LAB019", "Scalpel Blades", "Box", "10"},
+    //         {"LAB028", "Stirring Rods", "Pack", "15"},
+    //         {"LAB035", "Burette Stand", "Unit", "6"}
+    //     },
+    //     // Consumables and Miscellaneous
+    //     {
+    //         {"LAB006", "Laboratory Gloves", "Box", "45"},
+    //         {"LAB011", "pH Test Strips", "Box", "40"},
+    //         {"LAB012", "Distilled Water", "Liter", "50"},
+    //         {"LAB022", "Alcohol Swabs", "Box", "35"},
+    //         {"LAB026", "Filter Paper", "Pack", "25"},
+    //         {"LAB031", "Ethanol Solution", "Liter", "12"},
+    //         {"LAB036", "Rubber Stoppers", "Pack", "20"}
+    //     },
+    //     // Storage Containers
+    //     {
+    //         {"LAB004", "Specimen Containers", "Pack", "30"},
+    //         {"LAB017", "Centrifuge Tubes", "Pack", "25"},
+    //         {"LAB027", "Reagent Bottles", "Unit", "20"},
+    //         {"LAB032", "Autoclave Bags", "Pack", "18"}
+    //     },
+    //     // Biological Materials
+    //     {
+    //         {"LAB001", "Microscope Slides", "Box", "15"},
+    //         {"LAB003", "Petri Dishes", "Pack", "30"},
+    //         {"LAB023", "Glass Slides", "Box", "22"},
+    //         {"LAB024", "Cover Slips", "Box", "22"}
+    //     },
+    //     // Electrical Equipment
+    //     {
+    //         {"LAB014", "Digital Scale", "Unit", "7"},
+    //         {"LAB020", "Multimeter", "Unit", "5"},
+    //         {"LAB029", "Power Supply", "Unit", "3"},
+    //         {"LAB034", "Hot Plate", "Unit", "8"}
+    //     },
+    //     // Safety Equipment
+    //     {
+    //         {"LAB007", "Safety Goggles", "Unit", "20"},
+    //         {"LAB013", "Lab Coats", "Unit", "15"},
+    //         {"LAB025", "Lab Notebook", "Unit", "30"},
+    //         {"LAB030", "Safety Face Shield", "Unit", "8"}
+    //     }
+    // };
     
     private void initializeMainContentPanel(JButton backButton) {
         // Main panel with border layout
@@ -143,7 +146,7 @@ public class GUIUpdateInventoryPanel extends JPanel {
     
     private JPanel createCategoryPanel() {
         // The panel that contains the category buttons (BoxLayout for vertical stack)
-        JPanel categoryPanel = new JPanel();
+        categoryPanel = new JPanel();
         categoryPanel.setLayout(new BoxLayout(categoryPanel, BoxLayout.Y_AXIS));
         categoryPanel.setBackground(branding.maroon);
         categoryPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -187,7 +190,11 @@ public class GUIUpdateInventoryPanel extends JPanel {
                 selectedCategoryButton = categoryButton;
                 
                 // Update inventory display with items from the selected category
-                updateInventoryPanel(categoryIndex);
+                selectedCategoryIndexDatabase = queries.getCategoryID(categories[categoryIndex]);
+                selectedCategoryIndexArray = categoryIndex;
+                System.out.println("Selected Category ID from Database: " + selectedCategoryIndexDatabase);
+                System.out.println("Selected Category ID from Array: " + selectedCategoryIndexArray);
+                updateInventoryPanel(queries.getCategoryID(categories[categoryIndex]), categoryIndex);
             });
     
             categoryPanel.add(categoryButton);
@@ -264,7 +271,7 @@ public class GUIUpdateInventoryPanel extends JPanel {
     }
     
     // Method to update inventory panel based on selected category
-    private void updateInventoryPanel(int categoryIndex) {
+    private void updateInventoryPanel(int categoryIndexDatabase, int categoryIndex) {
         if (inventoryPanel == null) return;
         
         // Get the table container panel
@@ -283,7 +290,7 @@ public class GUIUpdateInventoryPanel extends JPanel {
         tablePanel.setBorder(compoundBorder);
 
         // Get data for selected category
-        String[][] data = categoryInventoryData[categoryIndex];
+        String[][] data = queries.getItemsPerCategory(categoryIndexDatabase);
 
         // Column names
         String[] columnNames = {"Item ID", "Item Name", "Unit", "Quantity"};
@@ -396,6 +403,7 @@ public class GUIUpdateInventoryPanel extends JPanel {
                     "Item Removed",
                     JOptionPane.INFORMATION_MESSAGE
                 );
+                queries.removeItemFromDatabase(Integer.parseInt(itemId));
             }
         } else {
             JOptionPane.showMessageDialog(
@@ -423,10 +431,10 @@ public class GUIUpdateInventoryPanel extends JPanel {
         }
         
         // Generate a new item ID based on the highest existing ID
-        String newId = generateNewItemId();
+        // String newId = generateNewItemId();
         
         // Add a new row with the generated ID and empty fields for the user to fill in
-        tableModel.addRow(new Object[]{newId, "", "", "0"});
+        tableModel.addRow(new Object[]{"", "", "", "0"});
         
         // Select the newly added row
         int newRowIndex = tableModel.getRowCount() - 1;
@@ -435,16 +443,70 @@ public class GUIUpdateInventoryPanel extends JPanel {
         // Scroll to the new row
         inventoryTable.scrollRectToVisible(inventoryTable.getCellRect(newRowIndex, 0, true));
         
-        // Optional: Start editing the item name cell
-        inventoryTable.editCellAt(newRowIndex, 1);
-        inventoryTable.getEditorComponent().requestFocus();
+        // // Optional: Start editing the item name cell
+        // inventoryTable.editCellAt(newRowIndex, 1);
+        // inventoryTable.getEditorComponent().requestFocus();
         
-        JOptionPane.showMessageDialog(
+        // JOptionPane.showMessageDialog(
+        //     this,
+        //     "New item added. Please fill in the details.",
+        //     "New Item",
+        //     JOptionPane.INFORMATION_MESSAGE
+        // );
+
+        // Request user input for columns 1–3 (index 0–2)
+        String input[] = new String[3];
+        for (int col = 1; col <= 3; col++) {
+            boolean validInput = false;
+            while (!validInput) {
+                input[col-1] = JOptionPane.showInputDialog(
+                    this,
+                    "Enter value for " + inventoryTable.getColumnName(col) + ":"
+                );
+                if (input[col-1] == null || input[col-1].trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "You must enter a value for " + inventoryTable.getColumnName(col) + ".",
+                        "Input Required",
+                        JOptionPane.WARNING_MESSAGE
+                    );
+                } else {
+                    tableModel.setValueAt(input[col-1].trim(), newRowIndex, col);
+                    validInput = true;
+                }
+            }
+        }
+
+        try {
+            int qty = Integer.parseInt(input[2]);
+
+            if(qty > 0) {
+                JOptionPane.showMessageDialog(
+                this,
+                "New item added. You may now edit other details if needed.",
+                "New Item",
+                JOptionPane.INFORMATION_MESSAGE
+                );
+
+                queries.addItemToDatabase(input[0], input[1], qty, selectedCategoryIndexDatabase);
+                updateInventoryPanel(selectedCategoryIndexDatabase, selectedCategoryIndexArray);
+            } else {
+                JOptionPane.showMessageDialog(
+                this,
+                "Quantity input is invalid.",
+                "Invalid Input",
+                JOptionPane.WARNING_MESSAGE
+                );
+            }
+            
+        } catch(NumberFormatException e) {
+            JOptionPane.showMessageDialog(
             this,
-            "New item added. Please fill in the details.",
-            "New Item",
-            JOptionPane.INFORMATION_MESSAGE
-        );
+            "Quantity input is invalid.",
+            "Invalid Input",
+            JOptionPane.WARNING_MESSAGE
+            );
+        }
     }
     
     /**
@@ -491,5 +553,9 @@ public class GUIUpdateInventoryPanel extends JPanel {
             panel.setPreferredSize(new Dimension(0, height));
             return panel;
         }
+    }
+
+    public void setQueries(Queries queries) {
+        this.queries = queries;
     }
 }
