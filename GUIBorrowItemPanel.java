@@ -148,51 +148,17 @@ public class GUIBorrowItemPanel extends JPanel{
         scrn2BorrowedItemsContentPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
     
     
-        JPanel scrn2BorrowerInfoPanel = new JPanel();
-        scrn2BorrowerInfoPanel.setBorder(BorderFactory.createEmptyBorder(10, 50, 20, 0));
-        scrn2BorrowerInfoPanel.setLayout(new GridBagLayout());
-        scrn2BorrowerInfoPanel.setOpaque(false);
-    
-        JPanel borrowerPanel = new JPanel();
-        JPanel borrowerNamePanel = new JPanel();
-        JPanel studentIdPanel = new JPanel();
-        JPanel timePanel = new JPanel();
-        JPanel datePanel = new JPanel();
-    
-        borrowerPanel.setLayout(new BorderLayout());
-        borrowerNamePanel.setLayout(new BorderLayout());
-        studentIdPanel.setLayout(new BorderLayout());
-        timePanel.setLayout(new BorderLayout());
-        datePanel.setLayout(new BorderLayout());
-    
-        borrowerPanel.setOpaque(false);
-        borrowerNamePanel.setOpaque(false);
-        studentIdPanel.setOpaque(false);
-        timePanel.setOpaque(false);
-        datePanel.setOpaque(false);
-    
-        GridBagConstraints scrn2BorrowerInfoPanelGBC = new GridBagConstraints();
-        scrn2BorrowerInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
-        scrn2BorrowerInfoPanelGBC.gridx = 0;
-        scrn2BorrowerInfoPanelGBC.ipadx = 20;
-        scrn2BorrowerInfoPanelGBC.weightx = 0.05;
-        scrn2BorrowerInfoPanel.add(borrowerPanel, scrn2BorrowerInfoPanelGBC);
-        scrn2BorrowerInfoPanelGBC.gridx++;
-        scrn2BorrowerInfoPanelGBC.ipadx = 20;
-        scrn2BorrowerInfoPanelGBC.weightx = 0.1;
-        scrn2BorrowerInfoPanel.add(borrowerNamePanel, scrn2BorrowerInfoPanelGBC);
-        scrn2BorrowerInfoPanelGBC.gridx++;
-        scrn2BorrowerInfoPanelGBC.ipadx = 20;
-        scrn2BorrowerInfoPanelGBC.weightx = 0.05;
-        scrn2BorrowerInfoPanel.add(studentIdPanel, scrn2BorrowerInfoPanelGBC);
-        scrn2BorrowerInfoPanelGBC.gridx++;
-        scrn2BorrowerInfoPanelGBC.ipadx = 20;
-        scrn2BorrowerInfoPanelGBC.weightx = 0.05;
-        scrn2BorrowerInfoPanel.add(timePanel, scrn2BorrowerInfoPanelGBC);
-        scrn2BorrowerInfoPanelGBC.gridx++;
-        scrn2BorrowerInfoPanelGBC.ipadx = 20;
-        scrn2BorrowerInfoPanelGBC.weightx = 0.5;
-        scrn2BorrowerInfoPanel.add(datePanel, scrn2BorrowerInfoPanelGBC);
+        JPanel scrn2BasketLabelPanel = new JPanel();
+        scrn2BasketLabelPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        scrn2BasketLabelPanel.setLayout(new GridBagLayout());
+        scrn2BasketLabelPanel.setOpaque(false);
+        
+        JLabel scrn2BasketLabel = new JLabel("Borrow Basket");
+        scrn2BasketLabel.setFont(new Font("Roboto", Font.PLAIN, 20));
+        scrn2BasketLabel.setForeground(branding.white);
+        
+        scrn2BasketLabelPanel.add(scrn2BasketLabel);
+        
     
         JScrollPane scrn2ScrollContentPanel = new JScrollPane(scrn2BorrowedItemsContentPanel);
         scrn2ScrollContentPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -231,7 +197,7 @@ public class GUIBorrowItemPanel extends JPanel{
         screen2GBC.weightx = 1;
         screen2GBC.weighty = 0.01;
         screen2GBC.gridy = 0;
-        screen2.add(scrn2BorrowerInfoPanel, screen2GBC);
+        screen2.add(scrn2BasketLabelPanel, screen2GBC);
         screen2GBC.weighty = 0.9;
         screen2GBC.gridy++;
         screen2.add(scrn2ScrollContentPanel, screen2GBC);
@@ -657,6 +623,11 @@ public class GUIBorrowItemPanel extends JPanel{
             itemLabel.setForeground(branding.maroon);
             quantityLabel.setForeground(branding.maroon);
             quantityLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+            JPanel quantityLabelPanel = new JPanel(new GridBagLayout());
+            quantityLabelPanel.setPreferredSize(new Dimension(50, 35));
+            quantityLabelPanel.add(quantityLabel);
+
             
             // Create buttons
             JButton addBtn = new JButton("+");
@@ -677,7 +648,7 @@ public class GUIBorrowItemPanel extends JPanel{
             quantityPanel.setLayout(new GridBagLayout());
             
             itemPanel.setPreferredSize(new Dimension(10, 70));
-            quantityPanel.setPreferredSize(new Dimension(10, 70));
+            quantityPanel.setPreferredSize(new Dimension(50, 70));
             
             itemPanel.setOpaque(false);
             quantityPanel.setOpaque(false);
@@ -686,13 +657,17 @@ public class GUIBorrowItemPanel extends JPanel{
             
             // Add components to quantity panel
             GridBagConstraints gbc = new GridBagConstraints();
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            //gbc.weightx = 0.5;
             gbc.insets = new Insets(0, 5, 0, 5);
-            
             gbc.gridx = 0;
+            gbc.ipadx = 0;
             quantityPanel.add(addBtn, gbc);
             gbc.gridx = 1;
-            quantityPanel.add(quantityLabel, gbc);
+            gbc.ipadx = 10;
+            quantityPanel.add(quantityLabelPanel, gbc);
             gbc.gridx = 2;
+            gbc.ipadx = 0;
             quantityPanel.add(subtractBtn, gbc);
             
             // Add button listeners
