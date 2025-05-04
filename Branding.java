@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.UIManager;
@@ -45,6 +46,8 @@ public class Branding {
             e.printStackTrace();
         }
 
+        
+
 
         lgnUPLogoResized = resizeImage(upLogo, 150, 150);
         rbbnUPLogoResized = resizeImage(upLogo, 110, 110);
@@ -70,6 +73,18 @@ public class Branding {
         g2d.drawImage(tmp, 0, 0, null);
         g2d.dispose();
         return resizedImage;
+    }
+
+    public void setAppIcon(JFrame frame){
+        try {
+            BufferedImage originalIcon = ImageIO.read(new File("Assets/Logo/UP Logo.png"));
+            // Resize the icon (example size: 32x32)
+            BufferedImage resizedIcon = resizeImage(originalIcon, 32, 32);
+            frame.setIconImage(resizedIcon);
+        } catch (IOException e) {
+            System.out.println("Icon image not found!");
+            e.printStackTrace();
+        }
     }
 
     public void reskinScrollBar(JScrollPane scrollPane, Color color){
