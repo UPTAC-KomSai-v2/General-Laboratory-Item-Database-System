@@ -162,7 +162,10 @@ public class GraphicalUserInterface implements ActionListener {
             }
         } else if (src == rbbnAboutBtn) {
                 showAboutDialog();
-        } else if (src == bitmBackBtn || src == blstBackBtn || src == upinBackBtn || src == tranBackBtn) {
+        } else if (src == bitmBackBtn) {
+            ((GUIBorrowItemPanel) ctntBorrowItemPanel).resetPanel();
+            showMainMenu();
+        } else if (src == blstBackBtn || src == upinBackBtn || src == tranBackBtn) {
             showMainMenu();
         }
     }

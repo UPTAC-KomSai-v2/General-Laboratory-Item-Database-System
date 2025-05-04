@@ -20,6 +20,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -1041,8 +1042,17 @@ public class GUIBorrowItemPanel extends JPanel{
         });
 
         continueButton.addActionListener(e -> {
-            updateBasketDisplayPanel();
-            cardLayout.next(GUIBorrowItemPanel.this);
+            if (basketItems.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "You must add at least one item to the basket before continuing.",
+                    "No Items in Basket",
+                    JOptionPane.WARNING_MESSAGE
+                );
+            } else {
+                updateBasketDisplayPanel();
+                cardLayout.next(GUIBorrowItemPanel.this);
+            }
         });
         
         // Ensure all buttons are added properly to the button panel
@@ -1077,6 +1087,16 @@ public class GUIBorrowItemPanel extends JPanel{
         gridPanel.revalidate();
         gridPanel.repaint();
     }
+
+    public void resetPanel() {
+        selectedCategoryButton = null;
+        selectedItemCards.clear();
+        basketItems.clear();
+        basketItemsMap.clear();
+        itemPanelsMap.clear();
+        showNoCategorySelectedMessage();
+    }
+    
     
     private void styleActionButton(JButton button) {
         button.setPreferredSize(new Dimension(150, 30));
