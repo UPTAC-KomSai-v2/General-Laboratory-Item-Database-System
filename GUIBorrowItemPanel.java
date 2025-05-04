@@ -142,7 +142,7 @@ public class GUIBorrowItemPanel extends JPanel{
         screen2.setBackground(branding.maroon);
     
         scrn2BorrowedItemsContentPanel = new JPanel();
-        scrn2BorrowedItemsContentPanel.setLayout(new BoxLayout(scrn2BorrowedItemsContentPanel, BoxLayout.Y_AXIS)); // Set to vertical stack
+        scrn2BorrowedItemsContentPanel.setLayout(new GridBagLayout()); // Set to vertical stack
         scrn2BorrowedItemsContentPanel.setBackground(branding.maroon);
         scrn2BorrowedItemsContentPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
     
@@ -633,9 +633,14 @@ public class GUIBorrowItemPanel extends JPanel{
     private void updateBasketDisplayPanel() {
         // Clear the panel before rebuilding it
         scrn2BorrowedItemsContentPanel.removeAll();
-        
-        // Set the layout manager to BoxLayout for consistent spacing
-        scrn2BorrowedItemsContentPanel.setLayout(new BoxLayout(scrn2BorrowedItemsContentPanel, BoxLayout.Y_AXIS));
+
+        GridBagConstraints scrn2BorrowedItemsContentPanelGBC = new GridBagConstraints();
+        scrn2BorrowedItemsContentPanelGBC.fill = GridBagConstraints.BOTH;
+        scrn2BorrowedItemsContentPanelGBC.anchor = GridBagConstraints.NORTH;
+        scrn2BorrowedItemsContentPanelGBC.insets = new Insets(10,0,0,0);
+        scrn2BorrowedItemsContentPanelGBC.gridy = -1;
+        scrn2BorrowedItemsContentPanelGBC.weightx = 0.9;
+        scrn2BorrowedItemsContentPanelGBC.weightx = 1;
         
         // Empty the item panels map as we're rebuilding it
         itemPanelsMap.clear();
@@ -644,6 +649,8 @@ public class GUIBorrowItemPanel extends JPanel{
         for (BasketItem item : basketItems) {
             JLabel itemLabel = new JLabel(item.itemName);
             JLabel quantityLabel = new JLabel(String.valueOf(item.itemQuantity));
+
+            
             
             // Set styling
             itemLabel.setForeground(branding.maroon);
@@ -742,7 +749,8 @@ public class GUIBorrowItemPanel extends JPanel{
             itemPanelsMap.put(itemName, tupleInfoPanel);
             
             // Add the panel to the content panel
-            scrn2BorrowedItemsContentPanel.add(tupleInfoPanel);
+            scrn2BorrowedItemsContentPanelGBC.gridy++;
+            scrn2BorrowedItemsContentPanel.add(tupleInfoPanel, scrn2BorrowedItemsContentPanelGBC);
             
             // Add a small gap between items (only if this isn't the last item)
             if (basketItems.indexOf(item) < basketItems.size() - 1) {
