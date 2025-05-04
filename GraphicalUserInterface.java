@@ -32,6 +32,9 @@ public class GraphicalUserInterface implements ActionListener {
     private Queries queries;
     private Branding branding;
 
+    private GUIBorrowerListPanel borrowerListPanel;
+    private GUITransactionHistoryPanel transactionHistoryPanel;
+    
     public GraphicalUserInterface() {
         queries = new Queries();
         branding = new Branding();
@@ -113,10 +116,13 @@ public class GraphicalUserInterface implements ActionListener {
         );
 
         // Sub-panel views with back buttons
+        borrowerListPanel = new GUIBorrowerListPanel(branding, blstBackBtn);
+        transactionHistoryPanel = new GUITransactionHistoryPanel(branding, tranBackBtn);
+
         ctntBorrowItemPanel = new GUIBorrowItemPanel(branding, bitmBackBtn);
-        ctntBorrowerListPanel = new GUIBorrowerListPanel(branding, blstBackBtn);
+        ctntBorrowerListPanel = borrowerListPanel;
         ctntUpdateInventoryPanel = new GUIUpdateInventoryPanel(branding, upinBackBtn);
-        ctntTransactionHistoryPanel = new GUITransactionHistoryPanel(branding, tranBackBtn);
+        ctntTransactionHistoryPanel = transactionHistoryPanel;
     }
 
     @Override
@@ -134,10 +140,12 @@ public class GraphicalUserInterface implements ActionListener {
             showPanel(ctntBorrowItemPanel);
             queries.borrowItems(new java.util.Scanner(System.in));
         } else if (src == ctntBorrowerListBtn) {
+            borrowerListPanel.refreshEntries1(queries.getBorrowList(), queries);
             showPanel(ctntBorrowerListPanel);
         } else if (src == ctntUpdateInventoryBtn) {
             showPanel(ctntUpdateInventoryPanel);
         } else if (src == ctntTransactionHistoryBtn) {
+            transactionHistoryPanel.refreshEntries(queries.getTransactionHistory());
             showPanel(ctntTransactionHistoryPanel);
         } else if (src == rbbnLogoutBtn) {
             int result = JOptionPane.showConfirmDialog(

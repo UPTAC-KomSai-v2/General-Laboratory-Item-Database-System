@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import javax.swing.JFrame;
@@ -16,7 +18,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 public class Queries {
-    static final String DB_URL = "jdbc:mysql://sql12.freesqldatabase.com:3306/sql12773093?useSSL=false";
+    static final String DB_URL = "jdbc:mysql://caboose.proxy.rlwy.net:51384/genlab_db";
     private Connection conn;
     private Statement stmt;
     private PreparedStatement ptmt;
@@ -55,8 +57,10 @@ public class Queries {
             return;
         }
 
-        String user = "sql12773093";
-        String pass = "6e6zJ2BwSj";
+        String user = "root";
+        String pass = "weoZeizOaesHkpjieIetoaQTyKfFwjKm";
+        // String user = "sql12773093";
+        // String pass = "6e6zJ2BwSj";
         
         try{
             conn = DriverManager.getConnection(DB_URL, user, pass);
@@ -148,5 +152,167 @@ public class Queries {
     }
     public void updateInventory(){
 
+    }
+
+    // -------------------- JHUN KENNETH INIEGO QUERIES --------------------
+    public String[][] getBorrowList() {
+        String query = "SELECT DISTINCT full_name, borrower_id, date_borrowed, expected_return_date, degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id) ORDER BY date_borrowed DESC, expected_return_date DESC";
+        String[][] data = null;
+
+        try{
+            ptmt = conn.prepareStatement(query);
+            ResultSet rs = ptmt.executeQuery();
+
+            data = new String[getRows(query)][7];
+            int rowIndex = 0;
+            while (rs.next()) {
+                data[rowIndex][0] = rs.getString("full_name");
+                data[rowIndex][1] = rs.getString("borrower_id");
+                data[rowIndex][2] = rs.getString("date_borrowed");
+                data[rowIndex][3] = rs.getString("expected_return_date");
+                data[rowIndex][4] = rs.getString("degree_prog");
+                data[rowIndex][5] = rs.getString("course_id");
+                data[rowIndex][6] = rs.getString("section_name");
+                rowIndex++;
+            }
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+
+        return data;
+    }
+
+    public String[][] getItemsBorrowed(String borrowerID, String dateBorrowed, String expectedReturnDate) {
+        String query = "SELECT qty_borrowed, item_name, unit, item_id, borrow_id FROM borrow JOIN borrower USING(borrower_id) JOIN item USING(item_id) WHERE borrower_id = ? AND date_borrowed = ? and expected_return_date = ? AND actual_return_date IS NULL ORDER BY date_borrowed DESC";
+        String[][] data = null;
+
+        try{
+            ptmt = conn.prepareStatement(query);
+            ptmt.setString(1, borrowerID);
+            ptmt.setString(2, dateBorrowed);
+            ptmt.setString(3, expectedReturnDate);
+            ResultSet rs1 = ptmt.executeQuery();
+
+            int rows = 0;
+            while (rs1.next()) {
+                rows++;
+            }
+
+            PreparedStatement ptmt1 = conn.prepareStatement(query);
+            ptmt1.setString(1, borrowerID);
+            ptmt1.setString(2, dateBorrowed);
+            ptmt1.setString(3, expectedReturnDate);
+            ResultSet rs = ptmt1.executeQuery();
+
+            data = new String[rows][5];
+            int rowIndex = 0;
+            while (rs.next()) {
+                data[rowIndex][0] = rs.getString("qty_borrowed");
+                data[rowIndex][1] = rs.getString("item_name");
+                data[rowIndex][2] = rs.getString("unit");
+                data[rowIndex][3] = rs.getString("item_id");
+                data[rowIndex][4] = rs.getString("borrow_id");
+                rowIndex++;
+            }
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+
+        return data;
+    }
+
+    public int getRows(String query) {
+        int rows = 0;
+
+        try{
+            ptmt = conn.prepareStatement(query);
+            ResultSet rs1 = ptmt.executeQuery();
+
+            while (rs1.next()) {
+                rows++;
+            }
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+
+        return rows;
+    }
+
+    public void getReturnLog() {
+        String query = "SELECT qty_borrowed, item_name, unit, item_id, borrow_id FROM borrow JOIN borrower USING(borrower_id) JOIN item USING(item_id) WHERE borrower_id = ? AND date_borrowed = ? and expected_return_date = ? AND actual_return_date IS NULL ORDER BY date_borrowed DESC";
+        String[][] data = null;
+
+        try{
+            ptmt = conn.prepareStatement(query);
+            ResultSet rs1 = ptmt.executeQuery();
+
+            int rows = 0;
+            while (rs1.next()) {
+                rows++;
+            }
+
+            PreparedStatement ptmt1 = conn.prepareStatement(query);
+            ResultSet rs = ptmt1.executeQuery();
+
+            data = new String[rows][5];
+            int rowIndex = 0;
+            while (rs.next()) {
+                data[rowIndex][0] = rs.getString("qty_borrowed");
+                data[rowIndex][1] = rs.getString("item_name");
+                data[rowIndex][2] = rs.getString("unit");
+                data[rowIndex][3] = rs.getString("item_id");
+                data[rowIndex][4] = rs.getString("borrow_id");
+                rowIndex++;
+            }
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+    }
+
+    public String[][] getTransactionHistory() {
+        // Get borrow details
+        String borrowQuery = "SELECT DISTINCT date_borrowed, full_name, borrower_id, expected_return_date FROM borrow JOIN borrower USING(borrower_id)";
+        // Get return details
+        String returnQuery = "SELECT return_date, full_name, item_name, item_condition, late_fee FROM (return_log JOIN borrow USING(borrow_id) JOIN borrower USING(borrower_id)) JOIN item USING(item_id) ORDER BY return_date DESC";
+        String data[][] = null;
+
+        try{
+            // Get borrow and query countquery count
+            int rows = getRows(borrowQuery) + getRows(returnQuery);
+            System.out.println(rows);
+
+            data = new String[rows][6];
+            int rowIndex = 0;
+
+            ptmt = conn.prepareStatement(borrowQuery);
+            ResultSet rsBorrow = ptmt.executeQuery();
+            while(rsBorrow.next()) {
+                data[rowIndex][0] = "Borrow";
+                data[rowIndex][1] = rsBorrow.getString("date_borrowed");
+                data[rowIndex][2] = rsBorrow.getString("full_name");
+                data[rowIndex][3] = rsBorrow.getString("borrower_id");
+                data[rowIndex][4] = rsBorrow.getString("expected_return_date");
+                data[rowIndex][5] = null;
+                rowIndex++;
+            }
+
+            PreparedStatement ptmt1 = conn.prepareStatement(returnQuery);
+            ResultSet rsReturn = ptmt1.executeQuery();
+            while(rsReturn.next()) {
+                data[rowIndex][0] = "Return";
+                data[rowIndex][1] = rsReturn.getString("return_date");
+                data[rowIndex][2] = rsReturn.getString("full_name");
+                data[rowIndex][3] = rsReturn.getString("item_name");
+                data[rowIndex][4] = rsReturn.getString("item_condition");
+                data[rowIndex][5] = rsReturn.getString("late_fee");
+                rowIndex++;
+            }
+
+            Arrays.sort(data, Comparator.comparing((String[] row) -> row[1]).reversed());
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+
+        return data;
     }
 }
