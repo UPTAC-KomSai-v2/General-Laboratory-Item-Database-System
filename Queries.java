@@ -154,9 +154,36 @@ public class Queries {
 
     }
 
-    // -------------------- JHUN KENNETH INIEGO QUERIES --------------------
+    // ----------------------------------------------------------
+    //                 JHUN KENNETH INIEGO QUERIES
+    // ----------------------------------------------------------
+    public void updateActualReturnDate(int borrowID) {
+        String updateQuery = "UPDATE borrow SET actual_return_date = CURRENT_DATE WHERE borrow_id = ?";
+
+        try{
+            ptmt = conn.prepareStatement(updateQuery);
+            ptmt.setInt(1, borrowID);
+            int rowsUpdated1 = ptmt.executeUpdate();
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+
+        
+        System.out.println("Updated acual returrn date");
+
+        String addQuery = "INSERT INTO return_log(borrow_id, return_date, item_condition) VALUES(?, CURRENT_DATE, ?)";
+
+        try{
+            PreparedStatement ptmt1 = conn.prepareStatement(addQuery);
+            ptmt1.setInt(1, borrowID);
+            ptmt1.setString(2, "Good Condition");
+            int rowsUpdated2 = ptmt1.executeUpdate();
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+    }
     public String[][] getBorrowList() {
-        String query = "SELECT DISTINCT full_name, borrower_id, date_borrowed, expected_return_date, degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id) ORDER BY date_borrowed DESC, expected_return_date DESC";
+        String query = "SELECT DISTINCT full_name, borrower_id, date_borrowed, expected_return_date, degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id) WHERE actual_return_date IS NULL ORDER BY date_borrowed DESC, expected_return_date DESC";
         String[][] data = null;
 
         try{
@@ -284,18 +311,6 @@ public class Queries {
             data = new String[rows][6];
             int rowIndex = 0;
 
-            ptmt = conn.prepareStatement(borrowQuery);
-            ResultSet rsBorrow = ptmt.executeQuery();
-            while(rsBorrow.next()) {
-                data[rowIndex][0] = "Borrow";
-                data[rowIndex][1] = rsBorrow.getString("date_borrowed");
-                data[rowIndex][2] = rsBorrow.getString("full_name");
-                data[rowIndex][3] = rsBorrow.getString("borrower_id");
-                data[rowIndex][4] = rsBorrow.getString("expected_return_date");
-                data[rowIndex][5] = null;
-                rowIndex++;
-            }
-
             PreparedStatement ptmt1 = conn.prepareStatement(returnQuery);
             ResultSet rsReturn = ptmt1.executeQuery();
             while(rsReturn.next()) {
@@ -305,6 +320,18 @@ public class Queries {
                 data[rowIndex][3] = rsReturn.getString("item_name");
                 data[rowIndex][4] = rsReturn.getString("item_condition");
                 data[rowIndex][5] = rsReturn.getString("late_fee");
+                rowIndex++;
+            }
+
+            ptmt = conn.prepareStatement(borrowQuery);
+            ResultSet rsBorrow = ptmt.executeQuery();
+            while(rsBorrow.next()) {
+                data[rowIndex][0] = "Borrow";
+                data[rowIndex][1] = rsBorrow.getString("date_borrowed");
+                data[rowIndex][2] = rsBorrow.getString("full_name");
+                data[rowIndex][3] = rsBorrow.getString("borrower_id");
+                data[rowIndex][4] = rsBorrow.getString("expected_return_date");
+                data[rowIndex][5] = null;
                 rowIndex++;
             }
 

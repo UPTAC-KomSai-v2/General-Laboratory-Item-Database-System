@@ -285,7 +285,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
                             tupleInfoPanel.setBackground(branding.white);
                             cardLayout.next(GUIBorrowerListPanel.this);
                             borrowerInfo = new String[]{tuple[0],tuple[1],tuple[4],tuple[5] + " - " + tuple[6]};
-                            refreshEntries2(borrowerInfo, queries.getItemsBorrowed(tuple[1],tuple[2],tuple[3]));
+                            refreshEntries2(borrowerInfo, queries.getItemsBorrowed(tuple[1],tuple[2],tuple[3]), queries);
                         }
                     }
                     @Override
@@ -519,7 +519,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         screen2.add(scrn2MenuPanel, screen2GBC);
     }
 
-    public void refreshEntries2(String[] entries, String[][] items) {
+    public void refreshEntries2(String[] entries, String[][] items, Queries queries) {
         scrn2BorrowedItemsContentPanel.removeAll();
 
         int i = 0;
@@ -605,7 +605,12 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
             returnItemBtn.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    System.out.println(tuple[4]);
+                    if(returnItemBtn.isEnabled()) {
+                        System.out.println("Borrow ID: " + tuple[4]);
+                        queries.updateActualReturnDate(Integer.parseInt(tuple[4]));
+                        refreshEntries1(queries.getBorrowList(), queries);
+                        returnItemBtn.setEnabled(false);
+                    }
                 }
             });
 
