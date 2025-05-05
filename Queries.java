@@ -157,6 +157,67 @@ public class Queries {
     // ----------------------------------------------------------
     //                 JHUN KENNETH INIEGO QUERIES
     // ----------------------------------------------------------
+    public int getNoOfItems() {
+        int n = 0;
+        String query = "SELECT COUNT(item_id) AS no_of_items FROM item";
+
+        try{
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            ptmt = conn.prepareStatement(query);
+            ResultSet rs = ptmt.executeQuery();
+
+            while(rs.next()) n = rs.getInt("no_of_items");
+
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+        }catch(SQLException e){
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error: " + e1.getMessage());
+            }
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+
+        return n;
+    }
+
+    public void importToItems(String filePath, String[][] items) {
+        try {
+            for(String[] tuple : items) {
+                String query = "INSERT INTO item(item_name, unit, qty, category_id, status) VALUES(?, ?, ?, ?, ?)";
+
+                conn.setAutoCommit(false);
+                conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+                ptmt = conn.prepareStatement(query);
+                ptmt.setString(1, tuple[0]);
+                if(!tuple[1].equals("null")) ptmt.setString(2, tuple[1]);
+                else ptmt.setNull(2, java.sql.Types.VARCHAR);
+                ptmt.setInt(3, Integer.parseInt(tuple[2]));
+                ptmt.setInt(4, Integer.parseInt(tuple[3]));
+                ptmt.setString(5, tuple[4]);
+                int rowsInserted = ptmt.executeUpdate();
+
+                if (rowsInserted > 0) {
+                    System.out.println("A new item was inserted successfully! ==> " + tuple[0]);
+                }
+
+                conn.commit();
+                conn.setAutoCommit(true);
+                conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+            }
+        } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error: " + e1.getMessage());
+            }
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+    }
+
     public int getCategoryID(String categoryName) {
         String query = "SELECT category_id FROM category WHERE category_name = ?";
         int categoryID = 0;
@@ -181,6 +242,8 @@ public class Queries {
         String[][] data = null;
 
         try{
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             ptmt = conn.prepareStatement(query);
             ptmt.setInt(1, categoryID);
             ResultSet rs1 = ptmt.executeQuery();
@@ -190,6 +253,12 @@ public class Queries {
                 rows++;
             }
 
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             PreparedStatement ptmt1 = conn.prepareStatement(query);
             ptmt1.setInt(1, categoryID);
             ResultSet rs = ptmt1.executeQuery();
@@ -203,7 +272,16 @@ public class Queries {
                 data[rowIndex][3] = rs.getString("qty");
                 rowIndex++;
             }
+
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         }catch(SQLException e){
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error: " + e1.getMessage());
+            }
             System.err.println("SQL Error: " + e.getMessage());
         }
 
@@ -214,6 +292,8 @@ public class Queries {
         String insertQuery = "INSERT INTO item(item_name, unit, qty, category_id, status) VALUES(?, ?, ?, ?, ?)";
 
         try{
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             ptmt = conn.prepareStatement(insertQuery);
             ptmt.setString(1, itemName);
             if(unit.equals("null")) ptmt.setNull(2, java.sql.Types.VARCHAR);
@@ -223,7 +303,16 @@ public class Queries {
             ptmt.setString(5, "Available");
 
             ptmt.executeUpdate();
+
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         }catch(SQLException e){
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error: " + e1.getMessage());
+            }
             System.err.println("SQL Error: " + e.getMessage());
         }
     }
@@ -232,10 +321,21 @@ public class Queries {
         String deleteQuery = "DELETE FROM item WHERE item_id = ?";
 
         try{
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             ptmt = conn.prepareStatement(deleteQuery);
             ptmt.setInt(1, itemID);
             ptmt.executeUpdate();
+
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         }catch(SQLException e){
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error: " + e1.getMessage());
+            }
             System.err.println("SQL Error: " + e.getMessage());
         }
     }
@@ -244,25 +344,45 @@ public class Queries {
         String updateQuery = "UPDATE borrow SET actual_return_date = CURRENT_DATE WHERE borrow_id = ?";
 
         try{
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             ptmt = conn.prepareStatement(updateQuery);
             ptmt.setInt(1, borrowID);
             ptmt.executeUpdate();
+
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         }catch(SQLException e){
-            System.err.println("SQL Error: " + e.getMessage());
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error1A: " + e1.getMessage());
+            }
+            System.err.println("SQL Error2A: " + e.getMessage());
         }
 
-        
-        System.out.println("Updated acual returrn date");
-
+        System.out.println("Updated actual return date");
         String addQuery = "INSERT INTO return_log(borrow_id, return_date, item_condition) VALUES(?, CURRENT_DATE, ?)";
 
         try{
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             PreparedStatement ptmt1 = conn.prepareStatement(addQuery);
             ptmt1.setInt(1, borrowID);
             ptmt1.setString(2, "Good Condition");
             ptmt1.executeUpdate();
+
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         }catch(SQLException e){
-            System.err.println("SQL Error: " + e.getMessage());
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error1B: " + e1.getMessage());
+            }
+            System.err.println("SQL Error2B: " + e.getMessage());
         }
     }
     public String[][] getBorrowList() {
@@ -286,7 +406,7 @@ public class Queries {
                 rowIndex++;
             }
         }catch(SQLException e){
-            System.err.println("SQL Error: " + e.getMessage());
+            System.err.println("SQL Error 2C: " + e.getMessage());
         }
 
         return data;
@@ -297,6 +417,8 @@ public class Queries {
         String[][] data = null;
 
         try{
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             ptmt = conn.prepareStatement(query);
             ptmt.setString(1, borrowerID);
             ptmt.setString(2, dateBorrowed);
@@ -308,6 +430,12 @@ public class Queries {
                 rows++;
             }
 
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             PreparedStatement ptmt1 = conn.prepareStatement(query);
             ptmt1.setString(1, borrowerID);
             ptmt1.setString(2, dateBorrowed);
@@ -324,7 +452,16 @@ public class Queries {
                 data[rowIndex][4] = rs.getString("borrow_id");
                 rowIndex++;
             }
+
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         }catch(SQLException e){
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error: " + e1.getMessage());
+            }
             System.err.println("SQL Error: " + e.getMessage());
         }
 
@@ -335,13 +472,24 @@ public class Queries {
         int rows = 0;
 
         try{
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             ptmt = conn.prepareStatement(query);
             ResultSet rs1 = ptmt.executeQuery();
 
             while (rs1.next()) {
                 rows++;
             }
+
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         }catch(SQLException e){
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error: " + e1.getMessage());
+            }
             System.err.println("SQL Error: " + e.getMessage());
         }
 
@@ -353,6 +501,8 @@ public class Queries {
         String[][] data = null;
 
         try{
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             ptmt = conn.prepareStatement(query);
             ResultSet rs1 = ptmt.executeQuery();
 
@@ -361,6 +511,12 @@ public class Queries {
                 rows++;
             }
 
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             PreparedStatement ptmt1 = conn.prepareStatement(query);
             ResultSet rs = ptmt1.executeQuery();
 
@@ -374,7 +530,16 @@ public class Queries {
                 data[rowIndex][4] = rs.getString("borrow_id");
                 rowIndex++;
             }
+
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         }catch(SQLException e){
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error: " + e1.getMessage());
+            }
             System.err.println("SQL Error: " + e.getMessage());
         }
     }
@@ -394,6 +559,8 @@ public class Queries {
             data = new String[rows][6];
             int rowIndex = 0;
 
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             PreparedStatement ptmt1 = conn.prepareStatement(returnQuery);
             ResultSet rsReturn = ptmt1.executeQuery();
             while(rsReturn.next()) {
@@ -406,6 +573,12 @@ public class Queries {
                 rowIndex++;
             }
 
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             ptmt = conn.prepareStatement(borrowQuery);
             ResultSet rsBorrow = ptmt.executeQuery();
             while(rsBorrow.next()) {
@@ -418,8 +591,17 @@ public class Queries {
                 rowIndex++;
             }
 
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+
             Arrays.sort(data, Comparator.comparing((String[] row) -> row[1]).reversed());
         }catch(SQLException e){
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error: " + e1.getMessage());
+            }
             System.err.println("SQL Error: " + e.getMessage());
         }
 

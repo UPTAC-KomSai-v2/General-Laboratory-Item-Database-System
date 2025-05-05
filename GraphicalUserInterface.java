@@ -140,7 +140,7 @@ public class GraphicalUserInterface implements ActionListener {
             mainFrame.add(mainPanel);
             mainFrame.revalidate();
             mainFrame.repaint();
-
+            updateInventoryPanel.refreshAddItemButton();
         } else if (src == ctntBorrowItemBtn) {
             showPanel(ctntBorrowItemPanel);
             queries.borrowItems(new java.util.Scanner(System.in));

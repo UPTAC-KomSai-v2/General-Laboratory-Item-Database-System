@@ -7,9 +7,16 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -17,19 +24,20 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
 public class GUIUpdateInventoryPanel extends JPanel {
     private Branding branding;
     private JPanel mainContentPanel, categoryPanel;
-    private JButton selectedCategoryButton = null;
+    private JButton selectedCategoryButton = null, removeItemButton, addItemButton;
     private JTable inventoryTable;
     private DefaultTableModel tableModel;
     private JPanel inventoryPanel; // Panel to hold the inventory table
 
     private Queries queries;
     private int selectedCategoryIndexDatabase, selectedCategoryIndexArray;
-    
+
     public GUIUpdateInventoryPanel(Branding branding, JButton backButton) {
         this.branding = branding;
         this.setLayout(new BorderLayout());
@@ -44,14 +52,14 @@ public class GUIUpdateInventoryPanel extends JPanel {
 
     // Categories of laboratory equipment
     private String[] categories = {
-        "Glassware/Plasticware",
-        "Measuring and Analytical Instruments",
-        "Lab Tools and Accessories",
-        "Consumables and Miscellaneous",
-        "Storage Containers",
         "Biological Materials",
+        "Consumables and Miscellaneous",
         "Electrical Equipment",
-        "Safety Equipment"
+        "Glassware/Plasticware",
+        "Lab Tools and Accessories",
+        "Measuring and Analytical Instruments",
+        "Safety Equipment",
+        "Storage Containers"
     };
     
     // // Sample inventory data for each category
@@ -346,8 +354,8 @@ public class GUIUpdateInventoryPanel extends JPanel {
         backButton.setText("Go Back");
         styleActionButton(backButton);
         
-        JButton removeItemButton = new JButton("Remove Item");
-        JButton addItemButton = new JButton("Add Item");
+        removeItemButton = new JButton("Remove Item");
+        addItemButton = new JButton("Add Item");
         
         styleActionButton(removeItemButton);
         styleActionButton(addItemButton);
@@ -355,14 +363,102 @@ public class GUIUpdateInventoryPanel extends JPanel {
         // Add action listener for Remove Item button
         removeItemButton.addActionListener(e -> removeSelectedItem());
         
-        // Add action listener for Add Item button
-        addItemButton.addActionListener(e -> addNewItem());
-        
         buttonPanel.add(backButton);
         buttonPanel.add(removeItemButton);
         buttonPanel.add(addItemButton);
         
         return buttonPanel;
+    }
+
+    public void refreshAddItemButton() {
+        if (queries.getNoOfItems() != 0) {
+            addItemButton.setText("Add Item");
+            addItemButton.addActionListener(e -> addNewItem());
+            removeItemButton.setEnabled(true);
+        } else {
+            removeItemButton.setEnabled(false);
+            addItemButton.setText("Import From File");
+            addItemButton.addActionListener(e -> {
+                boolean success = importItemsFromCSV();
+                if (success) {
+                    removeItemButton.setEnabled(true);
+                    resetAddItemButtonToAddMode();
+                    JOptionPane.showMessageDialog(
+                    this,
+                    "Import successful.",
+                    "Successful Import",
+                    JOptionPane.INFORMATION_MESSAGE
+                    );
+                } else {
+                    JOptionPane.showMessageDialog(
+                    this,
+                    "Import unsuccessful.",
+                    "Unsuccessful Import",
+                    JOptionPane.WARNING_MESSAGE
+                    );
+                }
+            });
+        }
+    }
+
+    private void resetAddItemButtonToAddMode() {
+        for (ActionListener listener : addItemButton.getActionListeners()) {
+            addItemButton.removeActionListener(listener);
+        }
+        addItemButton.setText("Add Item");
+        addItemButton.addActionListener(e -> addNewItem());
+    }
+
+    private boolean importItemsFromCSV() {
+        try {
+            String filepath = null;
+            JFileChooser chooser = new JFileChooser();
+            chooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("CSV Files (*.csv)", "csv");
+            chooser.setFileFilter(filter);
+            chooser.setAcceptAllFileFilterUsed(false);
+
+            int result = chooser.showOpenDialog(chooser);
+
+            if(result == JFileChooser.APPROVE_OPTION){
+                File selectedFile = chooser.getSelectedFile();
+                filepath = selectedFile.getAbsolutePath();
+                
+                System.out.println(filepath);
+            } else {
+                JOptionPane.showMessageDialog(null, "Opening file terminated.", "Terminated", JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
+
+            BufferedReader br1 = new BufferedReader(new FileReader(filepath));
+            String line = "";
+            int numItems = 0;
+            while ((line = br1.readLine()) != null) {
+                numItems++;
+            }
+
+            String[][] data = new String[numItems][5];
+            int rowsIndex = 0;
+            BufferedReader br2 = new BufferedReader(new FileReader(filepath));
+            while ((line = br2.readLine()) != null) {
+                String[] values = line.split(",");
+                data[rowsIndex][0] = values[1];
+                data[rowsIndex][1] = values[2];
+                data[rowsIndex][2] = values[3];
+                data[rowsIndex][3] = values[4];
+                data[rowsIndex][4] = values[5];
+                rowsIndex++;
+            }
+
+            br1.close();
+            br2.close();
+
+            queries.importToItems(filepath, data);
+            return true;
+        } catch (IOException e) {}
+
+        return true;
     }
     
     /**
@@ -513,28 +609,28 @@ public class GUIUpdateInventoryPanel extends JPanel {
      * Generates a new item ID based on the highest existing ID
      * @return A new item ID string
      */
-    private String generateNewItemId() {
-        int highestNum = 0;
-        String prefix = "LAB";
+    // private String generateNewItemId() {
+    //     int highestNum = 0;
+    //     String prefix = "LAB";
         
-        // Find the highest item ID number
-        for (int i = 0; i < tableModel.getRowCount(); i++) {
-            String id = (String) tableModel.getValueAt(i, 0);
-            if (id != null && id.startsWith(prefix)) {
-                try {
-                    int num = Integer.parseInt(id.substring(prefix.length()));
-                    if (num > highestNum) {
-                        highestNum = num;
-                    }
-                } catch (NumberFormatException e) {
-                    // Skip non-numeric IDs
-                }
-            }
-        }
+    //     // Find the highest item ID number
+    //     for (int i = 0; i < tableModel.getRowCount(); i++) {
+    //         String id = (String) tableModel.getValueAt(i, 0);
+    //         if (id != null && id.startsWith(prefix)) {
+    //             try {
+    //                 int num = Integer.parseInt(id.substring(prefix.length()));
+    //                 if (num > highestNum) {
+    //                     highestNum = num;
+    //                 }
+    //             } catch (NumberFormatException e) {
+    //                 // Skip non-numeric IDs
+    //             }
+    //         }
+    //     }
         
-        // Generate new ID with zero-padding to ensure consistent format
-        return String.format("%s%03d", prefix, highestNum + 1);
-    }
+    //     // Generate new ID with zero-padding to ensure consistent format
+    //     return String.format("%s%03d", prefix, highestNum + 1);
+    // }
     
     private void styleActionButton(JButton button) {
         button.setPreferredSize(new Dimension(170, 40));
