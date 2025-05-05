@@ -35,6 +35,7 @@ public class GUIBorrowItemPanel extends JPanel{
     private JPanel scrn2BorrowedItemsContentPanel;
     private JPanel equipmentPanel;  // Declare equipmentPanel as an instance variable
     private JButton addToBasketButton, continueButton; // Track the Add To Basket button
+    private JButton mainBackButton;
     
     // Data structure to keep track of items in the basket
     private List<BasketItem> basketItems = new ArrayList<>();
@@ -65,6 +66,7 @@ public class GUIBorrowItemPanel extends JPanel{
     
     public GUIBorrowItemPanel(Branding branding, JButton backButton) {
         this.branding = branding;
+        this.mainBackButton = backButton;
         this.cardLayout = new CardLayout();
         this.setLayout(cardLayout);
         this.setBackground(Color.WHITE);
@@ -503,10 +505,10 @@ public class GUIBorrowItemPanel extends JPanel{
         screen3BorrowBtn.setPreferredSize(new Dimension(150, 30));
         screen3BorrowBtn.setBackground(branding.maroon);
         screen3BorrowBtn.setForeground(branding.white);
+
         screen3BorrowBtn.addActionListener(e -> {
+            // Show info
             System.out.println("======== BORROWER INFORMATION ========");
-            
-            // Print all borrower information
             for (int i = 0; i < studentNumberFields.size(); i++) {
                 System.out.println("Borrower #" + (i + 1) + ":");
                 System.out.println("Student Number: " + studentNumberFields.get(i).getText());
@@ -516,17 +518,37 @@ public class GUIBorrowItemPanel extends JPanel{
                 System.out.println("Degree Program: " + degreeProgramComboBoxes.get(i).getSelectedItem());
                 System.out.println("-------------------------------------");
             }
-
+        
             System.out.println("======== COURSE INFORMATION ========");
             System.out.println("Course: " + courseOptions.getSelectedItem());
             System.out.println("Section: " + sectionOptions.getSelectedItem());
             System.out.println("Instructor: " + instructorOptions.getSelectedItem());
             System.out.println("-------------------------------------");
-            
-            // Continue with borrowing process
-            // cardLayout.next(GUIBorrowItemPanel.this);
-            System.out.println("CONTINUE WITH BORROWING");
+        
+            JOptionPane.showMessageDialog(
+                GUIBorrowItemPanel.this,
+                "Transaction Successful!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        
+            // Reset borrower input fields
+            for (JTextField field : studentNumberFields) field.setText("");
+            for (JTextField field : fullNameFields) field.setText("");
+            for (JTextField field : emailAddressFields) field.setText("");
+            for (JTextField field : contactNumberFields) field.setText("");
+            for (JComboBox<String> box : degreeProgramComboBoxes) box.setSelectedIndex(0);
+            courseOptions.setSelectedIndex(0);
+            sectionOptions.setSelectedIndex(0);
+            instructorOptions.setSelectedIndex(0);
+        
+            resetPanel();
+        
+            // Use the saved back button
+            mainBackButton.doClick();
         });
+        
+        
     
         scrn3MenuPanel.add(screen3BackBtn);
         scrn3MenuPanel.add(screen3BorrowBtn);
@@ -737,7 +759,19 @@ public class GUIBorrowItemPanel extends JPanel{
         // Update the UI
         scrn2BorrowedItemsContentPanel.revalidate();
         scrn2BorrowedItemsContentPanel.repaint();
+
+        Component[] components = screen2.getComponents();
+        for (Component comp : components) {
+            if (comp instanceof JPanel panel) {
+                for (Component innerComp : panel.getComponents()) {
+                    if (innerComp instanceof JButton button && "Continue".equals(button.getText())) {
+                        button.setEnabled(!basketItems.isEmpty());
+                    }
+                }
+            }
+        }
     }
+
     
     private JPanel createCategoryPanel() {
         // The panel that contains the category buttons (BoxLayout for vertical stack)
@@ -1070,6 +1104,7 @@ public class GUIBorrowItemPanel extends JPanel{
         basketItemsMap.clear();
         itemPanelsMap.clear();
         showNoCategorySelectedMessage();
+        cardLayout.show(this, "Panel 1");
     }
     
     
