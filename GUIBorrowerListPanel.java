@@ -1,4 +1,3 @@
-
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
@@ -9,6 +8,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -198,109 +200,103 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
     public void refreshEntries1(String[][] entries, Queries queries) {
         scrn1BorrowerListContentPanel.removeAll();
     
-        if (entries == null || entries.length == 0) {
-            JLabel noDataLabel = new JLabel("No borrow entries found.");
-            noDataLabel.setForeground(branding.white);
-            scrn1BorrowerListContentPanel.add(noDataLabel);
-        } else {
-            for (String[] tuple : entries) {
-                int i = 0;
-                
-                JLabel nameLabel = new JLabel(tuple[i++]);
-                JLabel studentIdLabel = new JLabel(tuple[i++]);
-                JLabel timeLabel = new JLabel(tuple[i++]);
-                JLabel dateLabel = new JLabel(tuple[i++]);
-                JLabel arrowLabel = new JLabel();
-                arrowLabel.setIcon(new ImageIcon(branding.arrowIcon));
+        for (String[] tuple : entries) {
+            int i = 0;
+            
+            JLabel nameLabel = new JLabel(tuple[i++]);
+            JLabel studentIdLabel = new JLabel(tuple[i++]);
+            JLabel timeLabel = new JLabel(tuple[i++]);
+            JLabel dateLabel = new JLabel(tuple[i++]);
+            JLabel arrowLabel = new JLabel();
+            arrowLabel.setIcon(new ImageIcon(branding.arrowIcon));
 
-                nameLabel.setForeground(branding.white);
-                studentIdLabel.setForeground(branding.white);
-                timeLabel.setForeground(branding.white);
-                dateLabel.setForeground(branding.white);
-                
-                JPanel namePanel = new JPanel();
-                JPanel studentIdPanel = new JPanel();
-                JPanel timePanel = new JPanel();
-                JPanel datePanel = new JPanel();
-                JPanel arrowPanel = new JPanel();
+            nameLabel.setForeground(branding.white);
+            studentIdLabel.setForeground(branding.white);
+            timeLabel.setForeground(branding.white);
+            dateLabel.setForeground(branding.white);
+            
+            JPanel namePanel = new JPanel();
+            JPanel studentIdPanel = new JPanel();
+            JPanel timePanel = new JPanel();
+            JPanel datePanel = new JPanel();
+            JPanel arrowPanel = new JPanel();
 
-                namePanel.setLayout(new BorderLayout());
-                studentIdPanel.setLayout(new BorderLayout());
-                timePanel.setLayout(new BorderLayout());
-                datePanel.setLayout(new BorderLayout());
-                arrowPanel.setLayout(new BorderLayout());
+            namePanel.setLayout(new BorderLayout());
+            studentIdPanel.setLayout(new BorderLayout());
+            timePanel.setLayout(new BorderLayout());
+            datePanel.setLayout(new BorderLayout());
+            arrowPanel.setLayout(new BorderLayout());
 
-                namePanel.setPreferredSize(new Dimension(60, 70));
-                studentIdPanel.setPreferredSize(new Dimension(40, 70));
-                timePanel.setPreferredSize(new Dimension(40, 70));
-                datePanel.setPreferredSize(new Dimension(40, 70));
-                arrowPanel.setPreferredSize(new Dimension(1, 70));
-                
-                namePanel.setOpaque(false);
-                studentIdPanel.setOpaque(false);
-                timePanel.setOpaque(false);
-                datePanel.setOpaque(false);
-                arrowPanel.setOpaque(false);
+            namePanel.setPreferredSize(new Dimension(60, 70));
+            studentIdPanel.setPreferredSize(new Dimension(40, 70));
+            timePanel.setPreferredSize(new Dimension(40, 70));
+            datePanel.setPreferredSize(new Dimension(40, 70));
+            arrowPanel.setPreferredSize(new Dimension(1, 70));
+            
+            namePanel.setOpaque(false);
+            studentIdPanel.setOpaque(false);
+            timePanel.setOpaque(false);
+            datePanel.setOpaque(false);
+            arrowPanel.setOpaque(false);
 
-                namePanel.add(nameLabel, BorderLayout.WEST);
-                studentIdPanel.add(studentIdLabel, BorderLayout.WEST);
-                timePanel.add(timeLabel, BorderLayout.WEST);
-                datePanel.add(dateLabel, BorderLayout.WEST);
-                arrowPanel.add(arrowLabel, BorderLayout.EAST);
+            namePanel.add(nameLabel, BorderLayout.WEST);
+            studentIdPanel.add(studentIdLabel, BorderLayout.WEST);
+            timePanel.add(timeLabel, BorderLayout.WEST);
+            datePanel.add(dateLabel, BorderLayout.WEST);
+            arrowPanel.add(arrowLabel, BorderLayout.EAST);
 
-                JPanel tupleInfoPanel = new JPanel();
-                tupleInfoPanel.setMaximumSize(new Dimension(900, 70));
-                tupleInfoPanel.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 20));
-                tupleInfoPanel.setLayout(new GridBagLayout());
-                tupleInfoPanel.setBackground(branding.maroon);
-                
-                GridBagConstraints tupleInfoPanelGBC = new GridBagConstraints();
-                tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
-                tupleInfoPanelGBC.gridx = 0;
-                tupleInfoPanelGBC.ipadx = 150;
-                tupleInfoPanelGBC.weightx = 0.3;
-                tupleInfoPanel.add(namePanel, tupleInfoPanelGBC);
-                tupleInfoPanelGBC.gridx++;
-                tupleInfoPanelGBC.ipadx = 100;
-                tupleInfoPanelGBC.weightx = 0.2;
-                tupleInfoPanel.add(studentIdPanel, tupleInfoPanelGBC);
-                tupleInfoPanelGBC.gridx++;
-                tupleInfoPanelGBC.ipadx = 100;
-                tupleInfoPanelGBC.weightx = 0.2;
-                tupleInfoPanel.add(timePanel, tupleInfoPanelGBC);
-                tupleInfoPanelGBC.gridx++;
-                tupleInfoPanelGBC.ipadx = 100;
-                tupleInfoPanelGBC.weightx = 0.2;
-                tupleInfoPanel.add(datePanel, tupleInfoPanelGBC);
-                tupleInfoPanelGBC.gridx++;
-                tupleInfoPanelGBC.ipadx = 100;
-                tupleInfoPanelGBC.weightx = 0.2;
-                tupleInfoPanel.add(arrowPanel, tupleInfoPanelGBC);
+            JPanel tupleInfoPanel = new JPanel();
+            tupleInfoPanel.setMaximumSize(new Dimension(900, 70));
+            tupleInfoPanel.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 20));
+            tupleInfoPanel.setLayout(new GridBagLayout());
+            tupleInfoPanel.setBackground(branding.maroon);
+            
+            GridBagConstraints tupleInfoPanelGBC = new GridBagConstraints();
+            tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+            tupleInfoPanelGBC.gridx = 0;
+            tupleInfoPanelGBC.ipadx = 150;
+            tupleInfoPanelGBC.weightx = 0.3;
+            tupleInfoPanel.add(namePanel, tupleInfoPanelGBC);
+            tupleInfoPanelGBC.gridx++;
+            tupleInfoPanelGBC.ipadx = 100;
+            tupleInfoPanelGBC.weightx = 0.2;
+            tupleInfoPanel.add(studentIdPanel, tupleInfoPanelGBC);
+            tupleInfoPanelGBC.gridx++;
+            tupleInfoPanelGBC.ipadx = 100;
+            tupleInfoPanelGBC.weightx = 0.2;
+            tupleInfoPanel.add(timePanel, tupleInfoPanelGBC);
+            tupleInfoPanelGBC.gridx++;
+            tupleInfoPanelGBC.ipadx = 100;
+            tupleInfoPanelGBC.weightx = 0.2;
+            tupleInfoPanel.add(datePanel, tupleInfoPanelGBC);
+            tupleInfoPanelGBC.gridx++;
+            tupleInfoPanelGBC.ipadx = 100;
+            tupleInfoPanelGBC.weightx = 0.2;
+            tupleInfoPanel.add(arrowPanel, tupleInfoPanelGBC);
 
-                tupleInfoPanel.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        System.out.println("Double Click To Enter");
-                        if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
-                            tupleInfoPanel.setBackground(branding.white);
-                            cardLayout.next(GUIBorrowerListPanel.this);
-                            borrowerInfo = new String[]{tuple[0],tuple[1],tuple[4],tuple[5] + " - " + tuple[6]};
-                            refreshEntries2(borrowerInfo, queries.getItemsBorrowed(tuple[1],tuple[2],tuple[3]), queries);
-                        }
+            tupleInfoPanel.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    System.out.println("Double Click To Enter");
+                    if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                        tupleInfoPanel.setBackground(branding.white);
+                        cardLayout.next(GUIBorrowerListPanel.this);
+                        borrowerInfo = new String[]{tuple[0],tuple[1],tuple[4],tuple[5] + " - " + tuple[6]};
+                        refreshEntries2(borrowerInfo, queries.getItemsBorrowed(tuple[1],tuple[2],tuple[3]), queries);
                     }
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        tupleInfoPanel.setBackground(branding.darkermaroon);
-                    }
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        tupleInfoPanel.setBackground(branding.maroon);
-                    }
-                });
+                }
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    tupleInfoPanel.setBackground(branding.darkermaroon);
+                }
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    tupleInfoPanel.setBackground(branding.maroon);
+                }
+            });
 
-                scrn1BorrowerListContentPanel.add(tupleInfoPanel);
-                scrn1BorrowerListContentPanel.add(Box.createVerticalStrut(10)); //add gaps between touples
-            }
+            scrn1BorrowerListContentPanel.add(tupleInfoPanel);
+            scrn1BorrowerListContentPanel.add(Box.createVerticalStrut(10)); //add gaps between touples
         }
     
         scrn1BorrowerListContentPanel.revalidate();
@@ -521,6 +517,9 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
 
     public void refreshEntries2(String[] entries, String[][] items, Queries queries) {
         scrn2BorrowedItemsContentPanel.removeAll();
+        List<JButton> returnButtons = new ArrayList<>();
+        List<String> borrowIds = new ArrayList<>();
+        List<String> borrowerIds = new ArrayList<>();
 
         int i = 0;
         borrowerNameLabel.setText(entries[i++]);
@@ -614,9 +613,29 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
                 }
             });
 
+            returnButtons.add(returnItemBtn);
+            borrowIds.add(tuple[4]);
+            borrowerIds.add(entries[1]);
+
             scrn2BorrowedItemsContentPanel.add(tupleInfoPanel);
             scrn2BorrowedItemsContentPanel.add(Box.createVerticalStrut(10));
         }
+
+        screen2CompleteBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for (int k = 0; k < returnButtons.size(); k++) {
+                    JButton btn = returnButtons.get(k);
+                    String borrowId = borrowIds.get(k);
+                    String borrowerId = borrowerIds.get(k);
+                    if (btn.isEnabled()) {
+                        queries.updateActualReturnDate(Integer.parseInt(borrowId), borrowerId);
+                        btn.setEnabled(false);
+                    }
+                }
+                refreshEntries1(queries.getBorrowList(), queries);
+            }
+        });
 
         scrn2BorrowedItemsContentPanel.revalidate();
         scrn2BorrowedItemsContentPanel.repaint();
@@ -627,10 +646,6 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         Object src = e.getSource();
         if (src == screen2BackBtn){
             cardLayout.previous(GUIBorrowerListPanel.this);         
-        } else if (src == screen2CompleteBtn) {
-            
-        } else if (src == screen2ConfirmBtn) {
-            
         }
     }
     

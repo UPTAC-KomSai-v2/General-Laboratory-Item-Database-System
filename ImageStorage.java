@@ -6,7 +6,7 @@ public class ImageStorage {
 
     private final Map<String, String> imagePaths;
     private final String basePath = "Assets/ItemImages/";
-    private final String extension = ".jpg";
+    private final String extension = ".png";
 
     public ImageStorage() {
         imagePaths = new HashMap<>();

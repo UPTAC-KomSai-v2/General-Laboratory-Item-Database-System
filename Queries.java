@@ -34,6 +34,8 @@ public class Queries {
     static final String DB_URL = "jdbc:mysql://caboose.proxy.rlwy.net:51384/genlab_db";
     private String user = "root";
     private String pass = "weoZeizOaesHkpjieIetoaQTyKfFwjKm";
+    //String user;
+    //String pass;
     private Connection conn;
     private Statement stmt;
     private PreparedStatement ptmt;
@@ -42,7 +44,13 @@ public class Queries {
     
     public Queries(){}
 
+    public void setUser(String user){
+        this.user = user;
+    }
 
+    public void setPass(String pass){
+        this.pass = pass;
+    }
     public Connection getConn(){
         return conn;
     }
@@ -59,8 +67,8 @@ public class Queries {
         statusLabel.setText("Logging in...");
         statusLabel.setForeground(Color.BLACK);
 
-        //String user = username.getText();
-        //String pass = new String(password.getPassword());
+        //setUser(username.getText());
+        //setPass(new String(password.getPassword()));
 
         if (bypassDB) {
             // Skip DB connection and go straight to mainPanel

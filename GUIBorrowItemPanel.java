@@ -13,9 +13,6 @@ import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,18 +42,14 @@ public class GUIBorrowItemPanel extends JPanel{
     private JPanel scrn2BorrowedItemsContentPanel;
     private JPanel equipmentPanel;  // Declare equipmentPanel as an instance variable
     private JButton addToBasketButton, continueButton; // Track the Add To Basket button
+    private JButton mainBackButton;
     private Queries queries = new Queries();
-
-
+    private ImageStorage imageStorage;
     // Data structure to keep track of items in the basket
     private List<BasketItem> basketItems = new ArrayList<>();
-    // Map to quickly check if an item is in the basket
     private Map<Integer, BasketItem> basketItemsMap = new HashMap<>();
     private Map<String, JPanel> itemPanelsMap = new HashMap<>();
     private Set<JPanel> selectedItemCards = new HashSet<>();
-
-    // Class to store image paths
-    private ImageStorage imageStorage;
     
     // Class to represent an item in the basket
     private static class BasketItem {
@@ -86,6 +79,7 @@ public class GUIBorrowItemPanel extends JPanel{
     
     public GUIBorrowItemPanel(Branding branding, JButton backButton) {
         this.branding = branding;
+        this.mainBackButton = backButton;
         this.cardLayout = new CardLayout();
         this.imageStorage = new ImageStorage();
         this.setLayout(cardLayout);
@@ -102,7 +96,7 @@ public class GUIBorrowItemPanel extends JPanel{
         add(screen3, "Panel 3");
         
     }
-    
+
     private void initializeScreen1(JButton backButton) {
         // Main panel with border layout
         screen1 = new JPanel(new BorderLayout());
@@ -133,56 +127,22 @@ public class GUIBorrowItemPanel extends JPanel{
         screen2.setBackground(branding.maroon);
     
         scrn2BorrowedItemsContentPanel = new JPanel();
-        scrn2BorrowedItemsContentPanel.setLayout(new BoxLayout(scrn2BorrowedItemsContentPanel, BoxLayout.Y_AXIS)); // Set to vertical stack
+        scrn2BorrowedItemsContentPanel.setLayout(new GridBagLayout()); // Set to vertical stack
         scrn2BorrowedItemsContentPanel.setBackground(branding.maroon);
         scrn2BorrowedItemsContentPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
     
     
-        JPanel scrn2BorrowerInfoPanel = new JPanel();
-        scrn2BorrowerInfoPanel.setBorder(BorderFactory.createEmptyBorder(10, 50, 20, 0));
-        scrn2BorrowerInfoPanel.setLayout(new GridBagLayout());
-        scrn2BorrowerInfoPanel.setOpaque(false);
-    
-        JPanel borrowerPanel = new JPanel();
-        JPanel borrowerNamePanel = new JPanel();
-        JPanel studentIdPanel = new JPanel();
-        JPanel timePanel = new JPanel();
-        JPanel datePanel = new JPanel();
-    
-        borrowerPanel.setLayout(new BorderLayout());
-        borrowerNamePanel.setLayout(new BorderLayout());
-        studentIdPanel.setLayout(new BorderLayout());
-        timePanel.setLayout(new BorderLayout());
-        datePanel.setLayout(new BorderLayout());
-    
-        borrowerPanel.setOpaque(false);
-        borrowerNamePanel.setOpaque(false);
-        studentIdPanel.setOpaque(false);
-        timePanel.setOpaque(false);
-        datePanel.setOpaque(false);
-    
-        GridBagConstraints scrn2BorrowerInfoPanelGBC = new GridBagConstraints();
-        scrn2BorrowerInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
-        scrn2BorrowerInfoPanelGBC.gridx = 0;
-        scrn2BorrowerInfoPanelGBC.ipadx = 20;
-        scrn2BorrowerInfoPanelGBC.weightx = 0.05;
-        scrn2BorrowerInfoPanel.add(borrowerPanel, scrn2BorrowerInfoPanelGBC);
-        scrn2BorrowerInfoPanelGBC.gridx++;
-        scrn2BorrowerInfoPanelGBC.ipadx = 20;
-        scrn2BorrowerInfoPanelGBC.weightx = 0.1;
-        scrn2BorrowerInfoPanel.add(borrowerNamePanel, scrn2BorrowerInfoPanelGBC);
-        scrn2BorrowerInfoPanelGBC.gridx++;
-        scrn2BorrowerInfoPanelGBC.ipadx = 20;
-        scrn2BorrowerInfoPanelGBC.weightx = 0.05;
-        scrn2BorrowerInfoPanel.add(studentIdPanel, scrn2BorrowerInfoPanelGBC);
-        scrn2BorrowerInfoPanelGBC.gridx++;
-        scrn2BorrowerInfoPanelGBC.ipadx = 20;
-        scrn2BorrowerInfoPanelGBC.weightx = 0.05;
-        scrn2BorrowerInfoPanel.add(timePanel, scrn2BorrowerInfoPanelGBC);
-        scrn2BorrowerInfoPanelGBC.gridx++;
-        scrn2BorrowerInfoPanelGBC.ipadx = 20;
-        scrn2BorrowerInfoPanelGBC.weightx = 0.5;
-        scrn2BorrowerInfoPanel.add(datePanel, scrn2BorrowerInfoPanelGBC);
+        JPanel scrn2BasketLabelPanel = new JPanel();
+        scrn2BasketLabelPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        scrn2BasketLabelPanel.setLayout(new GridBagLayout());
+        scrn2BasketLabelPanel.setOpaque(false);
+        
+        JLabel scrn2BasketLabel = new JLabel("Borrow Basket");
+        scrn2BasketLabel.setFont(new Font("Roboto", Font.PLAIN, 20));
+        scrn2BasketLabel.setForeground(branding.white);
+        
+        scrn2BasketLabelPanel.add(scrn2BasketLabel);
+        
     
         JScrollPane scrn2ScrollContentPanel = new JScrollPane(scrn2BorrowedItemsContentPanel);
         scrn2ScrollContentPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -221,7 +181,7 @@ public class GUIBorrowItemPanel extends JPanel{
         screen2GBC.weightx = 1;
         screen2GBC.weighty = 0.01;
         screen2GBC.gridy = 0;
-        screen2.add(scrn2BorrowerInfoPanel, screen2GBC);
+        screen2.add(scrn2BasketLabelPanel, screen2GBC);
         screen2GBC.weighty = 0.9;
         screen2GBC.gridy++;
         screen2.add(scrn2ScrollContentPanel, screen2GBC);
@@ -230,6 +190,64 @@ public class GUIBorrowItemPanel extends JPanel{
         screen2.add(scrn2MenuPanel, screen2GBC);
     }
     
+    public boolean validateBorrowerInfoInputs(
+        List<JTextField> studentNumberFields,
+        List<JTextField> fullNameFields,
+        List<JTextField> emailAddressFields,
+        List<JTextField> contactNumberFields,
+        List<JComboBox<String>> degreeProgramComboBoxes) {
+
+    for (int i = 0; i < studentNumberFields.size(); i++) {
+        String studentNumber = studentNumberFields.get(i).getText().trim();
+        String fullName = fullNameFields.get(i).getText().trim();
+        String email = emailAddressFields.get(i).getText().trim();
+        String contact = contactNumberFields.get(i).getText().trim();
+        String degreeProgram = (String) degreeProgramComboBoxes.get(i).getSelectedItem();
+
+        // Validate student number: YYYY-XXXXX
+        if (!studentNumber.matches("\\d{4}-\\d{5}")) {
+            JOptionPane.showMessageDialog(null,
+                    "Invalid student number at row " + (i + 1) + ". Format must be YYYY-XXXXX.",
+                    "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        // Validate email
+        if (!email.matches("^[a-zA-Z0-9._%+-]+@up\\.edu\\.ph$")) {
+            JOptionPane.showMessageDialog(null,
+                    "Invalid email at row " + (i + 1) + ". Email must end with '@up.edu.ph'.",
+                    "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        // Validate contact number: 09xxxxxxxxx (11 digits)
+        if (!contact.matches("^09\\d{9}$")) {
+            JOptionPane.showMessageDialog(null,
+                    "Invalid contact number at row " + (i + 1) + ". Must start with 09 and be 11 digits long.",
+                    "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        // Validate degree program selection
+        if ("Select an Option".equals(degreeProgram)) {
+            JOptionPane.showMessageDialog(null,
+                    "Please select a degree program at row " + (i + 1) + ".",
+                    "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        // Optional: check full name is not empty
+        if (fullName.isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                    "Full name cannot be empty at row " + (i + 1) + ".",
+                    "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+
+    return true; // All inputs are valid
+}
+
     private void initializeScreen3(Map<Integer, BasketItem> basketItemsMap){
         screen3 = new JPanel();
         screen3.setLayout(new GridBagLayout());
@@ -250,9 +268,8 @@ public class GUIBorrowItemPanel extends JPanel{
     
         JPanel formsBorrowerInfoInputPanel = new JPanel();
         formsBorrowerInfoInputPanel.setLayout(new GridBagLayout());
-        formsBorrowerInfoInputPanel.setPreferredSize(new Dimension(700, 200));
+        formsBorrowerInfoInputPanel.setPreferredSize(new Dimension(700, 150));
         formsBorrowerInfoInputPanel.setBorder(BorderFactory.createLineBorder(branding.white, 1));
-        formsBorrowerInfoInputPanel.setBackground(Color.BLUE);
         formsBorrowerInfoInputPanel.setOpaque(false);
     
         JLabel formStudentNumberLabel = new JLabel("Student Number");
@@ -270,23 +287,24 @@ public class GUIBorrowItemPanel extends JPanel{
         JPanel borrowerInfoInputHeaderPanel = new JPanel(new GridBagLayout());
         borrowerInfoInputHeaderPanel.setPreferredSize(new Dimension(800, 20));
         borrowerInfoInputHeaderPanel.setOpaque(false);
+
         GridBagConstraints borrowerInfoInputHeaderPanelGBC = new GridBagConstraints();
-        borrowerInfoInputHeaderPanelGBC.fill = GridBagConstraints.BOTH;
-        borrowerInfoInputHeaderPanelGBC.insets = new Insets(0,0,0,0);
-        borrowerInfoInputHeaderPanelGBC.weightx = 0.003;
+        borrowerInfoInputHeaderPanelGBC.fill = GridBagConstraints.NONE;
+        borrowerInfoInputHeaderPanelGBC.anchor = GridBagConstraints.WEST;
         borrowerInfoInputHeaderPanelGBC.gridx = 0;
-        borrowerInfoInputHeaderPanel.add(formStudentNumberLabel, borrowerInfoInputHeaderPanelGBC);
-        borrowerInfoInputHeaderPanelGBC.weightx = 0.015;
-        borrowerInfoInputHeaderPanelGBC.gridx++;
-        borrowerInfoInputHeaderPanel.add(formFullNameLabel, borrowerInfoInputHeaderPanelGBC);
-        borrowerInfoInputHeaderPanelGBC.weightx = 0.008;
-        borrowerInfoInputHeaderPanelGBC.gridx++;
-        borrowerInfoInputHeaderPanel.add(formEmailAddressLabel, borrowerInfoInputHeaderPanelGBC);
-        borrowerInfoInputHeaderPanelGBC.weightx = 0.003;
-        borrowerInfoInputHeaderPanelGBC.gridx++;
-        borrowerInfoInputHeaderPanel.add(formContactNumberLabel, borrowerInfoInputHeaderPanelGBC);
         borrowerInfoInputHeaderPanelGBC.weightx = 0.01;
+        borrowerInfoInputHeaderPanel.add(formStudentNumberLabel, borrowerInfoInputHeaderPanelGBC);
         borrowerInfoInputHeaderPanelGBC.gridx++;
+        borrowerInfoInputHeaderPanelGBC.weightx = 0.05;
+        borrowerInfoInputHeaderPanel.add(formFullNameLabel, borrowerInfoInputHeaderPanelGBC);
+        borrowerInfoInputHeaderPanelGBC.gridx++;
+        borrowerInfoInputHeaderPanelGBC.weightx = 0.04;
+        borrowerInfoInputHeaderPanel.add(formEmailAddressLabel, borrowerInfoInputHeaderPanelGBC);
+        borrowerInfoInputHeaderPanelGBC.gridx++;
+        borrowerInfoInputHeaderPanelGBC.weightx = 0.02;
+        borrowerInfoInputHeaderPanel.add(formContactNumberLabel, borrowerInfoInputHeaderPanelGBC);
+        borrowerInfoInputHeaderPanelGBC.gridx++;
+        borrowerInfoInputHeaderPanelGBC.weightx = 0.04;
         borrowerInfoInputHeaderPanel.add(formDegreeProgramLabel, borrowerInfoInputHeaderPanelGBC);
     
         // Create a panel to hold all borrower info panels
@@ -327,32 +345,22 @@ public class GUIBorrowItemPanel extends JPanel{
         formsBorrowerInfoInputPanelGBC.gridy++;
         formsBorrowerInfoInputPanel.add(borrowerInfoInputScrollPanel, formsBorrowerInfoInputPanelGBC);
     
-        JPanel formsAddBorrowerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        JPanel formsAddRemoveBorrowerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        formsAddRemoveBorrowerPanel.setOpaque(false);
+
         JButton formsAddBorrowerBtn = new JButton("Add More Borrower");
-        formsAddBorrowerBtn.setPreferredSize(new Dimension(165, 30));
+        formsAddBorrowerBtn.setPreferredSize(new Dimension(165, 25));
         formsAddBorrowerBtn.setBackground(branding.lightergray);
         formsAddBorrowerBtn.setForeground(branding.maroon);
+
+        JButton formsRemoveBorrowerBtn = new JButton("Remove Borrower");
+        formsRemoveBorrowerBtn.setPreferredSize(new Dimension(165, 25));
+        formsRemoveBorrowerBtn.setBackground(branding.lightergray);
+        formsRemoveBorrowerBtn.setForeground(branding.maroon);
+
+        formsRemoveBorrowerBtn.setEnabled(false);
         
         // Add action listener to the Add More Borrower button
-        formsAddBorrowerBtn.addActionListener(e -> {
-            JPanel newBorrowerPanel = createBorrowerInfoPanel(
-                studentNumberFields, fullNameFields, emailAddressFields, 
-                contactNumberFields, degreeProgramComboBoxes
-            );
-            borrowerPanels.add(newBorrowerPanel);
-            borrowerInfoInputPanel.add(newBorrowerPanel);
-            borrowerInfoInputPanel.revalidate();
-            borrowerInfoInputPanel.repaint();
-            
-            // Scroll to the bottom to show the new panel
-            SwingUtilities.invokeLater(() -> {
-                JScrollBar verticalScrollBar = borrowerInfoInputScrollPanel.getVerticalScrollBar();
-                verticalScrollBar.setValue(verticalScrollBar.getMaximum());
-            });
-        });
-        
-        formsAddBorrowerPanel.add(formsAddBorrowerBtn);
-        formsAddBorrowerPanel.setOpaque(false);
         
         JPanel formsCourseInfoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         JLabel formsCourseInfoLabel = new JLabel("Course Information");
@@ -368,13 +376,13 @@ public class GUIBorrowItemPanel extends JPanel{
         formsCourseInfoInputPanel.setLayout(new GridBagLayout());
         formsCourseInfoInputPanel.setOpaque(false);
 
-        JPanel coursInfCoursePanel = new JPanel(); 
+        JPanel coursInfCoursePanel = new JPanel();
         JPanel coursInfSectionPanel = new JPanel();
         JPanel coursInfInstructorPanel = new JPanel();
 
-        coursInfCoursePanel.setLayout(new BoxLayout(coursInfCoursePanel, BoxLayout.Y_AXIS));
-        coursInfSectionPanel.setLayout(new BoxLayout(coursInfSectionPanel, BoxLayout.Y_AXIS));
-        coursInfInstructorPanel.setLayout(new BoxLayout(coursInfInstructorPanel, BoxLayout.Y_AXIS));
+        coursInfCoursePanel.setLayout(new GridBagLayout());
+        coursInfSectionPanel.setLayout(new GridBagLayout());
+        coursInfInstructorPanel.setLayout(new GridBagLayout());
 
         coursInfCoursePanel.setOpaque(false);
         coursInfSectionPanel.setOpaque(false);
@@ -439,25 +447,106 @@ public class GUIBorrowItemPanel extends JPanel{
 
         coursInfInstructorPanel.add(coursInfInstructorLabel);
         coursInfInstructorPanel.add(instructorOptions);
+        formsAddBorrowerBtn.addActionListener(e -> {
+            JPanel newBorrowerPanel = createBorrowerInfoPanel(
+                studentNumberFields, fullNameFields, emailAddressFields, 
+                contactNumberFields, degreeProgramComboBoxes
+            );
+            borrowerPanels.add(newBorrowerPanel);
+            borrowerInfoInputPanel.add(newBorrowerPanel);
+            borrowerInfoInputPanel.revalidate();
+            borrowerInfoInputPanel.repaint();
 
+            formsRemoveBorrowerBtn.setEnabled(true);
+            if (borrowerPanels.size() >= 7) {
+                formsAddBorrowerBtn.setEnabled(false);
+            }
+            
+            // Scroll to the bottom to show the new panel
+            SwingUtilities.invokeLater(() -> {
+                JScrollBar verticalScrollBar = borrowerInfoInputScrollPanel.getVerticalScrollBar();
+                verticalScrollBar.setValue(verticalScrollBar.getMaximum());
+            });
+        });
+
+        formsRemoveBorrowerBtn.addActionListener(e -> {
+            if (borrowerPanels.size() > 1) {
+                // Get the index of the last borrower
+                int lastIndex = borrowerPanels.size() - 1;
+                
+                // Remove the last panel from the visual container
+                borrowerInfoInputPanel.remove(borrowerPanels.get(lastIndex));
+                
+                // Remove from our tracking lists
+                borrowerPanels.remove(lastIndex);
+                studentNumberFields.remove(lastIndex);
+                fullNameFields.remove(lastIndex);
+                emailAddressFields.remove(lastIndex);
+                contactNumberFields.remove(lastIndex);
+                degreeProgramComboBoxes.remove(lastIndex);
+                
+                // If we now have only one borrower, disable the remove button
+                if (borrowerPanels.size() <= 1) {
+                    formsRemoveBorrowerBtn.setEnabled(false);
+                }
+                
+                // Re-enable the add button since we're below the maximum
+                formsAddBorrowerBtn.setEnabled(true);
+                
+                // Update the UI
+                borrowerInfoInputPanel.revalidate();
+                borrowerInfoInputPanel.repaint();
+
+                formsAddBorrowerBtn.requestFocusInWindow();
+                SwingUtilities.invokeLater(() -> {
+                    courseOptions.updateUI();
+                    sectionOptions.updateUI();
+                    instructorOptions.updateUI();
+                });
+            }
+        });
+        
+        formsAddRemoveBorrowerPanel.add(formsAddBorrowerBtn);
+        formsAddRemoveBorrowerPanel.add(formsRemoveBorrowerBtn);
+        
+
+        GridBagConstraints coursPanelGBC = new GridBagConstraints();
+        coursPanelGBC.anchor = GridBagConstraints.WEST;
+        coursPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+        coursPanelGBC.ipadx = 100;
+        coursPanelGBC.gridy = 0;
+        coursInfCoursePanel.add(coursInfCourseLabel, coursPanelGBC);
+        coursPanelGBC.gridy = 1;
+        coursInfCoursePanel.add(courseOptions, coursPanelGBC);
+
+        coursPanelGBC.gridy = 0;
+        coursInfSectionPanel.add(coursInfSectionLabel, coursPanelGBC);
+        coursPanelGBC.gridy = 1;
+        coursInfSectionPanel.add(sectionOptions, coursPanelGBC);
+
+        coursPanelGBC.gridy = 0;
+        coursInfInstructorPanel.add(coursInfInstructorLabel, coursPanelGBC);
+        coursPanelGBC.gridy = 1;
+        coursInfInstructorPanel.add(instructorOptions, coursPanelGBC);
 
         GridBagConstraints formsCourseInfoInputPanelGBC = new GridBagConstraints();
-        formsCourseInfoInputPanelGBC.fill = GridBagConstraints.HORIZONTAL;
-        formsCourseInfoInputPanelGBC.insets = new Insets(10,10,10,10);
-        formsCourseInfoInputPanelGBC.weightx = 0.1;
+        formsCourseInfoInputPanelGBC.anchor = GridBagConstraints.WEST;
+        formsCourseInfoInputPanelGBC.insets = new Insets(10,10,10,0);
+        formsCourseInfoInputPanelGBC.weightx = 0.05;
         formsCourseInfoInputPanelGBC.gridx = 0;
         formsCourseInfoInputPanel.add(coursInfCoursePanel, formsCourseInfoInputPanelGBC);
-        formsCourseInfoInputPanelGBC.weightx = 0.1;
+        formsCourseInfoInputPanelGBC.weightx = 0.05;
         formsCourseInfoInputPanelGBC.gridx++;
         formsCourseInfoInputPanel.add(coursInfSectionPanel, formsCourseInfoInputPanelGBC);
-        formsCourseInfoInputPanelGBC.weightx = 0.1;
+        formsCourseInfoInputPanelGBC.weightx = 0.2;
         formsCourseInfoInputPanelGBC.gridx++;
         formsCourseInfoInputPanel.add(coursInfInstructorPanel, formsCourseInfoInputPanelGBC);
 
 
 
         GridBagConstraints scrn3BorrowerInformationFormsPanelGBC = new GridBagConstraints();
-        scrn3BorrowerInformationFormsPanelGBC.fill = GridBagConstraints.BOTH;
+        scrn3BorrowerInformationFormsPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+        scrn3BorrowerInformationFormsPanelGBC.anchor = GridBagConstraints.WEST;
         scrn3BorrowerInformationFormsPanelGBC.weightx = 1;
         scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
         scrn3BorrowerInformationFormsPanelGBC.gridy = 0;
@@ -467,7 +556,7 @@ public class GUIBorrowItemPanel extends JPanel{
         scrn3BorrowerInformationFormsPanel.add(formsBorrowerInfoInputPanel, scrn3BorrowerInformationFormsPanelGBC);
         scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
         scrn3BorrowerInformationFormsPanelGBC.gridy++;
-        scrn3BorrowerInformationFormsPanel.add(formsAddBorrowerPanel, scrn3BorrowerInformationFormsPanelGBC);
+        scrn3BorrowerInformationFormsPanel.add(formsAddRemoveBorrowerPanel, scrn3BorrowerInformationFormsPanelGBC);
         scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
         scrn3BorrowerInformationFormsPanelGBC.gridy++;
         scrn3BorrowerInformationFormsPanel.add(formsCourseInfoPanel, scrn3BorrowerInformationFormsPanelGBC);
@@ -485,7 +574,6 @@ public class GUIBorrowItemPanel extends JPanel{
         JPanel scrn3MenuPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
         scrn3MenuPanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 33));
         scrn3MenuPanel.setBackground(branding.lightgray);
-        scrn3MenuPanel.setOpaque(true);
     
         JButton screen3BackBtn = new JButton("Go Back");
         JButton screen3BorrowBtn = new JButton("Borrow Now");
@@ -500,6 +588,7 @@ public class GUIBorrowItemPanel extends JPanel{
         screen3BorrowBtn.setPreferredSize(new Dimension(150, 30));
         screen3BorrowBtn.setBackground(branding.maroon);
         screen3BorrowBtn.setForeground(branding.white);
+
         screen3BorrowBtn.addActionListener(e -> {
             if (validateBorrowerInfoInputs(studentNumberFields, fullNameFields, emailAddressFields, contactNumberFields, degreeProgramComboBoxes)) {
                 int borrowID = queries.getLatestBorrowID() + 1;
@@ -549,7 +638,30 @@ public class GUIBorrowItemPanel extends JPanel{
                     basketItems.remove(0);  // Remove processed item
                 }
             }
+            JOptionPane.showMessageDialog(
+                GUIBorrowItemPanel.this,
+                "Transaction Successful!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        
+            // Reset borrower input fields
+            for (JTextField field : studentNumberFields) field.setText("");
+            for (JTextField field : fullNameFields) field.setText("");
+            for (JTextField field : emailAddressFields) field.setText("");
+            for (JTextField field : contactNumberFields) field.setText("");
+            for (JComboBox<String> box : degreeProgramComboBoxes) box.setSelectedIndex(0);
+            courseOptions.setSelectedIndex(0);
+            sectionOptions.setSelectedIndex(0);
+            instructorOptions.setSelectedIndex(0);
+        
+            resetPanel();
+        
+            // Use the saved back button
+            mainBackButton.doClick();
         });
+        
+        
     
         scrn3MenuPanel.add(screen3BackBtn);
         scrn3MenuPanel.add(screen3BorrowBtn);
@@ -558,9 +670,9 @@ public class GUIBorrowItemPanel extends JPanel{
         screen3GBC.fill = GridBagConstraints.BOTH;
         screen3GBC.weightx = 1;
         screen3GBC.gridy = 0;
-        screen3GBC.weighty = 0.9;
+        screen3GBC.weighty = 0.8;
         screen3.add(scrn3ScrollContentPanel, screen3GBC);
-        screen3GBC.weighty = 0.001;
+        screen3GBC.weighty = 0.1;
         screen3GBC.gridy++;
         screen3.add(scrn3MenuPanel, screen3GBC);
     
@@ -585,8 +697,9 @@ public class GUIBorrowItemPanel extends JPanel{
         JTextField emailAddressTextField = new JTextField(14);
         JTextField contactNumberTextField = new JTextField(12);
 
-        String[] degreeProgram = {"Select an Option", "BS in Biology", "BS Computer in Science", "BS in Applied Mathematics"};
+        String[] degreeProgram = {"Select an Option", "BS in Biology", "BS in Computer Science", "BS in Applied Mathematics"};
         JComboBox<String> degreeProgramOptions = new JComboBox<>(degreeProgram);
+        
 
         // Add all components to respective lists for later data retrieval
         studentNumberFields.add(studentNumberTextField);
@@ -596,97 +709,40 @@ public class GUIBorrowItemPanel extends JPanel{
         degreeProgramComboBoxes.add(degreeProgramOptions);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(0, 0, 0, 4);
         gbc.gridx = 0;
         gbc.weighty = 1;
-        gbc.weightx = 0.001;
+        gbc.weightx = 0.011;
         panel.add(studentNumberTextField, gbc);
-
+        gbc.weightx = 0.014;
         gbc.gridx++;
-        gbc.weightx = 0.001;
         panel.add(fullNameTextField, gbc);
-
+        gbc.weightx = 0.015;
         gbc.gridx++;
-        gbc.weightx = 0.001;
         panel.add(emailAddressTextField, gbc);
-
+        gbc.weightx = 0.0125;
         gbc.gridx++;
-        gbc.weightx = 0.001;
         panel.add(contactNumberTextField, gbc);
-
+        gbc.weightx = 0.0001;
         gbc.gridx++;
-        gbc.weightx = 0.001;
+        gbc.fill = GridBagConstraints.VERTICAL;
         panel.add(degreeProgramOptions, gbc);
-        
-
         return panel;
     }
-
-    public boolean validateBorrowerInfoInputs(
-        List<JTextField> studentNumberFields,
-        List<JTextField> fullNameFields,
-        List<JTextField> emailAddressFields,
-        List<JTextField> contactNumberFields,
-        List<JComboBox<String>> degreeProgramComboBoxes) {
-
-    for (int i = 0; i < studentNumberFields.size(); i++) {
-        String studentNumber = studentNumberFields.get(i).getText().trim();
-        String fullName = fullNameFields.get(i).getText().trim();
-        String email = emailAddressFields.get(i).getText().trim();
-        String contact = contactNumberFields.get(i).getText().trim();
-        String degreeProgram = (String) degreeProgramComboBoxes.get(i).getSelectedItem();
-
-        // Validate student number: YYYY-XXXXX
-        if (!studentNumber.matches("\\d{4}-\\d{5}")) {
-            JOptionPane.showMessageDialog(null,
-                    "Invalid student number at row " + (i + 1) + ". Format must be YYYY-XXXXX.",
-                    "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-
-        // Validate email
-        if (!email.matches("^[a-zA-Z0-9._%+-]+@up\\.edu\\.ph$")) {
-            JOptionPane.showMessageDialog(null,
-                    "Invalid email at row " + (i + 1) + ". Email must end with '@up.edu.ph'.",
-                    "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-
-        // Validate contact number: 09xxxxxxxxx (11 digits)
-        if (!contact.matches("^09\\d{9}$")) {
-            JOptionPane.showMessageDialog(null,
-                    "Invalid contact number at row " + (i + 1) + ". Must start with 09 and be 11 digits long.",
-                    "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-
-        // Validate degree program selection
-        if ("Select an Option".equals(degreeProgram)) {
-            JOptionPane.showMessageDialog(null,
-                    "Please select a degree program at row " + (i + 1) + ".",
-                    "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-
-        // Optional: check full name is not empty
-        if (fullName.isEmpty()) {
-            JOptionPane.showMessageDialog(null,
-                    "Full name cannot be empty at row " + (i + 1) + ".",
-                    "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-    }
-
-    return true; // All inputs are valid
-}
 
     private void updateBasketDisplayPanel() {
         // Clear the panel before rebuilding it
         scrn2BorrowedItemsContentPanel.removeAll();
-        
-        // Set the layout manager to BoxLayout for consistent spacing
-        scrn2BorrowedItemsContentPanel.setLayout(new BoxLayout(scrn2BorrowedItemsContentPanel, BoxLayout.Y_AXIS));
+
+        GridBagConstraints scrn2BorrowedItemsContentPanelGBC = new GridBagConstraints();
+        scrn2BorrowedItemsContentPanelGBC.fill = GridBagConstraints.BOTH;
+        scrn2BorrowedItemsContentPanelGBC.anchor = GridBagConstraints.NORTH;
+        scrn2BorrowedItemsContentPanelGBC.insets = new Insets(10,0,0,0);
+        scrn2BorrowedItemsContentPanelGBC.gridy = -1;
+        scrn2BorrowedItemsContentPanelGBC.weightx = 0.9;
+        scrn2BorrowedItemsContentPanelGBC.weightx = 1;
         
         // Empty the item panels map as we're rebuilding it
         itemPanelsMap.clear();
@@ -701,6 +757,11 @@ public class GUIBorrowItemPanel extends JPanel{
             itemLabel.setForeground(branding.maroon);
             quantityLabel.setForeground(branding.maroon);
             quantityLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+            JPanel quantityLabelPanel = new JPanel(new GridBagLayout());
+            quantityLabelPanel.setPreferredSize(new Dimension(50, 35));
+            quantityLabelPanel.add(quantityLabel);
+
             
             // Create buttons
             JButton addBtn = new JButton("+");
@@ -720,8 +781,8 @@ public class GUIBorrowItemPanel extends JPanel{
             itemPanel.setLayout(new BorderLayout());
             quantityPanel.setLayout(new GridBagLayout());
             
-            itemPanel.setPreferredSize(new Dimension(50, 70));
-            quantityPanel.setPreferredSize(new Dimension(10, 70));
+            itemPanel.setPreferredSize(new Dimension(10, 70));
+            quantityPanel.setPreferredSize(new Dimension(50, 70));
             
             itemPanel.setOpaque(false);
             quantityPanel.setOpaque(false);
@@ -730,13 +791,17 @@ public class GUIBorrowItemPanel extends JPanel{
             
             // Add components to quantity panel
             GridBagConstraints gbc = new GridBagConstraints();
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            //gbc.weightx = 0.5;
             gbc.insets = new Insets(0, 5, 0, 5);
-            
             gbc.gridx = 0;
+            gbc.ipadx = 0;
             quantityPanel.add(addBtn, gbc);
             gbc.gridx = 1;
-            quantityPanel.add(quantityLabel, gbc);
+            gbc.ipadx = 10;
+            quantityPanel.add(quantityLabelPanel, gbc);
             gbc.gridx = 2;
+            gbc.ipadx = 0;
             quantityPanel.add(subtractBtn, gbc);
             
             // Add button listeners
@@ -767,7 +832,6 @@ public class GUIBorrowItemPanel extends JPanel{
                     }
                     updateBasketDisplayPanel(); // Rebuild the entire panel
                 }
-            
             });
             
             // Create and add the item row panel
@@ -795,7 +859,8 @@ public class GUIBorrowItemPanel extends JPanel{
             itemPanelsMap.put(queries.getItemName(itemID), tupleInfoPanel);
             
             // Add the panel to the content panel
-            scrn2BorrowedItemsContentPanel.add(tupleInfoPanel);
+            scrn2BorrowedItemsContentPanelGBC.gridy++;
+            scrn2BorrowedItemsContentPanel.add(tupleInfoPanel, scrn2BorrowedItemsContentPanelGBC);
             
             // Add a small gap between items (only if this isn't the last item)
             if (basketItems.indexOf(item) < basketItems.size() - 1) {
@@ -806,7 +871,19 @@ public class GUIBorrowItemPanel extends JPanel{
         // Update the UI
         scrn2BorrowedItemsContentPanel.revalidate();
         scrn2BorrowedItemsContentPanel.repaint();
+
+        Component[] components = screen2.getComponents();
+        for (Component comp : components) {
+            if (comp instanceof JPanel panel) {
+                for (Component innerComp : panel.getComponents()) {
+                    if (innerComp instanceof JButton button && "Continue".equals(button.getText())) {
+                        button.setEnabled(!basketItems.isEmpty());
+                    }
+                }
+            }
+        }
     }
+
     
     private JPanel createCategoryPanel() {
         // The panel that contains the category buttons (BoxLayout for vertical stack)
@@ -817,7 +894,7 @@ public class GUIBorrowItemPanel extends JPanel{
         categoryPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
     
         queries.showCategoryList(branding, categoryPanel, this);
-    
+
         // Wrapper panel to center the category panel vertically
         JPanel centeredPanel = new JPanel(new GridBagLayout());
         centeredPanel.setBackground(branding.maroon);
@@ -830,7 +907,7 @@ public class GUIBorrowItemPanel extends JPanel{
         centeredPanel.setPreferredSize(new Dimension(220, 0)); // Force fixed width like before
         return centeredPanel;
     }
-
+    
     private JPanel createEquipmentPanel(JButton backButton) {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(branding.lightgray);
@@ -1049,7 +1126,8 @@ public class GUIBorrowItemPanel extends JPanel{
     }
     
     private JPanel createButtonPanel(JButton backButton) {
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 30));
         buttonPanel.setBackground(branding.lightgray);
         
         // Ensure the back button is visible and has appropriate size
@@ -1067,14 +1145,15 @@ public class GUIBorrowItemPanel extends JPanel{
                 for (JPanel card : new HashSet<>(selectedItemCards)) {
                     String itemName = (String) card.getClientProperty("itemName");
                     System.out.println("Selected item: " + itemName);
+                    
                     int itemID = queries.getItemIDWithUnit(itemName);
                     System.out.println("Item ID: " + itemID);
                     String category = (String) card.getClientProperty("category");
                     int categoryID = queries.getCategoryID(category);
-            
+
                     if (!basketItemsMap.containsKey(itemID)) {
                         BasketItem newItem = new BasketItem(categoryID, itemID);
-                        System.out.println("Selected item: " + itemName);
+                        System.out.println("Selected Item: " + itemName);
                         basketItems.add(newItem);
                         basketItemsMap.put(itemID, newItem);
             
@@ -1093,8 +1172,17 @@ public class GUIBorrowItemPanel extends JPanel{
         });
 
         continueButton.addActionListener(e -> {
-            updateBasketDisplayPanel();
-            cardLayout.next(GUIBorrowItemPanel.this);
+            if (basketItems.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "You must add at least one item to the basket before continuing.",
+                    "No Items in Basket",
+                    JOptionPane.WARNING_MESSAGE
+                );
+            } else {
+                updateBasketDisplayPanel();
+                cardLayout.next(GUIBorrowItemPanel.this);
+            }
         });
         
         // Ensure all buttons are added properly to the button panel
@@ -1129,13 +1217,23 @@ public class GUIBorrowItemPanel extends JPanel{
         gridPanel.revalidate();
         gridPanel.repaint();
     }
+
+    public void resetPanel() {
+        selectedCategoryButton = null;
+        selectedItemCards.clear();
+        basketItems.clear();
+        basketItemsMap.clear();
+        itemPanelsMap.clear();
+        showNoCategorySelectedMessage();
+        cardLayout.show(this, "Panel 1");
+    }
+    
     
     private void styleActionButton(JButton button) {
-        button.setPreferredSize(new Dimension(150, 40));
+        button.setPreferredSize(new Dimension(150, 30));
         button.setBackground(branding.maroon);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
-        button.setFont(new Font("Arial", Font.BOLD, 15));
         button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
     }
     
@@ -1156,4 +1254,5 @@ public class GUIBorrowItemPanel extends JPanel{
     public void setSelectedCategoryButton(JButton selectedCategoryButton) {
         this.selectedCategoryButton = selectedCategoryButton;
     }
+
 }

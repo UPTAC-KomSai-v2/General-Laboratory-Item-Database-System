@@ -1,23 +1,22 @@
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.SwingConstants;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Cursor;
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 public class GraphicalUserInterface implements ActionListener {
 
@@ -29,13 +28,15 @@ public class GraphicalUserInterface implements ActionListener {
     private GUILoginPanel loginPanel;
     private GUIMainPanel mainPanel;
     private JFrame mainFrame;
-    private Queries queries = new Queries();
+    private Queries queries;
     private Branding branding;
 
     private GUIBorrowerListPanel borrowerListPanel;
+    private GUIUpdateInventoryPanel updateInventoryPanel;
     private GUITransactionHistoryPanel transactionHistoryPanel;
-    
+
     public GraphicalUserInterface() {
+        queries = new Queries();
         branding = new Branding();
 
         intializeMainFrame();
@@ -50,6 +51,7 @@ public class GraphicalUserInterface implements ActionListener {
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setLayout(new BorderLayout());
         mainFrame.setMinimumSize(new Dimension(1000, 700));
+        branding.setAppIcon(mainFrame);
     }
 
     public void initializeLoginPanel() {
@@ -116,12 +118,16 @@ public class GraphicalUserInterface implements ActionListener {
 
         // Sub-panel views with back buttons
         borrowerListPanel = new GUIBorrowerListPanel(branding, blstBackBtn);
+        updateInventoryPanel = new GUIUpdateInventoryPanel(branding, upinBackBtn);
         transactionHistoryPanel = new GUITransactionHistoryPanel(branding, tranBackBtn);
 
         ctntBorrowItemPanel = new GUIBorrowItemPanel(branding, bitmBackBtn);
         ctntBorrowerListPanel = borrowerListPanel;
-        ctntUpdateInventoryPanel = new GUIUpdateInventoryPanel(branding, upinBackBtn);
+        ctntUpdateInventoryPanel = updateInventoryPanel;
         ctntTransactionHistoryPanel = transactionHistoryPanel;
+
+        // Set up Queries queries in GUI panels
+        updateInventoryPanel.setQueries(queries);
     }
 
     @Override
@@ -134,9 +140,10 @@ public class GraphicalUserInterface implements ActionListener {
             mainFrame.add(mainPanel);
             mainFrame.revalidate();
             mainFrame.repaint();
-
+            updateInventoryPanel.refreshAddItemButton();
         } else if (src == ctntBorrowItemBtn) {
             showPanel(ctntBorrowItemPanel);
+            queries.borrowItems(new java.util.Scanner(System.in));
         } else if (src == ctntBorrowerListBtn) {
             borrowerListPanel.refreshEntries1(queries.getBorrowList(), queries);
             showPanel(ctntBorrowerListPanel);
