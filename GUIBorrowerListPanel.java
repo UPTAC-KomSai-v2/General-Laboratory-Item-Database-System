@@ -22,8 +22,11 @@ import javax.swing.SwingUtilities;
 public class GUIBorrowerListPanel extends JPanel implements ActionListener{
     private CardLayout cardLayout;
     private Branding branding;
-    private JButton screen2BackBtn, screen2CompleteBtn, screen2ConfirmBtn, returnItemBtn;
-    private JPanel screen1, screen2;
+    private JButton screen2BackBtn, screen2CompleteBtn, screen2ConfirmBtn;
+    private JPanel screen1, screen2, scrn1BorrowerListContentPanel, scrn2BorrowedItemsContentPanel;
+    private JLabel borrowerLabel, borrowerNameLabel, studentIdLabel, timeLabel, dateLabel;
+
+    private String[] borrowerInfo;
 
     public GUIBorrowerListPanel(Branding branding, JButton blstBackBtn ){
         this.branding = branding;
@@ -49,7 +52,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
 
         screen1.setBackground(branding.lightgray);
 
-        JPanel scrn1BorrowerListContentPanel = new JPanel();
+        scrn1BorrowerListContentPanel = new JPanel();
         scrn1BorrowerListContentPanel.setLayout(new BoxLayout(scrn1BorrowerListContentPanel, BoxLayout.Y_AXIS));
         scrn1BorrowerListContentPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
 
@@ -192,13 +195,125 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         screen1.add(scrn1MenuPanel, screen1GBC);
     }
 
+    public void refreshEntries1(String[][] entries, Queries queries) {
+        scrn1BorrowerListContentPanel.removeAll();
+    
+        if (entries == null || entries.length == 0) {
+            JLabel noDataLabel = new JLabel("No borrow entries found.");
+            noDataLabel.setForeground(branding.white);
+            scrn1BorrowerListContentPanel.add(noDataLabel);
+        } else {
+            for (String[] tuple : entries) {
+                int i = 0;
+                
+                JLabel nameLabel = new JLabel(tuple[i++]);
+                JLabel studentIdLabel = new JLabel(tuple[i++]);
+                JLabel timeLabel = new JLabel(tuple[i++]);
+                JLabel dateLabel = new JLabel(tuple[i++]);
+                JLabel arrowLabel = new JLabel();
+                arrowLabel.setIcon(new ImageIcon(branding.arrowIcon));
+
+                nameLabel.setForeground(branding.white);
+                studentIdLabel.setForeground(branding.white);
+                timeLabel.setForeground(branding.white);
+                dateLabel.setForeground(branding.white);
+                
+                JPanel namePanel = new JPanel();
+                JPanel studentIdPanel = new JPanel();
+                JPanel timePanel = new JPanel();
+                JPanel datePanel = new JPanel();
+                JPanel arrowPanel = new JPanel();
+
+                namePanel.setLayout(new BorderLayout());
+                studentIdPanel.setLayout(new BorderLayout());
+                timePanel.setLayout(new BorderLayout());
+                datePanel.setLayout(new BorderLayout());
+                arrowPanel.setLayout(new BorderLayout());
+
+                namePanel.setPreferredSize(new Dimension(60, 70));
+                studentIdPanel.setPreferredSize(new Dimension(40, 70));
+                timePanel.setPreferredSize(new Dimension(40, 70));
+                datePanel.setPreferredSize(new Dimension(40, 70));
+                arrowPanel.setPreferredSize(new Dimension(1, 70));
+                
+                namePanel.setOpaque(false);
+                studentIdPanel.setOpaque(false);
+                timePanel.setOpaque(false);
+                datePanel.setOpaque(false);
+                arrowPanel.setOpaque(false);
+
+                namePanel.add(nameLabel, BorderLayout.WEST);
+                studentIdPanel.add(studentIdLabel, BorderLayout.WEST);
+                timePanel.add(timeLabel, BorderLayout.WEST);
+                datePanel.add(dateLabel, BorderLayout.WEST);
+                arrowPanel.add(arrowLabel, BorderLayout.EAST);
+
+                JPanel tupleInfoPanel = new JPanel();
+                tupleInfoPanel.setMaximumSize(new Dimension(900, 70));
+                tupleInfoPanel.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 20));
+                tupleInfoPanel.setLayout(new GridBagLayout());
+                tupleInfoPanel.setBackground(branding.maroon);
+                
+                GridBagConstraints tupleInfoPanelGBC = new GridBagConstraints();
+                tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+                tupleInfoPanelGBC.gridx = 0;
+                tupleInfoPanelGBC.ipadx = 150;
+                tupleInfoPanelGBC.weightx = 0.3;
+                tupleInfoPanel.add(namePanel, tupleInfoPanelGBC);
+                tupleInfoPanelGBC.gridx++;
+                tupleInfoPanelGBC.ipadx = 100;
+                tupleInfoPanelGBC.weightx = 0.2;
+                tupleInfoPanel.add(studentIdPanel, tupleInfoPanelGBC);
+                tupleInfoPanelGBC.gridx++;
+                tupleInfoPanelGBC.ipadx = 100;
+                tupleInfoPanelGBC.weightx = 0.2;
+                tupleInfoPanel.add(timePanel, tupleInfoPanelGBC);
+                tupleInfoPanelGBC.gridx++;
+                tupleInfoPanelGBC.ipadx = 100;
+                tupleInfoPanelGBC.weightx = 0.2;
+                tupleInfoPanel.add(datePanel, tupleInfoPanelGBC);
+                tupleInfoPanelGBC.gridx++;
+                tupleInfoPanelGBC.ipadx = 100;
+                tupleInfoPanelGBC.weightx = 0.2;
+                tupleInfoPanel.add(arrowPanel, tupleInfoPanelGBC);
+
+                tupleInfoPanel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        System.out.println("Double Click To Enter");
+                        if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                            tupleInfoPanel.setBackground(branding.white);
+                            cardLayout.next(GUIBorrowerListPanel.this);
+                            borrowerInfo = new String[]{tuple[0],tuple[1],tuple[4],tuple[5] + " - " + tuple[6]};
+                            refreshEntries2(borrowerInfo, queries.getItemsBorrowed(tuple[1],tuple[2],tuple[3]), queries);
+                        }
+                    }
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        tupleInfoPanel.setBackground(branding.darkermaroon);
+                    }
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        tupleInfoPanel.setBackground(branding.maroon);
+                    }
+                });
+
+                scrn1BorrowerListContentPanel.add(tupleInfoPanel);
+                scrn1BorrowerListContentPanel.add(Box.createVerticalStrut(10)); //add gaps between touples
+            }
+        }
+    
+        scrn1BorrowerListContentPanel.revalidate();
+        scrn1BorrowerListContentPanel.repaint();
+    }
+
     public void initializeScreen2(){
         screen2 = new JPanel();
         screen2.setLayout(new GridBagLayout());
         screen2.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         screen2.setBackground(branding.maroon);
 
-        JPanel scrn2BorrowedItemsContentPanel = new JPanel();
+        scrn2BorrowedItemsContentPanel = new JPanel();
         scrn2BorrowedItemsContentPanel.setLayout(new BoxLayout(scrn2BorrowedItemsContentPanel, BoxLayout.Y_AXIS));
         scrn2BorrowedItemsContentPanel.setBackground(branding.maroon);
         scrn2BorrowedItemsContentPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
@@ -289,18 +404,18 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
             scrn2BorrowedItemsContentPanel.add(Box.createVerticalStrut(10)); //add gaps between touples
         }
 
-        String[] borrowerInfo = {"Example, John Pork", "69696969", "12:01 PM", "13 Feb 2023"};
+        borrowerInfo = new String[]{"Example, John Pork", "69696969", "12:01 PM", "13 Feb 2023"};
 
         JPanel scrn2BorrowerInfoPanel = new JPanel();
         scrn2BorrowerInfoPanel.setBorder(BorderFactory.createEmptyBorder(10, 50, 20, 0));
         scrn2BorrowerInfoPanel.setLayout(new GridBagLayout());
         scrn2BorrowerInfoPanel.setOpaque(false);
         int i = 0;
-        JLabel borrowerLabel = new JLabel("Borrower: ");
-        JLabel borrowerNameLabel = new JLabel(borrowerInfo[i++]);
-        JLabel studentIdLabel = new JLabel(borrowerInfo[i++]);
-        JLabel timeLabel = new JLabel(borrowerInfo[i++]);
-        JLabel dateLabel = new JLabel(borrowerInfo[i++]);
+        borrowerLabel = new JLabel("Borrower: ");
+        borrowerNameLabel = new JLabel(borrowerInfo[i++]);
+        studentIdLabel = new JLabel(borrowerInfo[i++]);
+        timeLabel = new JLabel(borrowerInfo[i++]);
+        dateLabel = new JLabel(borrowerInfo[i++]);
 
         borrowerLabel.setForeground(branding.white);
         borrowerNameLabel.setForeground(branding.white);
@@ -404,6 +519,109 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         screen2.add(scrn2MenuPanel, screen2GBC);
     }
 
+    public void refreshEntries2(String[] entries, String[][] items, Queries queries) {
+        scrn2BorrowedItemsContentPanel.removeAll();
+
+        int i = 0;
+        borrowerNameLabel.setText(entries[i++]);
+        studentIdLabel.setText(entries[i++]);
+        timeLabel.setText(entries[i++]);
+        dateLabel.setText(entries[i++]);
+
+        for (String[] tuple: items){
+            int j = 0;
+
+            JLabel quantityLabel = new JLabel(tuple[j++] + "x");
+            JLabel itemLabel = new JLabel(tuple[j++]);
+            JLabel unitLabel = new JLabel();
+            if(tuple[j] != null) {
+                unitLabel.setText(tuple[j++]);
+            } else {
+                unitLabel.setText("No unit");
+            }
+
+            quantityLabel.setForeground(branding.maroon);
+            itemLabel.setForeground(branding.maroon);
+            unitLabel.setForeground(branding.maroon);
+
+            JButton returnItemBtn = new JButton("Return");
+            returnItemBtn.setPreferredSize(new Dimension(100, 35));
+            returnItemBtn.setBackground(branding.maroon);
+            returnItemBtn.setForeground(branding.white);
+            returnItemBtn.addActionListener(this);
+            
+            JPanel quantityPanel = new JPanel();
+            JPanel itemPanel = new JPanel();
+            JPanel unitPanel = new JPanel();
+            JPanel returnPanel = new JPanel();
+
+            quantityPanel.setLayout(new BorderLayout());
+            itemPanel.setLayout(new BorderLayout());
+            unitPanel.setLayout(new BorderLayout());
+            returnPanel.setLayout(new GridBagLayout());
+
+            quantityPanel.setPreferredSize(new Dimension(10, 70));
+            itemPanel.setPreferredSize(new Dimension(10, 70));
+            unitPanel.setPreferredSize(new Dimension(10, 70));
+            returnPanel.setPreferredSize(new Dimension(10, 70));
+            
+            quantityPanel.setOpaque(false);
+            itemPanel.setOpaque(false);
+            unitPanel.setOpaque(false);
+            returnPanel.setOpaque(false);
+
+            quantityPanel.add(quantityLabel, BorderLayout.WEST);
+            itemPanel.add(itemLabel, BorderLayout.WEST);
+            unitPanel.add(unitLabel, BorderLayout.WEST);
+            returnPanel.add(returnItemBtn);
+
+            JPanel tupleInfoPanel = new JPanel();
+            tupleInfoPanel.setMaximumSize(new Dimension(900, 70));
+            tupleInfoPanel.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 20));
+            tupleInfoPanel.setLayout(new GridBagLayout());
+            tupleInfoPanel.setBackground(branding.lightgray);
+            
+            GridBagConstraints tupleInfoPanelGBC = new GridBagConstraints();
+            tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+            tupleInfoPanelGBC.gridx = 0;
+            tupleInfoPanelGBC.ipadx = 20;
+            tupleInfoPanelGBC.weightx = 0.05;
+            tupleInfoPanel.add(quantityPanel, tupleInfoPanelGBC);
+            tupleInfoPanelGBC.gridx++;
+            tupleInfoPanelGBC.ipadx = 20;
+            tupleInfoPanelGBC.weightx = 0.1;
+            tupleInfoPanel.add(itemPanel, tupleInfoPanelGBC);
+            tupleInfoPanelGBC.gridx++;
+            tupleInfoPanelGBC.ipadx = 20;
+            tupleInfoPanelGBC.weightx = 0.1;
+            tupleInfoPanel.add(unitPanel, tupleInfoPanelGBC);
+            tupleInfoPanelGBC.fill = GridBagConstraints.NONE;
+            tupleInfoPanelGBC.anchor = GridBagConstraints.EAST; // optional
+            tupleInfoPanelGBC.gridx++;
+            tupleInfoPanelGBC.ipadx = 100;
+            tupleInfoPanelGBC.weightx = 0.2;
+            tupleInfoPanel.add(returnPanel, tupleInfoPanelGBC);
+
+            returnItemBtn.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if(returnItemBtn.isEnabled()) {
+                        System.out.println("Borrow ID: " + tuple[4]);
+                        queries.updateActualReturnDate(Integer.parseInt(tuple[4]), entries[1]);
+                        refreshEntries1(queries.getBorrowList(), queries);
+                        returnItemBtn.setEnabled(false);
+                    }
+                }
+            });
+
+            scrn2BorrowedItemsContentPanel.add(tupleInfoPanel);
+            scrn2BorrowedItemsContentPanel.add(Box.createVerticalStrut(10));
+        }
+
+        scrn2BorrowedItemsContentPanel.revalidate();
+        scrn2BorrowedItemsContentPanel.repaint();
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
@@ -412,8 +630,6 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         } else if (src == screen2CompleteBtn) {
             
         } else if (src == screen2ConfirmBtn) {
-            
-        } else if (src == returnItemBtn) {
             
         }
     }

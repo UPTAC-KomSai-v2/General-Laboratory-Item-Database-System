@@ -332,8 +332,7 @@ public class GUIUpdateInventoryPanel extends JPanel {
     }
     
     private JPanel createButtonPanel(JButton backButton) {
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 30));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         buttonPanel.setBackground(branding.lightgray);
         
         // Use the provided back button
@@ -476,10 +475,11 @@ public class GUIUpdateInventoryPanel extends JPanel {
     }
     
     private void styleActionButton(JButton button) {
-        button.setPreferredSize(new Dimension(150, 30));
+        button.setPreferredSize(new Dimension(170, 40));
         button.setBackground(branding.maroon);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
+        button.setFont(new Font("Arial", Font.BOLD, 15));
         button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
     }
     
