@@ -7,19 +7,20 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.InputMismatchException;
 import java.util.Scanner;
-
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 public class Queries {
     static final String DB_URL = "jdbc:mysql://sql12.freesqldatabase.com:3306/sql12773093?useSSL=false";
     private Connection conn;
     private Statement stmt;
     private PreparedStatement ptmt;
+    private boolean bypassDB = false;
     
     public Queries(){}
 
@@ -42,6 +43,18 @@ public class Queries {
         //String user = username.getText();
         //String pass = new String(password.getPassword());
 
+        if (bypassDB) {
+            // Skip DB connection and go straight to mainPanel
+            JOptionPane.showMessageDialog(mainFrame, "Login bypassed for testing.", "Bypass Mode", JOptionPane.INFORMATION_MESSAGE);
+            statusLabel.setText("Login Success (bypassed)");
+            statusLabel.setForeground(Color.GREEN);
+            mainFrame.remove(loginPanel);
+            mainFrame.add(mainPanel);
+            mainFrame.revalidate();
+            mainFrame.repaint();
+            return;
+        }
+
         String user = "sql12773093";
         String pass = "6e6zJ2BwSj";
         
@@ -49,9 +62,11 @@ public class Queries {
             conn = DriverManager.getConnection(DB_URL, user, pass);
             stmt = conn.createStatement();
             
-            JOptionPane.showMessageDialog(mainFrame, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
             statusLabel.setText("Login Success");
             statusLabel.setForeground(Color.GREEN);
+            JOptionPane.showMessageDialog(mainFrame, new JLabel("Login successful!", SwingConstants.CENTER), "Success", JOptionPane.PLAIN_MESSAGE );
+            username.setText("");
+            password.setText("");
             mainFrame.remove(loginPanel);
             mainFrame.add(mainPanel);
             mainFrame.revalidate();
@@ -77,8 +92,9 @@ public class Queries {
         }catch(SQLException e){
             System.err.println("SQL Error: " + e.getMessage());
         }
-
-        selectItems(scn);
+        
+        //selectItems(scn);   
+        
     }
 
     public void showBorrowerList(){
@@ -128,7 +144,7 @@ public class Queries {
         }catch(SQLException e){
             System.err.println("SQL Error: " + e.getMessage());
         }
-
+        
     }
     public void updateInventory(){
 
