@@ -480,7 +480,6 @@ public class GUIUpdateInventoryPanel extends JPanel {
         button.setBackground(branding.maroon);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
-        button.setFont(new Font("Arial", Font.BOLD, 15));
         button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
     }
     
