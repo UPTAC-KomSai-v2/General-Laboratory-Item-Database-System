@@ -340,7 +340,7 @@ public class Queries {
         }
     }
 
-    public void updateActualReturnDate(int borrowID) {
+    public void updateActualReturnDate(int borrowID, String borrowerID) {
         String updateQuery = "UPDATE borrow SET actual_return_date = CURRENT_DATE WHERE borrow_id = ?";
 
         try{
@@ -363,14 +363,15 @@ public class Queries {
         }
 
         System.out.println("Updated actual return date");
-        String addQuery = "INSERT INTO return_log(borrow_id, return_date, item_condition) VALUES(?, CURRENT_DATE, ?)";
+        String addQuery = "INSERT INTO return_log(borrow_id, borrower_id, return_date, item_condition) VALUES(?, ?, CURRENT_DATE, ?)";
 
         try{
             conn.setAutoCommit(false);
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             PreparedStatement ptmt1 = conn.prepareStatement(addQuery);
             ptmt1.setInt(1, borrowID);
-            ptmt1.setString(2, "Good Condition");
+            ptmt1.setString(2, borrowerID);
+            ptmt1.setString(3, "Good Condition");
             ptmt1.executeUpdate();
 
             conn.commit();
@@ -488,9 +489,9 @@ public class Queries {
             try {
                 conn.rollback();
             } catch (SQLException e1) {
-                System.err.println("SQL Error: " + e1.getMessage());
+                System.err.println("SQL Error Count1: " + e1.getMessage());
             }
-            System.err.println("SQL Error: " + e.getMessage());
+            System.err.println("SQL Error Count1: " + e.getMessage());
         }
 
         return rows;
@@ -548,7 +549,11 @@ public class Queries {
         // Get borrow details
         String borrowQuery = "SELECT DISTINCT date_borrowed, full_name, borrower_id, expected_return_date FROM borrow JOIN borrower USING(borrower_id)";
         // Get return details
-        String returnQuery = "SELECT return_date, full_name, item_name, item_condition, late_fee FROM (return_log JOIN borrow USING(borrow_id) JOIN borrower USING(borrower_id)) JOIN item USING(item_id) ORDER BY return_date DESC";
+        String returnQuery = "SELECT r.return_date, br.full_name, i.item_name, r.item_condition, r.late_fee FROM return_log r\r\n" + //
+                        "JOIN borrow b ON r.borrow_id = b.borrow_id\r\n" + //
+                        "JOIN borrower br ON b.borrower_id = br.borrower_id\r\n" + //
+                        "JOIN item i ON b.item_id = i.item_id\r\n" + //
+                        "ORDER BY r.return_date DESC";
         String data[][] = null;
 
         try{
@@ -600,9 +605,9 @@ public class Queries {
             try {
                 conn.rollback();
             } catch (SQLException e1) {
-                System.err.println("SQL Error: " + e1.getMessage());
+                System.err.println("SQL Error 1D: " + e1.getMessage());
             }
-            System.err.println("SQL Error: " + e.getMessage());
+            System.err.println("SQL Error 2D: " + e.getMessage());
         }
 
         return data;
