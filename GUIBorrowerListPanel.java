@@ -1,5 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -17,6 +18,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
@@ -24,10 +26,14 @@ import javax.swing.SwingUtilities;
 public class GUIBorrowerListPanel extends JPanel implements ActionListener{
     private CardLayout cardLayout;
     private Branding branding;
-    private JButton screen2BackBtn, screen2CompleteBtn, screen2ConfirmBtn;
+    private JButton screen2BackBtn, screen2ReturnAllBtn, screen2ConfirmBtn;
     private JPanel screen1, screen2, scrn1BorrowerListContentPanel, scrn2BorrowedItemsContentPanel;
     private JLabel borrowerLabel, borrowerNameLabel, studentIdLabel, timeLabel, dateLabel;
 
+    private List<JButton> returnButtons = new ArrayList<>();
+    private List<String> borrowIds = new ArrayList<>();
+    private List<String> borrowerIds = new ArrayList<>();
+    private List<String> selectedBorrowerIds = new ArrayList<>();
     private String[] borrowerInfo;
 
     public GUIBorrowerListPanel(Branding branding, JButton blstBackBtn ){
@@ -479,7 +485,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         scrn2MenuPanel.setOpaque(true);
 
         screen2BackBtn = new JButton("Go Back");
-        screen2CompleteBtn = new JButton("Complete All");
+        screen2ReturnAllBtn = new JButton("Return All");
         screen2ConfirmBtn = new JButton("Confirm");
 
         screen2BackBtn.setPreferredSize(new Dimension(150, 30));
@@ -487,18 +493,16 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         screen2BackBtn.setForeground(branding.white);
         screen2BackBtn.addActionListener(this);
 
-        screen2CompleteBtn.setPreferredSize(new Dimension(150, 30));
-        screen2CompleteBtn.setBackground(branding.maroon);
-        screen2CompleteBtn.setForeground(branding.white);
-        screen2CompleteBtn.addActionListener(this);
+        screen2ReturnAllBtn.setPreferredSize(new Dimension(150, 30));
+        screen2ReturnAllBtn.setBackground(branding.maroon);
+        screen2ReturnAllBtn.setForeground(branding.white);
 
         screen2ConfirmBtn.setPreferredSize(new Dimension(150, 30));
         screen2ConfirmBtn.setBackground(branding.maroon);
         screen2ConfirmBtn.setForeground(branding.white);
-        screen2ConfirmBtn.addActionListener(this);
 
         scrn2MenuPanel.add(screen2BackBtn);
-        scrn2MenuPanel.add(screen2CompleteBtn);
+        scrn2MenuPanel.add(screen2ReturnAllBtn);
         scrn2MenuPanel.add(screen2ConfirmBtn);
 
         GridBagConstraints screen2GBC = new GridBagConstraints();
@@ -517,9 +521,10 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
 
     public void refreshEntries2(String[] entries, String[][] items, Queries queries) {
         scrn2BorrowedItemsContentPanel.removeAll();
-        List<JButton> returnButtons = new ArrayList<>();
-        List<String> borrowIds = new ArrayList<>();
-        List<String> borrowerIds = new ArrayList<>();
+        returnButtons.clear();
+        borrowIds.clear();
+        borrowerIds.clear();
+        selectedBorrowerIds.clear();
 
         int i = 0;
         borrowerNameLabel.setText(entries[i++]);
@@ -601,14 +606,38 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
             tupleInfoPanelGBC.weightx = 0.2;
             tupleInfoPanel.add(returnPanel, tupleInfoPanelGBC);
 
-            returnItemBtn.addMouseListener(new MouseAdapter() {
+            returnItemBtn.addActionListener(new ActionListener() {
                 @Override
-                public void mouseClicked(MouseEvent e) {
-                    if(returnItemBtn.isEnabled()) {
-                        System.out.println("Borrow ID: " + tuple[4]);
-                        queries.updateActualReturnDate(Integer.parseInt(tuple[4]), entries[1]);
-                        refreshEntries1(queries.getBorrowList(), queries);
-                        returnItemBtn.setEnabled(false);
+                public void actionPerformed(ActionEvent e) {
+                    if(returnItemBtn.getBackground().equals(branding.maroon)) {
+                        System.out.println("Borrow ID: " + tuple[4] + " --> Enabled");
+                        returnItemBtn.setBackground(Color.YELLOW);
+                        selectedBorrowerIds.add(tuple[4]);
+                        printSelectedBorrowID(selectedBorrowerIds);
+                    } else {
+                        System.out.println("Borrow ID: " + tuple[4] + " --> Disabled");
+                        returnItemBtn.setBackground(branding.maroon);
+                        selectedBorrowerIds.remove(tuple[4]);
+                        printSelectedBorrowID(selectedBorrowerIds);
+                    }
+
+                    boolean allSameColor = true;
+                    Color firstColor = Color.YELLOW;
+
+                    for (JButton btn : returnButtons) {
+                        if (!btn.getBackground().equals(firstColor)) {
+                            allSameColor = false;
+                            break;
+                        }
+                    }
+                    if (allSameColor) {
+                        System.out.println("Returned All 1");
+                        screen2ReturnAllBtn.setText("Undo Return All");
+                        screen2ReturnAllBtn.setBackground(Color.YELLOW);
+                    } else {
+                        System.out.println("Undo Return All 1");
+                        screen2ReturnAllBtn.setText("Return All");
+                        screen2ReturnAllBtn.setBackground(branding.maroon);
                     }
                 }
             });
@@ -621,19 +650,70 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
             scrn2BorrowedItemsContentPanel.add(Box.createVerticalStrut(10));
         }
 
-        screen2CompleteBtn.addActionListener(new ActionListener() {
+        screen2ReturnAllBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for (int k = 0; k < returnButtons.size(); k++) {
-                    JButton btn = returnButtons.get(k);
-                    String borrowId = borrowIds.get(k);
-                    String borrowerId = borrowerIds.get(k);
-                    if (btn.isEnabled()) {
-                        queries.updateActualReturnDate(Integer.parseInt(borrowId), borrowerId);
-                        btn.setEnabled(false);
+                if(screen2ReturnAllBtn.getBackground().equals(branding.maroon)) {
+                    for (int k = 0; k < returnButtons.size(); k++) {
+                        JButton btn = returnButtons.get(k);
+                        String borrowId = borrowIds.get(k);
+                        String borrowerId = borrowerIds.get(k);
+                        if (btn.isEnabled()) {
+                            btn.setBackground(Color.YELLOW);
+                            selectedBorrowerIds.add(borrowId);
+                        }
                     }
+
+                    System.out.println("Returned All 2");
+                    screen2ReturnAllBtn.setText("Undo Return All");
+                    screen2ReturnAllBtn.setBackground(Color.YELLOW);
+                    printSelectedBorrowID(selectedBorrowerIds);
+                } else {
+                    for (int k = 0; k < returnButtons.size(); k++) {
+                        JButton btn = returnButtons.get(k);
+                        btn.setBackground(branding.maroon);
+                    }
+
+                    selectedBorrowerIds.clear();
+
+                    System.out.println("Undo Return All 2");
+                    screen2ReturnAllBtn.setText("Return All");
+                    screen2ReturnAllBtn.setBackground(branding.maroon);
+                    printSelectedBorrowID(selectedBorrowerIds);
                 }
-                refreshEntries1(queries.getBorrowList(), queries);
+            }
+        });
+
+        screen2ConfirmBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(!selectedBorrowerIds.isEmpty()) {
+                    int result = JOptionPane.showConfirmDialog(
+                        null, "Are you sure you want to return selected items?",
+                        "Confirm Return",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.PLAIN_MESSAGE
+                    );
+
+                    if (result == JOptionPane.YES_OPTION) {
+                        screen2ReturnAllBtn.setBackground(branding.maroon);
+                        cardLayout.previous(GUIBorrowerListPanel.this);
+                    } else {
+                        JOptionPane.showMessageDialog(
+                        null,
+                        "Confirmation canceled.",
+                        "Unsuccessful Confirmation",
+                        JOptionPane.WARNING_MESSAGE
+                        );
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(
+                    null,
+                    "No items selected.",
+                    "No Selected Items",
+                    JOptionPane.WARNING_MESSAGE
+                    );
+                }
             }
         });
 
@@ -644,9 +724,31 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
-        if (src == screen2BackBtn){
-            cardLayout.previous(GUIBorrowerListPanel.this);         
+        if (src == screen2BackBtn) {
+            for (JButton btn : returnButtons) {
+                btn.setBackground(branding.maroon);
+            }
+
+            for (ActionListener al1 : screen2ReturnAllBtn.getActionListeners()) {
+                screen2ReturnAllBtn.removeActionListener(al1);
+            }
+
+            for (ActionListener al2 : screen2ConfirmBtn.getActionListeners()) {
+                screen2ConfirmBtn.removeActionListener(al2);
+            }
+
+            selectedBorrowerIds.clear();
+            screen2ReturnAllBtn.setText("Return All");
+            screen2ReturnAllBtn.setBackground(branding.maroon);
+            cardLayout.previous(GUIBorrowerListPanel.this);
         }
+    }
+
+    private void printSelectedBorrowID(List<String> borrowIDs) {
+        System.out.print("Selected Borrow ID's: ");
+        for(String str : borrowIDs) {
+            System.out.print(str + " ");
+        } System.out.println("");
     }
     
 }
