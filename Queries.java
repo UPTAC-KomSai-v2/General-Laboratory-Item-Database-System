@@ -3,22 +3,18 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
-import java.awt.Taskbar.State;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.InputMismatchException;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-
-import javax.print.DocFlavor.STRING;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -42,7 +38,12 @@ public class Queries {
     private boolean bypassDB = false;
     private int currentCategoryID = -1;
     
-    public Queries(){}
+    public Queries(){
+        try {
+            conn = DriverManager.getConnection(DB_URL, user, pass);
+        } catch (SQLException ex) {
+        }
+    }
 
     public void setUser(String user){
         this.user = user;
@@ -144,7 +145,7 @@ public class Queries {
         // Get the initially selected button but don't modify this variable later
         final JButton initialSelectedButton = borrowItemPanel.getSelectedCategoryButton();
         
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        try {
             // Query to get all categories from the database
             String query = "SELECT category_id, category_name FROM category ORDER BY category_name";
             PreparedStatement pstmt = conn.prepareStatement(query);
@@ -233,7 +234,7 @@ public class Queries {
         String query = "SELECT category_name FROM category WHERE category_id = ?";
         String categoryName = null;
         
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        try {
             ptmt = conn.prepareStatement(query);
             ptmt.setInt(1, categoryID);
             ResultSet rs = ptmt.executeQuery();
@@ -253,7 +254,7 @@ public class Queries {
     public int getItemQty(int categoryID){
         
         String query = "SELECT COUNT(*) FROM item WHERE category_id = ?";
-        try(Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        try{
             ptmt = conn.prepareStatement(query);
             ptmt.setInt(1, categoryID);
             ResultSet rs = ptmt.executeQuery();
@@ -273,8 +274,8 @@ public class Queries {
         String[] items = new String[getItemQty(categoryID)];
         String query = "SELECT item_name, unit FROM item WHERE category_id = ? ORDER BY item_name";
     
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass);
-             PreparedStatement ptmt = conn.prepareStatement(query)) {
+        try {
+            PreparedStatement ptmt = conn.prepareStatement(query);
     
             ptmt.setInt(1, categoryID);
             ResultSet rs = ptmt.executeQuery();
@@ -300,7 +301,7 @@ public class Queries {
         String query = "SELECT item_id FROM item WHERE item_name = ? AND unit IS NULL";
         int itemID = -1;
         
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        try {
             ptmt = conn.prepareStatement(query);
             ptmt.setString(1, itemName);
             ResultSet rs = ptmt.executeQuery();
@@ -319,7 +320,7 @@ public class Queries {
 
     public int getCourseQty(){
         String query = "SELECT COUNT(*) FROM course";
-        try(Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        try{
             ptmt = conn.prepareStatement(query);
             ResultSet rs = ptmt.executeQuery();
             if(rs.next()){
@@ -338,7 +339,7 @@ public class Queries {
         String query = "SELECT course_id FROM course WHERE course_name = ?";
         String courseID = null;
         
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        try {
             ptmt = conn.prepareStatement(query);
             ptmt.setString(1, courseName);
             ResultSet rs = ptmt.executeQuery();
@@ -355,10 +356,14 @@ public class Queries {
         return courseID;
     }
 
-    public int getSectionQty(String courseID){
-        String query = "SELECT COUNT(*) FROM section";
-        try(Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+    public int getSectionQtyWithoutNullValues(String courseID){
+        String query = "SELECT COUNT(*) " +
+                        "FROM section s " +
+                        "JOIN course_section cs ON s.section_id = cs.section_id " +
+                        "WHERE cs.course_id = ?";
+        try{
             ptmt = conn.prepareStatement(query);
+            ptmt.setString(1, courseID);
             ResultSet rs = ptmt.executeQuery();
             if(rs.next()){
                 return rs.getInt(1);
@@ -376,7 +381,7 @@ public class Queries {
         String query = "SELECT section_id FROM section WHERE section_name = ?";
         int sectionID = -1;
         
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        try {
             ptmt = conn.prepareStatement(query);
             ptmt.setString(1, sectionName);
             ResultSet rs = ptmt.executeQuery();
@@ -398,9 +403,9 @@ public class Queries {
                         "FROM instructor i " +
                         "JOIN course_section cs ON i.instructor_id = cs.instructor_id " + 
                         "WHERE cs.course_id = ? AND cs.section_id = ?";
-        String[] instructorOption = new String[getSectionQty(courseID)];
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass); 
-            PreparedStatement ptmt = conn.prepareStatement(query)){
+        String[] instructorOption = new String[getSectionQtyWithoutNullValues(courseID)];
+        try { 
+            PreparedStatement ptmt = conn.prepareStatement(query);
             ptmt.setString(1, courseID);
             System.out.println("Course ID: " + courseID);
             ptmt.setInt(2, getSectionID(sectionName));
@@ -424,8 +429,8 @@ public class Queries {
                         "FROM section s " +
                         "JOIN course_section cs ON s.section_id = cs.section_id " +
                         "WHERE cs.course_id = ?";
-        String[] sectionOption = new String[getSectionQty(courseID)];
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        String[] sectionOption = new String[getSectionQtyWithoutNullValues(courseID)];
+        try {
             ptmt = conn.prepareStatement(query);
             ptmt.setString(1, courseID);
             ResultSet rs = ptmt.executeQuery();
@@ -446,7 +451,7 @@ public class Queries {
     public String[] getCourseOption(){
         String query = "SELECT course_id FROM course ORDER BY course_name";
         String[] courseOption = new String[getCourseQty()];
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        try {
             ptmt = conn.prepareStatement(query);
             ResultSet rs = ptmt.executeQuery();
             
@@ -474,8 +479,8 @@ public class Queries {
         String itemName = parts[0].trim();
         String unit = parts[1].trim();
 
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass);
-            PreparedStatement ptmt = conn.prepareStatement(query)) {
+        try {
+            PreparedStatement ptmt = conn.prepareStatement(query);
 
             ptmt.setString(1, itemName);
             ptmt.setString(2, unit);
@@ -497,7 +502,7 @@ public class Queries {
         String query = "SELECT category_id FROM category WHERE category_name = ?";
         int categoryID = -1;
         
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        try {
             ptmt = conn.prepareStatement(query);
             ptmt.setString(1, categoryName);
             ResultSet rs = ptmt.executeQuery();
@@ -518,7 +523,7 @@ public class Queries {
         String query = "SELECT item_name FROM item WHERE item_id = ?";
         String itemName = null;
         
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        try {
             ptmt = conn.prepareStatement(query);
             ptmt.setInt(1, itemID);
             ResultSet rs = ptmt.executeQuery();
@@ -540,7 +545,7 @@ public class Queries {
         String query = "SELECT item_name, unit FROM item WHERE item_id = ?";
         String itemName = null;
         
-        try (Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        try {
             ptmt = conn.prepareStatement(query);
             ptmt.setInt(1, itemID);
             ResultSet rs = ptmt.executeQuery();
@@ -563,7 +568,7 @@ public class Queries {
 
     public int getLatestBorrowID(){
         String query = "SELECT borrow_id FROM borrow ORDER BY borrow_id DESC LIMIT 1";
-        try(Connection conn = DriverManager.getConnection(DB_URL, user, pass)){
+        try{
             stmt = conn.prepareStatement(query);
             ResultSet rs = stmt.executeQuery(query);
             if(rs.next()){
@@ -581,8 +586,8 @@ public class Queries {
     public void borrowItem(int borrowID, int itemID, String borrowerID, String courseID, int sectionID, int qtyBorrowed) {
         String query = "INSERT INTO borrow(borrow_id, item_id, borrower_id, course_id, section_id, qty_borrowed) VALUES(?, ?, ?, ?, ?, ?)";
         
-        try(Connection conn = DriverManager.getConnection(DB_URL, user, pass); 
-            PreparedStatement ptmt = conn.prepareStatement(query)) {
+        try{ 
+            PreparedStatement ptmt = conn.prepareStatement(query);
             conn.setAutoCommit(false);
             ptmt.setInt(1, borrowID);
             ptmt.setInt(2, itemID);
@@ -792,13 +797,16 @@ public class Queries {
     }
 
     public void updateActualReturnDate(int borrowID, String borrowerID) {
-        String updateQuery = "UPDATE borrow SET actual_return_date = CURRENT_DATE WHERE borrow_id = ?";
+        String updateQuery = "UPDATE borrow SET actual_return_date = ? WHERE borrow_id = ?";
+        Timestamp ts = new Timestamp(System.currentTimeMillis());
+        ts.setNanos(0);
 
         try{
             conn.setAutoCommit(false);
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             ptmt = conn.prepareStatement(updateQuery);
-            ptmt.setInt(1, borrowID);
+            ptmt.setTimestamp(1, ts);
+            ptmt.setInt(2, borrowID);
             ptmt.executeUpdate();
 
             conn.commit();
@@ -814,7 +822,7 @@ public class Queries {
         }
 
         System.out.println("Updated actual return date");
-        String addQuery = "INSERT INTO return_log(borrow_id, borrower_id, return_date, item_condition) VALUES(?, ?, CURRENT_DATE, ?)";
+        String addQuery = "INSERT INTO return_log(borrow_id, borrower_id, return_date, item_condition) VALUES(?, ?, ?, ?)";
 
         try{
             conn.setAutoCommit(false);
@@ -822,7 +830,8 @@ public class Queries {
             PreparedStatement ptmt1 = conn.prepareStatement(addQuery);
             ptmt1.setInt(1, borrowID);
             ptmt1.setString(2, borrowerID);
-            ptmt1.setString(3, "Good Condition");
+            ptmt1.setTimestamp(3, ts);
+            ptmt1.setString(4, "Good Condition");
             ptmt1.executeUpdate();
 
             conn.commit();
@@ -837,8 +846,12 @@ public class Queries {
             System.err.println("SQL Error2B: " + e.getMessage());
         }
     }
+    
     public String[][] getBorrowList() {
-        String query = "SELECT DISTINCT full_name, borrower_id, date_borrowed, expected_return_date, degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id) WHERE actual_return_date IS NULL ORDER BY date_borrowed DESC, expected_return_date DESC";
+        String query = "SELECT DISTINCT full_name, borrower_id, date_borrowed, expected_return_date, " +
+                        "degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id) WHERE actual_return_date IS NULL ORDER BY date_borrowed DESC, expected_return_date DESC";
+
+        // Updated Query as of May 7 2025: "SELECT DISTINCT full_name, borrower_id," + "degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id)"
         String[][] data = null;
 
         try{

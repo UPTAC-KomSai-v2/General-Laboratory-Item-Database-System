@@ -7,6 +7,8 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -18,7 +20,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI;
 public class Branding {
     BufferedImage upLogo, lgnUPLogoResized, rbbnUPLogoResized, borrowIcon, returnIcon, arrowIcon;
     Color darkermaroon, maroon, lightgray, white, gray, lightergray; 
-    Font sizedFontPalatinoBig, sizedFontPalatinoSmall;
+    Font sizedFontPalatinoBig, sizedFontPalatinoSmall, sizedFontRobotoBold15;
 
 
     public Branding(){
@@ -33,6 +35,7 @@ public class Branding {
             Font palatinoFont = Font.createFont(Font.TRUETYPE_FONT, new File("Assets/Font/Palatino.ttf"));
             sizedFontPalatinoBig = palatinoFont.deriveFont(Font.PLAIN, 35);
             sizedFontPalatinoSmall = palatinoFont.deriveFont(Font.PLAIN, 27);
+            sizedFontRobotoBold15 = new Font("Roboto", Font.BOLD, 15);
         } catch (FontFormatException | IOException e) {
             e.printStackTrace();
         }
@@ -73,6 +76,24 @@ public class Branding {
         g2d.drawImage(tmp, 0, 0, null);
         g2d.dispose();
         return resizedImage;
+    }
+
+    public String reformatDateLabel(String dateString) {
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        
+        // Define the output formatter for the desired format
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a");
+        
+        try {
+            // Parse the input string to a LocalDateTime object
+            LocalDateTime dateTime = LocalDateTime.parse(dateString, inputFormatter);
+            
+            // Format the LocalDateTime object to the desired output format
+            return dateTime.format(outputFormatter);
+        } catch (Exception e) {
+            // Return original string or error message if parsing fails
+            return "Invalid date format: " + dateString;
+        }
     }
 
     public void setAppIcon(JFrame frame){

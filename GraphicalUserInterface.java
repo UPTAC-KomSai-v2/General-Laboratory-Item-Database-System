@@ -140,7 +140,6 @@ public class GraphicalUserInterface implements ActionListener {
             mainFrame.add(mainPanel);
             mainFrame.revalidate();
             mainFrame.repaint();
-            updateInventoryPanel.refreshAddItemButton();
         } else if (src == ctntBorrowItemBtn) {
             showPanel(ctntBorrowItemPanel);
             queries.borrowItems(new java.util.Scanner(System.in));
@@ -168,6 +167,8 @@ public class GraphicalUserInterface implements ActionListener {
                 mainFrame.remove(mainPanel);
                 mainPanel.contentPanel.removeAll();
                 mainPanel.contentPanel.add(mainPanel.menuButtonsPanel);
+                ((GUIBorrowItemPanel) ctntBorrowItemPanel).resetPanel();
+                showMainMenu();
                 mainPanel.revalidate();
                 mainPanel.repaint();
                 mainFrame.revalidate();
@@ -175,7 +176,10 @@ public class GraphicalUserInterface implements ActionListener {
             }
         } else if (src == rbbnAboutBtn) {
                 showAboutDialog();
-        } else if (src == bitmBackBtn || src == blstBackBtn || src == upinBackBtn || src == tranBackBtn) {
+        } else if (src == bitmBackBtn) {
+            ((GUIBorrowItemPanel) ctntBorrowItemPanel).resetPanel();
+            showMainMenu();
+        } else if (src == blstBackBtn || src == upinBackBtn || src == tranBackBtn) {
             showMainMenu();
         }
     }
