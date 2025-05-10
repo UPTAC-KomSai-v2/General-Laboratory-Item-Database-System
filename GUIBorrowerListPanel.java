@@ -27,6 +27,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
     private JButton screen2BackBtn, screen2ReturnAllBtn, screen2ConfirmBtn;
     private JPanel screen1, screen2, scrn1BorrowerListContentPanel, scrn2BorrowedItemsContentPanel;
     private JLabel borrowerLabel, borrowerNameLabel, studentIdLabel, dateBorrowedLabel, expectedDateLabel;
+    private Controller ctrl;
 
     private List<JButton> returnButtons = new ArrayList<>();
     private List<String> borrowIds = new ArrayList<>();
@@ -34,7 +35,8 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
     private List<String> selectedBorrowerIds = new ArrayList<>();
     private String[] borrowerInfo;
 
-    public GUIBorrowerListPanel(Branding branding, JButton blstBackBtn ){
+    public GUIBorrowerListPanel(Controller ctrl, Branding branding, JButton blstBackBtn ){
+        this.ctrl = ctrl;
         this.branding = branding;
         this.cardLayout = new CardLayout();
         this.setLayout(cardLayout);
@@ -114,7 +116,6 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         scrn1tupleHeaderPanelGBC.gridx++;
         scrn1tupleHeaderPanel.add(tupleExpectedReturnLabel,scrn1tupleHeaderPanelGBC);        
 
-
         GridBagConstraints screen1GBC = new GridBagConstraints();
         screen1GBC.fill = GridBagConstraints.BOTH;
         screen1GBC.weightx = 1;
@@ -132,9 +133,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         screen1.add(scrn1MenuPanel, screen1GBC);
     }
 
-    
-
-    public void refreshEntries1(String[][] entries, Queries queries) {
+    public void refreshEntries1(List<String[]> entries) {
         scrn1BorrowerListContentPanel.removeAll();
     
         for (String[] tuple : entries) {
@@ -150,7 +149,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
             viewButton.addActionListener(e ->{
                         cardLayout.next(GUIBorrowerListPanel.this);
                         borrowerInfo = new String[]{tuple[0],tuple[1],tuple[4],tuple[5] + " - " + tuple[6]};
-                        refreshEntries2(borrowerInfo, queries.getItemsBorrowed(tuple[1],tuple[2],tuple[3]), queries);
+                        refreshEntries2(borrowerInfo, ctrl.getItemsBorrowedByBorrower(tuple[1],tuple[2],tuple[3]));
             });
 
             nameLabel.setForeground(branding.white);
@@ -246,7 +245,6 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         scrn2BorrowedItemsContentPanel.setLayout(new BoxLayout(scrn2BorrowedItemsContentPanel, BoxLayout.Y_AXIS));
         scrn2BorrowedItemsContentPanel.setBackground(branding.maroon);
         scrn2BorrowedItemsContentPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
-
         
         borrowerInfo = new String[]{" ", " ", " ", " "};
 
@@ -391,7 +389,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         screen2.add(scrn2MenuPanel, screen2GBC);
     }
 
-    public void refreshEntries2(String[] entries, String[][] items, Queries queries) {
+    public void refreshEntries2(String[] entries, List<String[]> items) {
         scrn2BorrowedItemsContentPanel.removeAll();
         returnButtons.clear();
         borrowIds.clear();

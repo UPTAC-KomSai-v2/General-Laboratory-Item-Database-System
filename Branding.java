@@ -19,9 +19,8 @@ import javax.swing.plaf.basic.BasicScrollBarUI;
 
 public class Branding {
     BufferedImage upLogo, lgnUPLogoResized, rbbnUPLogoResized, borrowIcon, returnIcon, arrowIcon;
-    Color darkermaroon, maroon, lightgray, white, gray, lightergray; 
+    Color darkermaroon, maroon, lightgray, white, gray, lightergray, yellow; 
     Font sizedFontPalatinoBig, sizedFontPalatinoSmall, sizedFontRobotoBold15;
-
 
     public Branding(){
         maroon = new Color(94,38,5);
@@ -30,6 +29,7 @@ public class Branding {
         lightergray = new Color(242, 242, 242);
         gray = new Color(200, 200, 200); 
         white = new Color(255, 255, 255);
+        yellow = new Color(254, 183, 28);
 
         try {
             Font palatinoFont = Font.createFont(Font.TRUETYPE_FONT, new File("Assets/Font/Palatino.ttf"));
@@ -49,15 +49,11 @@ public class Branding {
             e.printStackTrace();
         }
 
-        
-
-
         lgnUPLogoResized = resizeImage(upLogo, 150, 150);
         rbbnUPLogoResized = resizeImage(upLogo, 110, 110);
         borrowIcon = resizeImage(borrowIcon, 35, 45);
         returnIcon = resizeImage(returnIcon, 35, 45);  
         arrowIcon = resizeImage(arrowIcon, 30,30);
-
 
         UIManager.put("OptionPane.background", lightgray);
         UIManager.put("Panel.background", lightgray);
@@ -119,7 +115,6 @@ public class Branding {
                         thumbColor = darkermaroon;
                         trackColor = maroon;
                     }
-                    
                 }
 
                 @Override
@@ -146,6 +141,5 @@ public class Branding {
 
         JScrollBar horizontalBar = scrollPane.getHorizontalScrollBar();
         horizontalBar.setPreferredSize(new Dimension(Integer.MAX_VALUE, 12)); // 12px height    
-
     }
 }

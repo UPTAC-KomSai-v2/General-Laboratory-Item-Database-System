@@ -33,11 +33,12 @@ public class GUIUpdateInventoryPanel extends JPanel {
     private JTable inventoryTable;
     private DefaultTableModel tableModel;
     private JPanel inventoryPanel; // Panel to hold the inventory table
-
-    private Queries queries;
+    private Controller ctrl;
+    private Queries queries = new Queries();
     private int selectedCategoryIndexDatabase, selectedCategoryIndexArray;
 
-    public GUIUpdateInventoryPanel(Branding branding, JButton backButton) {
+    public GUIUpdateInventoryPanel(Controller ctrl, Branding branding, JButton backButton) {
+        this.ctrl = ctrl;
         this.branding = branding;
         this.setLayout(new BorderLayout());
         this.setBackground(Color.WHITE);
@@ -647,9 +648,5 @@ public class GUIUpdateInventoryPanel extends JPanel {
             panel.setPreferredSize(new Dimension(0, height));
             return panel;
         }
-    }
-
-    public void setQueries(Queries queries) {
-        this.queries = queries;
     }
 }

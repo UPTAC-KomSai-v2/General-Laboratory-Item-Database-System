@@ -2,6 +2,7 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -39,22 +40,37 @@ public class GUIBorrowItemPanel extends JPanel{
     private JPanel screen1, screen2, screen3;
     private JButton selectedCategoryButton = null;
     private JPanel scrn2BorrowedItemsContentPanel, borrowerInfoInputPanel;
-    private JPanel equipmentPanel;  // Declare equipmentPanel as an instance variable
+    private JPanel equipmentPanel, categoryPanelContents; // Declare equipmentPanel as an instance variable
     private JButton addToBasketButton, continueButton; // Track the Add To Basket button
     private JButton mainBackButton;
     private JButton formsAddBorrowerBtn, formsRemoveBorrowerBtn;
     private Queries queries = new Queries();
     private ImageStorage imageStorage;
+    private Controller ctrl;
+    private int currentCategoryID = -1;
     // Data structure to keep track of items in the basket
     private List<BasketItem> basketItems = new ArrayList<>();
     private Map<Integer, BasketItem> basketItemsMap = new HashMap<>();
     private Map<String, JPanel> itemPanelsMap = new HashMap<>();
+    
+    // Data structure to keep item panels for each category
+    private Map<Integer, JPanel> categoryGridPanels = new HashMap<>();
     private Set<JPanel> selectedItemCards = new HashSet<>();
+
     // Lists to store all borrower components for later data retrieval
     private List<JPanel> borrowerPanels;
     List<JTextField> studentNumberFields;
     List<JTextField> fullNameFields, emailAddressFields, contactNumberFields;
     List<JComboBox<String>> degreeProgramComboBoxes;
+
+    // Data to store Course Information Options
+    private String[] courseData = {"Select a Course"};
+    private String[] sectionData = {"Select a Section"};
+    private String[] instructorData = {"Select an Instructor"};
+    private JComboBox<String> courseOptions;
+    private JComboBox<String> sectionOptions;
+    private JComboBox<String> instructorOptions;
+
     // Class to represent an item in the basket
     private static class BasketItem {
         int category;
@@ -81,11 +97,14 @@ public class GUIBorrowItemPanel extends JPanel{
         }
     }
     
-    public GUIBorrowItemPanel(Branding branding, JButton backButton) {
+    public GUIBorrowItemPanel(Controller ctrl, Branding branding, JButton backButton) {
+        this.ctrl = ctrl;
         this.branding = branding;
         this.mainBackButton = backButton;
         this.cardLayout = new CardLayout();
         this.imageStorage = new ImageStorage();
+
+
         this.setLayout(cardLayout);
         this.setBackground(Color.WHITE);
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -100,6 +119,8 @@ public class GUIBorrowItemPanel extends JPanel{
         add(screen3, "Panel 3");
         
     }
+
+    // ========== SCREEN 1 ==========
 
     private void initializeScreen1(JButton backButton) {
         // Main panel with border layout
@@ -123,7 +144,359 @@ public class GUIBorrowItemPanel extends JPanel{
         // Show the initial "No Category is Selected" message
         showNoCategorySelectedMessage();
     }
+
+    private JPanel createCategoryPanel() {
+        // The panel that contains the category buttons (BoxLayout for vertical stack)
+        categoryPanelContents = new JPanel();
+        categoryPanelContents.setLayout(new BoxLayout(categoryPanelContents, BoxLayout.Y_AXIS));
+        categoryPanelContents.setBackground(branding.maroon);
+        categoryPanelContents.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        categoryPanelContents.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel categoryPanel = new JPanel(new GridBagLayout());
+        categoryPanel.setBackground(branding.maroon);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        categoryPanel.add(categoryPanelContents, gbc);
+        categoryPanel.setPreferredSize(new Dimension(220, 0)); // Force fixed width like before
+        return categoryPanel;
+    }
+
+    public void LoadCategoryPanel(List<String[]> categoryList) {
+        categoryPanelContents.removeAll();
+        int panelCount = 1;
+        for (String[] category : categoryList) {
+            System.out.printf("Loading Panel (%d/%d)\n",  panelCount++, categoryList.size());
+            int categoryId = Integer.parseInt(category[0]);
+            String categoryName = category[1];
+
+            JButton categoryButton = new JButton(categoryName);
+            categoryButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            categoryButton.setPreferredSize(new Dimension(200, 40));
+            categoryButton.setMaximumSize(new Dimension(200, 40));
+            categoryButton.setMinimumSize(new Dimension(200, 40));
+            categoryButton.setBackground(branding.lightergray);
+            categoryButton.setForeground(branding.maroon);
+            categoryButton.setFont(new Font("Arial", Font.PLAIN, 14));
+            categoryButton.setFocusPainted(false);
+            categoryButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+            categoryButton.setMargin(new Insets(0, 0, 0, 0));
+
+            categoryButton.putClientProperty("categoryId", categoryId);
+            
+            JPanel gridPanel = createGridPanelForCategory(categoryId);
+            categoryGridPanels.put(categoryId, gridPanel);
+
+            // Hover effects
+            categoryButton.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    categoryButton.setBackground(branding.lightgray);
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    if (getSelectedCategoryButton() != categoryButton) {
+                        categoryButton.setBackground(branding.lightergray);
+                    }
+                }
+            });
+
+            // Action listener
+            categoryButton.addActionListener(e -> {
+                JButton currentSelectedButton = getSelectedCategoryButton();
+                if (currentSelectedButton != null) {
+                    currentSelectedButton.setBackground(branding.lightergray);
+                }
+
+                categoryButton.setBackground(branding.gray);
+                setSelectedCategoryButton(categoryButton);
+
+                int selectedCategoryId = (int) categoryButton.getClientProperty("categoryId");
+                setCurrentCategoryID(selectedCategoryId);
+
+                showCategoryGridPanel(selectedCategoryId);
+            });
+
+            categoryPanelContents.add(categoryButton);
+            categoryPanelContents.add(Box.createVerticalStrut(10));
+        }
+
+        categoryPanelContents.revalidate();
+        categoryPanelContents.repaint();
+    }
     
+    private JPanel createGridPanelForCategory(int categoryId) {
+        JPanel gridPanel = new JPanel(new GridLayout(0, 4, 20, 20));
+        gridPanel.setOpaque(false);
+        gridPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 20));
+
+        String[] categoryItems = ctrl.getItemsInCategory(categoryId);
+        int cardWidth = 140, cardHeight = 140;
+        for (String itemName : categoryItems) {
+            JPanel itemCard = createItemCard(itemName, categoryId);
+            gridPanel.add(itemCard);
+        }
+
+        return gridPanel;
+    }
+    
+    private void showCategoryGridPanel(int categoryId) {
+        if (equipmentPanel == null) return;
+
+        JPanel containerPanel = (JPanel) equipmentPanel.getClientProperty("gridPanel");
+        if (containerPanel == null) return;
+
+        containerPanel.removeAll();
+
+        JPanel selectedGridPanel = categoryGridPanels.get(categoryId);
+        if (selectedGridPanel != null) {
+            containerPanel.add(selectedGridPanel, BorderLayout.CENTER);
+        }
+
+        containerPanel.revalidate();
+        containerPanel.repaint();
+    }
+
+    private JPanel createItemCard(String itemName, int categoryId) {
+        JPanel itemCard = new JPanel();
+        itemCard.setLayout(new BoxLayout(itemCard, BoxLayout.Y_AXIS));
+        itemCard.setBackground(Color.WHITE);
+        itemCard.setBorder(BorderFactory.createLineBorder(branding.maroon, 1));
+        itemCard.setPreferredSize(new Dimension(140, 140));
+
+        // Get the full item name with unit from the Controller
+        int itemID = ctrl.getItemIDWithUnit(itemName);
+        String fullItemName = ctrl.getItemNameWithUnit(itemID); // Includes unit if applicable
+        String imagePath = imageStorage.getImagePath(fullItemName);
+
+        // Create image panel
+        JPanel imagePanel = new JPanel(new BorderLayout());
+        imagePanel.setPreferredSize(new Dimension(80, 80));
+        imagePanel.setMaximumSize(new Dimension(80, 80));
+        imagePanel.setBackground(Color.WHITE);
+        imagePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        if (imagePath != null) {
+            try {
+                // Load and resize image
+                BufferedImage originalImage = ImageIO.read(new File(imagePath));
+
+                // Calculate dimensions to maintain aspect ratio
+                int targetWidth = 80;
+                int targetHeight = 80;
+
+                double aspectRatio = (double) originalImage.getWidth() / originalImage.getHeight();
+                int scaledWidth, scaledHeight;
+
+                if (aspectRatio > 1) { // Wider than tall
+                    scaledWidth = targetWidth;
+                    scaledHeight = (int) (targetWidth / aspectRatio);
+                } else { // Taller than wide or square
+                    scaledHeight = targetHeight;
+                    scaledWidth = (int) (targetHeight * aspectRatio);
+                }
+
+                Image scaledImage = originalImage.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+
+                JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
+                imageLabel.setHorizontalAlignment(JLabel.CENTER);
+
+                imagePanel.add(imageLabel, BorderLayout.CENTER);
+
+            } catch (IOException e) {
+                JLabel placeholderLabel = new JLabel("No Image");
+                placeholderLabel.setHorizontalAlignment(JLabel.CENTER);
+                placeholderLabel.setForeground(Color.GRAY);
+                imagePanel.add(placeholderLabel, BorderLayout.CENTER);
+            }
+        } else {
+            JLabel placeholderLabel = new JLabel("No Image");
+            placeholderLabel.setHorizontalAlignment(JLabel.CENTER);
+            placeholderLabel.setForeground(Color.GRAY);
+            imagePanel.add(placeholderLabel, BorderLayout.CENTER);
+        }
+
+        JLabel nameLabel = new JLabel(fullItemName, JLabel.CENTER);
+        nameLabel.setForeground(branding.maroon);
+        nameLabel.setFont(new Font("Arial", Font.PLAIN, 10));
+        nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        itemCard.add(Box.createVerticalStrut(10));
+        itemCard.add(imagePanel);
+        itemCard.add(Box.createVerticalStrut(5));
+        itemCard.add(nameLabel);
+        itemCard.add(javax.swing.Box.createVerticalGlue());
+
+        // Store full item name (including unit) as a client property
+        itemCard.putClientProperty("itemName", fullItemName);
+        itemCard.putClientProperty("category", ctrl.getCategoryName(categoryId));
+
+        // Add click and hover listeners
+        itemCard.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                boolean isInBasket = basketItemsMap.containsKey(itemID);
+                if (isInBasket) return; // Do not allow selection if it's already in basket
+                if (selectedItemCards.contains(itemCard)) {
+                    itemCard.setBackground(Color.WHITE);
+                    selectedItemCards.remove(itemCard);
+                } else {
+                    itemCard.setBackground(Color.GRAY);
+                    selectedItemCards.add(itemCard);
+                }
+            }
+
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                setCursor(new Cursor(Cursor.HAND_CURSOR));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            }
+        });
+
+        return itemCard;
+    }
+
+    private void showNoCategorySelectedMessage() {
+        if (equipmentPanel == null) return;
+        
+        // Get the grid panel from the equipment panel
+        JPanel gridPanel = (JPanel) equipmentPanel.getClientProperty("gridPanel");
+        if (gridPanel == null) return;
+        
+        // Clear the grid panel
+        gridPanel.removeAll();
+        
+        // Create a message panel
+        JPanel messagePanel = new JPanel(new GridBagLayout());
+        messagePanel.setBackground(branding.lightgray);
+        
+        JLabel messageLabel = new JLabel("No Category is Selected");
+        messageLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        messageLabel.setForeground(branding.maroon);
+        
+        messagePanel.add(messageLabel);
+        
+        // Add the message panel to the grid panel
+        gridPanel.setLayout(new BorderLayout());
+        gridPanel.add(messagePanel, BorderLayout.CENTER);
+        
+        // Refresh the panel
+        gridPanel.revalidate();
+        gridPanel.repaint();
+    }
+    
+    private JPanel createEquipmentPanel(JButton backButton) {
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(branding.lightgray);
+    
+        // Layout with button panel at the bottom
+        JPanel itemsContainerPanel = new JPanel(new BorderLayout());
+        itemsContainerPanel.setBackground(branding.lightgray);
+        
+        // Create scrollable grid panel
+        JPanel gridPanel = new JPanel(new GridLayout(0, 4, 20, 20)); // 0 rows = auto, 4 columns fixed
+        gridPanel.setBackground(branding.lightgray);
+        gridPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Scroll pane with vertical-only scrolling
+        JScrollPane scrollPane = new JScrollPane(gridPanel);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setBorder(null);
+        branding.reskinScrollBar(scrollPane, branding.gray);
+        
+        itemsContainerPanel.add(scrollPane, BorderLayout.CENTER);
+        mainPanel.add(itemsContainerPanel, BorderLayout.CENTER);
+        
+        // Add button panel at the bottom
+        JPanel buttonPanel = createButtonPanel(backButton);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        // Store the gridPanel as a property of the main panel for later access
+        mainPanel.putClientProperty("gridPanel", gridPanel);
+    
+        return mainPanel;
+    }
+    
+    private JPanel createButtonPanel(JButton backButton) {
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 30));
+        buttonPanel.setBackground(branding.lightgray);
+        
+        // Ensure the back button is visible and has appropriate size
+        backButton.setText("Go Back");
+        addToBasketButton = new JButton("Add To Basket");
+        continueButton = new JButton("Continue");
+        
+        styleActionButton(backButton);
+        styleActionButton(addToBasketButton);
+        styleActionButton(continueButton);
+        
+        // Add action listener to the Add To Basket button
+        addToBasketButton.addActionListener(e -> {
+            if (!selectedItemCards.isEmpty()) {
+                for (JPanel card : new HashSet<>(selectedItemCards)) {
+                    String itemName = (String) card.getClientProperty("itemName");
+                    System.out.println("Selected item: " + itemName);
+                    
+                    int itemID = ctrl.getItemIDWithUnit(itemName);
+                    System.out.println("Item ID: " + itemID);
+                    String category = (String) card.getClientProperty("category");
+                    int categoryID = ctrl.getCategoryID(category);
+
+                    if (!basketItemsMap.containsKey(itemID)) {
+                        BasketItem newItem = new BasketItem(categoryID, itemID);
+                        System.out.println("Selected Item: " + itemName);
+                        basketItems.add(newItem);
+                        basketItemsMap.put(itemID, newItem);
+            
+                        card.setBackground(branding.yellow);
+                    }
+                    selectedItemCards.remove(card); // Deselect after adding
+                }
+            
+                // Print basket
+                System.out.println("\n--- Current Basket Contents ---");
+                for (int i = 0; i < basketItems.size(); i++) {
+                    System.out.println((i + 1) + ". " + basketItems.get(i));
+                }
+                System.out.println("-----------------------------\n");
+            }
+        });
+
+        continueButton.addActionListener(e -> {
+            if (basketItems.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "You must add at least one item to the basket before continuing.",
+                    "No Items in Basket",
+                    JOptionPane.WARNING_MESSAGE
+                );
+            } else {
+                updateBasketDisplayPanel();
+                cardLayout.next(GUIBorrowItemPanel.this);
+            }
+        });
+        
+        // Ensure all buttons are added properly to the button panel
+        buttonPanel.add(backButton);
+        buttonPanel.add(addToBasketButton);
+        buttonPanel.add(continueButton);
+        
+        return buttonPanel;
+    }
+    
+
+    // ========== SCREEN 2 ==========
+
     private void initializeScreen2() {
         screen2 = new JPanel();
         screen2.setLayout(new GridBagLayout());
@@ -193,64 +566,205 @@ public class GUIBorrowItemPanel extends JPanel{
         screen2GBC.gridy++;
         screen2.add(scrn2MenuPanel, screen2GBC);
     }
+
+    private void updateBasketDisplayPanel() {
+        // Clear the panel before rebuilding it
+        scrn2BorrowedItemsContentPanel.removeAll();
+
+        GridBagConstraints scrn2BorrowedItemsContentPanelGBC = new GridBagConstraints();
+        scrn2BorrowedItemsContentPanelGBC.fill = GridBagConstraints.BOTH;
+        scrn2BorrowedItemsContentPanelGBC.anchor = GridBagConstraints.NORTH;
+        scrn2BorrowedItemsContentPanelGBC.insets = new Insets(10,0,0,0);
+        scrn2BorrowedItemsContentPanelGBC.gridy = -1;
+        scrn2BorrowedItemsContentPanelGBC.weightx = 1;
+        
+        // Empty the item panels map as we're rebuilding it
+        itemPanelsMap.clear();
+        
+        // Add each item in the basket to the panel
+        for (BasketItem item : basketItems) {
+            JLabel itemLabel = new JLabel(ctrl.getItemNameWithUnit(item.itemID));
+            System.out.println("Item Label: " + itemLabel.getText());
+            JLabel quantityLabel = new JLabel(String.valueOf(item.itemQuantity));
+            
+            // Set styling
+            itemLabel.setForeground(branding.maroon);
+            quantityLabel.setForeground(branding.maroon);
+            quantityLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+            JPanel quantityLabelPanel = new JPanel(new GridBagLayout());
+            quantityLabelPanel.setPreferredSize(new Dimension(50, 35));
+            quantityLabelPanel.add(quantityLabel);
+
+            
+            // Create buttons
+            JButton addBtn = new JButton("+");
+            addBtn.setPreferredSize(new Dimension(50, 35));
+            addBtn.setBackground(branding.maroon);
+            addBtn.setForeground(branding.white);
+            
+            JButton subtractBtn = new JButton("-");
+            subtractBtn.setPreferredSize(new Dimension(50, 35));
+            subtractBtn.setBackground(branding.maroon);
+            subtractBtn.setForeground(branding.white);
+            
+            // Create panels
+            JPanel itemPanel = new JPanel();
+            JPanel quantityPanel = new JPanel();
+            
+            itemPanel.setLayout(new BorderLayout());
+            quantityPanel.setLayout(new GridBagLayout());
+            
+            itemPanel.setPreferredSize(new Dimension(10, 70));
+            quantityPanel.setPreferredSize(new Dimension(50, 70));
+            
+            itemPanel.setOpaque(false);
+            quantityPanel.setOpaque(false);
+            
+            itemPanel.add(itemLabel, BorderLayout.WEST);
+            
+            // Add components to quantity panel
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            //gbc.weightx = 0.5;
+            gbc.insets = new Insets(0, 5, 0, 5);
+            gbc.gridx = 0;
+            gbc.ipadx = 0;
+            quantityPanel.add(addBtn, gbc);
+            gbc.gridx = 1;
+            gbc.ipadx = 10;
+            quantityPanel.add(quantityLabelPanel, gbc);
+            gbc.gridx = 2;
+            gbc.ipadx = 0;
+            quantityPanel.add(subtractBtn, gbc);
+            
+            // Add button listeners
+            final int itemID = item.itemID; // Capture the item name for the lambda expressions
+            
+            // Add button listener
+            addBtn.addActionListener(e -> {
+                BasketItem basketItem = basketItemsMap.get(itemID);
+                if (basketItem != null) {
+                    basketItem.itemQuantity++;
+                    quantityLabel.setText(String.valueOf(basketItem.itemQuantity));
+                }
+            });
+            
+            // Subtract button listener
+            subtractBtn.addActionListener(e -> {
+                BasketItem basketItem = basketItemsMap.get(itemID);
+                if (basketItem != null) {
+                    if (basketItem.itemQuantity > 1) {
+                        basketItem.itemQuantity--;
+                        quantityLabel.setText(String.valueOf(basketItem.itemQuantity));
+                    } else {
+                        // Remove the item completely
+                        basketItems.remove(basketItem);
+                        basketItemsMap.remove(itemID);
+                        updateBasketDisplayPanel();
+                        // Update the item's background color in the equipment panel
+                        refreshEquipmentItemBackground(ctrl.getItemNameWithUnit(itemID));
+                    }
+                }
+            });
+            
+            // Create and add the item row panel
+            JPanel tupleInfoPanel = new JPanel();
+            tupleInfoPanel.setMaximumSize(new Dimension(900, 70));
+            tupleInfoPanel.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 20));
+            tupleInfoPanel.setLayout(new GridBagLayout());
+            tupleInfoPanel.setBackground(branding.lightgray);
+            
+            GridBagConstraints tupleInfoPanelGBC = new GridBagConstraints();
+            tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+            tupleInfoPanelGBC.gridx = 0;
+            tupleInfoPanelGBC.ipadx = 20;
+            tupleInfoPanelGBC.weightx = 0.5;
+            tupleInfoPanel.add(itemPanel, tupleInfoPanelGBC);
+            
+            tupleInfoPanelGBC.fill = GridBagConstraints.NONE;
+            tupleInfoPanelGBC.anchor = GridBagConstraints.EAST;
+            tupleInfoPanelGBC.gridx++;
+            tupleInfoPanelGBC.ipadx = 100;
+            tupleInfoPanelGBC.weightx = 0.2;
+            tupleInfoPanel.add(quantityPanel, tupleInfoPanelGBC);
+            
+            // Store the panel in the map
+            itemPanelsMap.put(ctrl.getItemName(itemID), tupleInfoPanel);
+            
+            // Add the panel to the content panel
+            scrn2BorrowedItemsContentPanelGBC.gridy++;
+            scrn2BorrowedItemsContentPanel.add(tupleInfoPanel, scrn2BorrowedItemsContentPanelGBC);
+            
+            // Add a small gap between items (only if this isn't the last item)
+            if (basketItems.indexOf(item) < basketItems.size() - 1) {
+                scrn2BorrowedItemsContentPanel.add(Box.createVerticalStrut(10));
+            }
+        }
+        
+        // Update the UI
+        scrn2BorrowedItemsContentPanel.revalidate();
+        scrn2BorrowedItemsContentPanel.repaint();
+
+        Component[] components = screen2.getComponents();
+        for (Component comp : components) {
+            if (comp instanceof JPanel panel) {
+                for (Component innerComp : panel.getComponents()) {
+                    if (innerComp instanceof JButton button && "Continue".equals(button.getText())) {
+                        button.setEnabled(!basketItems.isEmpty());
+                    }
+                }
+            }
+        }
+    }
     
-    public boolean validateBorrowerInfoInputs(
-        List<JTextField> studentNumberFields,
-        List<JTextField> fullNameFields,
-        List<JTextField> emailAddressFields,
-        List<JTextField> contactNumberFields,
-        List<JComboBox<String>> degreeProgramComboBoxes) {
+    private void refreshEquipmentItemBackground(String itemNameWithUnit) {
+        System.out.println("REFRESH EQUIPMENT ITEMS BACKGROUND");
 
-    for (int i = 0; i < studentNumberFields.size(); i++) {
-        String studentNumber = studentNumberFields.get(i).getText().trim();
-        String fullName = fullNameFields.get(i).getText().trim();
-        String email = emailAddressFields.get(i).getText().trim();
-        String contact = contactNumberFields.get(i).getText().trim();
-        String degreeProgram = (String) degreeProgramComboBoxes.get(i).getSelectedItem();
-
-        // Validate student number: YYYY-XXXXX
-        if (!studentNumber.matches("\\d{4}-\\d{5}")) {
-            JOptionPane.showMessageDialog(null,
-                    "Invalid student number at row " + (i + 1) + ". Format must be YYYY-XXXXX.",
-                    "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return false;
+        // Check if the category panels map is initialized
+        if (categoryGridPanels == null || categoryGridPanels.isEmpty()) {
+            System.out.println("Category grid panels map is empty.");
+            return;
         }
 
-        // Validate email
-        if (!email.matches("^[a-zA-Z0-9._%+-]+@up\\.edu\\.ph$")) {
-            JOptionPane.showMessageDialog(null,
-                    "Invalid email at row " + (i + 1) + ". Email must end with '@up.edu.ph'.",
-                    "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
+        // Iterate through all category panels
+        for (Map.Entry<Integer, JPanel> entry : categoryGridPanels.entrySet()) {
+            int categoryId = entry.getKey();
+            JPanel gridPanel = entry.getValue();
 
-        // Validate contact number: 09xxxxxxxxx (11 digits)
-        if (!contact.matches("^09\\d{9}$")) {
-            JOptionPane.showMessageDialog(null,
-                    "Invalid contact number at row " + (i + 1) + ". Must start with 09 and be 11 digits long.",
-                    "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
+            if (gridPanel == null) {
+                System.out.println("Grid panel for category " + categoryId + " is null.");
+                continue;
+            }
 
-        // Validate degree program selection
-        if ("Select an Option".equals(degreeProgram)) {
-            JOptionPane.showMessageDialog(null,
-                    "Please select a degree program at row " + (i + 1) + ".",
-                    "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
+            // Iterate through all components in the grid panel
+            for (Component component : gridPanel.getComponents()) {
+                if (component instanceof JPanel itemCard) {
+                    // Retrieve the full item name with unit stored in the item's client properties
+                    String cardItemNameWithUnit = (String) itemCard.getClientProperty("itemName");
+                    
 
-        // Optional: check full name is not empty
-        if (fullName.isEmpty()) {
-            JOptionPane.showMessageDialog(null,
-                    "Full name cannot be empty at row " + (i + 1) + ".",
-                    "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return false;
+                    if (cardItemNameWithUnit == null) {
+                        System.out.println("Item card name with unit is null in category " + categoryId + ".");
+                        continue;
+                    }
+
+                    // Reset the background color if the card matches the given item name with unit
+                    if (itemNameWithUnit.equals(cardItemNameWithUnit)) {
+                        itemCard.setBackground(Color.WHITE);
+                        itemCard.revalidate();
+                        itemCard.repaint();
+                    }
+                }
+            }
+
+            // Ensure the grid panel reflects the changes
+            gridPanel.revalidate();
+            gridPanel.repaint();
         }
     }
 
-    return true; // All inputs are valid
-}
+    // ========== SCREEN 3 ==========
 
     private void initializeScreen3(){
         screen3 = new JPanel();
@@ -400,55 +914,41 @@ public class GUIBorrowItemPanel extends JPanel{
         coursInfSectionLabel.setForeground(branding.white);
         coursInfInstructorLabel.setForeground(branding.white);
 
-        String[] courseOptionsData = queries.getCourseOption();
-        JComboBox<String> courseOptions = new JComboBox<>(new String[] {"Select a Course"});
+        courseOptions = new JComboBox<>(courseData);
         courseOptions.setMaximumRowCount(4);
-
-        for (String course : courseOptionsData) {
-            courseOptions.addItem(course);
-        }
-
-        JComboBox<String> sectionOptions = new JComboBox<>(new String[] {"Select a Section"});
+    
+        sectionOptions = new JComboBox<>(sectionData);
         sectionOptions.setMaximumRowCount(4);
-        JComboBox<String> instructorOptions = new JComboBox<>(new String[] {"Select an Instructor"});
+    
+        instructorOptions = new JComboBox<>(instructorData);
         instructorOptions.setMaximumRowCount(4);
+
+        updateCourseOptions();
+
         courseOptions.addActionListener(e -> {
-            sectionOptions.removeAllItems();
-            instructorOptions.removeAllItems();
-
-            sectionOptions.addItem("Select a Section");
-            instructorOptions.addItem("Select an Instructor");
-
             String selectedCourse = (String) courseOptions.getSelectedItem();
             if (selectedCourse != null && !selectedCourse.equals("Select a Course")) {
-                String[] sectionOptionsData = queries.getSectionOption(selectedCourse);
-                System.out.println("Section Options Data: " + sectionOptionsData);
-                for (String section : sectionOptionsData) {
-                    System.out.println("!!!!!!!!!!!!"  + section);
-                    sectionOptions.addItem(section);
-                }
+                updateSectionOptions(selectedCourse);
+            } else {
+                // Reset to default if no course selected
+                resetSectionOptions();
+                resetInstructorOptions();
             }
         });
 
         sectionOptions.addActionListener(e -> {
-            instructorOptions.removeAllItems();
-            instructorOptions.addItem("Select an Instructor");
-
             String selectedCourse = (String) courseOptions.getSelectedItem();
             String selectedSection = (String) sectionOptions.getSelectedItem();
             if (selectedCourse != null && selectedSection != null &&
                 !selectedCourse.equals("Select a Course") && !selectedSection.equals("Select a Section")) {
-                instructorOptions.removeAllItems();
-                System.out.println("SelectedCourse: "+ selectedCourse);
-                System.out.println("SelectedSection: "+ selectedSection);
-                String[] instructorOptionsData = queries.getInstructorOption(selectedCourse, selectedSection);
-                for (String instructor : instructorOptionsData) {
-                    instructorOptions.addItem(instructor);
-                }
+                updateInstructorOptions(selectedCourse, selectedSection);
+            } else {
+                // Reset to default if no section selected
+                resetInstructorOptions();
             }
         });
 
-        // Add to panels
+            // Add to panels
         coursInfCoursePanel.add(coursInfCourseLabel);
         coursInfCoursePanel.add(courseOptions);
 
@@ -493,7 +993,6 @@ public class GUIBorrowItemPanel extends JPanel{
                 // Update the UI
                 borrowerInfoInputPanel.revalidate();
                 borrowerInfoInputPanel.repaint();
-
                 formsAddBorrowerBtn.requestFocusInWindow();
                 SwingUtilities.invokeLater(() -> {
                     courseOptions.updateUI();
@@ -505,7 +1004,6 @@ public class GUIBorrowItemPanel extends JPanel{
         
         formsAddRemoveBorrowerPanel.add(formsAddBorrowerBtn);
         formsAddRemoveBorrowerPanel.add(formsRemoveBorrowerBtn);
-        
 
         GridBagConstraints coursPanelGBC = new GridBagConstraints();
         coursPanelGBC.anchor = GridBagConstraints.WEST;
@@ -538,8 +1036,6 @@ public class GUIBorrowItemPanel extends JPanel{
         formsCourseInfoInputPanelGBC.weightx = 0.2;
         formsCourseInfoInputPanelGBC.gridx++;
         formsCourseInfoInputPanel.add(coursInfInstructorPanel, formsCourseInfoInputPanelGBC);
-
-
 
         GridBagConstraints scrn3BorrowerInformationFormsPanelGBC = new GridBagConstraints();
         scrn3BorrowerInformationFormsPanelGBC.fill = GridBagConstraints.HORIZONTAL;
@@ -587,8 +1083,8 @@ public class GUIBorrowItemPanel extends JPanel{
         screen3BorrowBtn.setForeground(branding.white);
 
         screen3BorrowBtn.addActionListener(e -> {
-            if (validateBorrowerInfoInputs(studentNumberFields, fullNameFields, emailAddressFields, contactNumberFields, degreeProgramComboBoxes)) {
-                int borrowID = queries.getLatestBorrowID() + 1;
+            if (ctrl.validateBorrowerInfoInputs(studentNumberFields, fullNameFields, emailAddressFields, contactNumberFields, degreeProgramComboBoxes)) {
+                int borrowID = ctrl.getLatestBorrowID() + 1;
                 System.out.println("Borrow ID: " + borrowID);
             
                 // Insert borrower info once per student
@@ -600,7 +1096,7 @@ public class GUIBorrowItemPanel extends JPanel{
                         contactNumberFields.get(i).getText() + ", " +
                         degreeProgramComboBoxes.get(i).getSelectedItem()
                     );
-                    queries.insertBorrowerInfo(
+                    ctrl.insertBorrowerInfo(
                         studentNumberFields.get(i).getText(),
                         fullNameFields.get(i).getText(),
                         emailAddressFields.get(i).getText(),
@@ -611,7 +1107,6 @@ public class GUIBorrowItemPanel extends JPanel{
             
                 // For each item, associate with all students
                 while (!basketItems.isEmpty()) {
-                    basketItems.get(0);
                     int itemID = basketItems.get(0).getItemID();
                     System.out.println("Inserting borrow");
             
@@ -620,9 +1115,9 @@ public class GUIBorrowItemPanel extends JPanel{
                         String studentNumber = studentNumberFields.get(i).getText();
                         String course = (String) courseOptions.getSelectedItem();
                         String sectionName = (String) sectionOptions.getSelectedItem();
-                        int sectionID = queries.getSectionID(sectionName);
+                        int sectionID = ctrl.getSectionID(sectionName);
             
-                        queries.borrowItem(
+                        ctrl.borrowItem(
                             borrowID,
                             itemID,
                             studentNumber,
@@ -634,11 +1129,14 @@ public class GUIBorrowItemPanel extends JPanel{
             
                     basketItems.remove(0);  // Remove processed item
                 }
+
+                ctrl.refreshCachedData();
+                
                 JOptionPane.showMessageDialog(
-                GUIBorrowItemPanel.this,
-                "Transaction Successful!",
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE
+                    GUIBorrowItemPanel.this,
+                    "Transaction Successful!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
                 );
 
                 // Reset borrower input fields
@@ -658,8 +1156,6 @@ public class GUIBorrowItemPanel extends JPanel{
             }
         });
         
-        
-    
         scrn3MenuPanel.add(screen3BackBtn);
         scrn3MenuPanel.add(screen3BorrowBtn);
     
@@ -672,10 +1168,79 @@ public class GUIBorrowItemPanel extends JPanel{
         screen3GBC.weighty = 0.1;
         screen3GBC.gridy++;
         screen3.add(scrn3MenuPanel, screen3GBC);
-    
     }
 
-// Helper method to create new borrower info panels
+    public void updateCourseOptions() {
+        // Clear current items, keeping only the default first item
+        courseOptions.removeAllItems();
+        courseOptions.addItem("Select a Course");
+        
+        // Get course data from controller instead of queries
+        String[] courseOptionsData = ctrl.getCourseOptions();
+        
+        // Skip first item which is already "Select a Course"
+        for (int i = 1; i < courseOptionsData.length; i++) {
+            courseOptions.addItem(courseOptionsData[i]);
+        }
+        
+        // Reset dependent dropdowns
+        resetSectionOptions();
+        resetInstructorOptions();
+    }
+
+    public void updateInstructorOptions(String selectedCourse, String selectedSection) {
+        // Clear current items, keeping only the default first item
+        instructorOptions.removeAllItems();
+        instructorOptions.addItem("Select an Instructor");
+        
+        // Get instructor data from controller instead of queries
+        String[] instructorOptionsData = ctrl.getInstructorOptions(selectedCourse, selectedSection);
+        
+        // Skip first item which is already "Select an Instructor" 
+        for (int i = 1; i < instructorOptionsData.length; i++) {
+            instructorOptions.addItem(instructorOptionsData[i]);
+        }
+    }
+
+    public void updateSectionOptions(String selectedCourse) {
+        // Clear current items, keeping only the default first item
+        sectionOptions.removeAllItems();
+        sectionOptions.addItem("Select a Section");
+        
+        // Get fresh section data from queries
+        String[] sectionOptionsData = ctrl.getSectionOptions(selectedCourse);
+        
+        // Add new items
+        for (int i = 1; i < sectionOptionsData.length; i++) {
+        sectionOptions.addItem(sectionOptionsData[i]);
+        }
+        
+        // Reset instructor dropdown
+        resetInstructorOptions();
+    }
+
+    private void resetSectionOptions() {
+        sectionOptions.removeAllItems();
+        sectionOptions.addItem("Select a Section");
+    }
+
+    private void resetInstructorOptions() {
+        instructorOptions.removeAllItems();
+        instructorOptions.addItem("Select an Instructor");
+    }
+
+    public void refreshFormDropdowns() {
+        // Refresh course data
+        updateCourseOptions();
+        
+        // This will cascade and reset section and instructor dropdowns as well
+        SwingUtilities.invokeLater(() -> {
+            courseOptions.updateUI();
+            sectionOptions.updateUI();
+            instructorOptions.updateUI();
+        });
+    }
+
     private JPanel createBorrowerInfoPanel(
         List<JTextField> studentNumberFields,
         List<JTextField> fullNameFields,
@@ -729,496 +1294,10 @@ public class GUIBorrowItemPanel extends JPanel{
         return panel;
     }
 
-    private void updateBasketDisplayPanel() {
-        // Clear the panel before rebuilding it
-        scrn2BorrowedItemsContentPanel.removeAll();
-
-        GridBagConstraints scrn2BorrowedItemsContentPanelGBC = new GridBagConstraints();
-        scrn2BorrowedItemsContentPanelGBC.fill = GridBagConstraints.BOTH;
-        scrn2BorrowedItemsContentPanelGBC.anchor = GridBagConstraints.NORTH;
-        scrn2BorrowedItemsContentPanelGBC.insets = new Insets(10,0,0,0);
-        scrn2BorrowedItemsContentPanelGBC.gridy = -1;
-        scrn2BorrowedItemsContentPanelGBC.weightx = 0.9;
-        scrn2BorrowedItemsContentPanelGBC.weightx = 1;
-        
-        // Empty the item panels map as we're rebuilding it
-        itemPanelsMap.clear();
-        
-        // Add each item in the basket to the panel
-        for (BasketItem item : basketItems) {
-            JLabel itemLabel = new JLabel(queries.getItemNameWithUnit(item.itemID));
-            System.out.println("Item Label: " + itemLabel.getText());
-            JLabel quantityLabel = new JLabel(String.valueOf(item.itemQuantity));
-            
-            // Set styling
-            itemLabel.setForeground(branding.maroon);
-            quantityLabel.setForeground(branding.maroon);
-            quantityLabel.setFont(new Font("Arial", Font.BOLD, 16));
-
-            JPanel quantityLabelPanel = new JPanel(new GridBagLayout());
-            quantityLabelPanel.setPreferredSize(new Dimension(50, 35));
-            quantityLabelPanel.add(quantityLabel);
-
-            
-            // Create buttons
-            JButton addBtn = new JButton("+");
-            addBtn.setPreferredSize(new Dimension(50, 35));
-            addBtn.setBackground(branding.maroon);
-            addBtn.setForeground(branding.white);
-            
-            JButton subtractBtn = new JButton("-");
-            subtractBtn.setPreferredSize(new Dimension(50, 35));
-            subtractBtn.setBackground(branding.maroon);
-            subtractBtn.setForeground(branding.white);
-            
-            // Create panels
-            JPanel itemPanel = new JPanel();
-            JPanel quantityPanel = new JPanel();
-            
-            itemPanel.setLayout(new BorderLayout());
-            quantityPanel.setLayout(new GridBagLayout());
-            
-            itemPanel.setPreferredSize(new Dimension(10, 70));
-            quantityPanel.setPreferredSize(new Dimension(50, 70));
-            
-            itemPanel.setOpaque(false);
-            quantityPanel.setOpaque(false);
-            
-            itemPanel.add(itemLabel, BorderLayout.WEST);
-            
-            // Add components to quantity panel
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            //gbc.weightx = 0.5;
-            gbc.insets = new Insets(0, 5, 0, 5);
-            gbc.gridx = 0;
-            gbc.ipadx = 0;
-            quantityPanel.add(addBtn, gbc);
-            gbc.gridx = 1;
-            gbc.ipadx = 10;
-            quantityPanel.add(quantityLabelPanel, gbc);
-            gbc.gridx = 2;
-            gbc.ipadx = 0;
-            quantityPanel.add(subtractBtn, gbc);
-            
-            // Add button listeners
-            final int itemID = item.itemID; // Capture the item name for the lambda expressions
-            
-            // Add button listener
-            addBtn.addActionListener(e -> {
-                BasketItem basketItem = basketItemsMap.get(itemID);
-                if (basketItem != null) {
-                    basketItem.itemQuantity++;
-                    quantityLabel.setText(String.valueOf(basketItem.itemQuantity));
-                    //updateBasketDisplayPanel(); // Rebuild the entire panel
-                }
-            });
-            
-            // Subtract button listener
-            subtractBtn.addActionListener(e -> {
-                BasketItem basketItem = basketItemsMap.get(itemID);
-                if (basketItem != null) {
-                    if (basketItem.itemQuantity > 1) {
-                        basketItem.itemQuantity--;
-                        quantityLabel.setText(String.valueOf(basketItem.itemQuantity));
-                    } else {
-                        // Remove the item completely
-                        basketItems.remove(basketItem);
-                        basketItemsMap.remove(itemID);
-                        updateBasketDisplayPanel();
-                        // Update the item's background color in the equipment panel
-                        refreshEquipmentItemBackground(queries.getItemName(itemID));
-                    }
-                    //updateBasketDisplayPanel(); // Rebuild the entire panel
-                }
-            });
-            
-            // Create and add the item row panel
-            JPanel tupleInfoPanel = new JPanel();
-            tupleInfoPanel.setMaximumSize(new Dimension(900, 70));
-            tupleInfoPanel.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 20));
-            tupleInfoPanel.setLayout(new GridBagLayout());
-            tupleInfoPanel.setBackground(branding.lightgray);
-            
-            GridBagConstraints tupleInfoPanelGBC = new GridBagConstraints();
-            tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
-            tupleInfoPanelGBC.gridx = 0;
-            tupleInfoPanelGBC.ipadx = 20;
-            tupleInfoPanelGBC.weightx = 0.05;
-            tupleInfoPanel.add(itemPanel, tupleInfoPanelGBC);
-            
-            tupleInfoPanelGBC.fill = GridBagConstraints.NONE;
-            tupleInfoPanelGBC.anchor = GridBagConstraints.EAST;
-            tupleInfoPanelGBC.gridx++;
-            tupleInfoPanelGBC.ipadx = 100;
-            tupleInfoPanelGBC.weightx = 0.2;
-            tupleInfoPanel.add(quantityPanel, tupleInfoPanelGBC);
-            
-            // Store the panel in the map
-            itemPanelsMap.put(queries.getItemName(itemID), tupleInfoPanel);
-            
-            // Add the panel to the content panel
-            scrn2BorrowedItemsContentPanelGBC.gridy++;
-            scrn2BorrowedItemsContentPanel.add(tupleInfoPanel, scrn2BorrowedItemsContentPanelGBC);
-            
-            // Add a small gap between items (only if this isn't the last item)
-            if (basketItems.indexOf(item) < basketItems.size() - 1) {
-                scrn2BorrowedItemsContentPanel.add(Box.createVerticalStrut(10));
-            }
-        }
-        
-        // Update the UI
-        scrn2BorrowedItemsContentPanel.revalidate();
-        scrn2BorrowedItemsContentPanel.repaint();
-
-        Component[] components = screen2.getComponents();
-        for (Component comp : components) {
-            if (comp instanceof JPanel panel) {
-                for (Component innerComp : panel.getComponents()) {
-                    if (innerComp instanceof JButton button && "Continue".equals(button.getText())) {
-                        button.setEnabled(!basketItems.isEmpty());
-                    }
-                }
-            }
-        }
-    }
-
+    // =========== MISCELLANEOUS ==========
     
-    private JPanel createCategoryPanel() {
-        // The panel that contains the category buttons (BoxLayout for vertical stack)
-        JPanel categoryPanel = new JPanel();
-        categoryPanel.setLayout(new BoxLayout(categoryPanel, BoxLayout.Y_AXIS));
-        categoryPanel.setBackground(branding.maroon);
-        categoryPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        categoryPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    
-        queries.showCategoryList(branding, categoryPanel, this);
-
-        // Wrapper panel to center the category panel vertically
-        JPanel centeredPanel = new JPanel(new GridBagLayout());
-        centeredPanel.setBackground(branding.maroon);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.CENTER;
-        centeredPanel.add(categoryPanel, gbc);
-    
-        centeredPanel.setPreferredSize(new Dimension(220, 0)); // Force fixed width like before
-        return centeredPanel;
-    }
-    
-    private JPanel createEquipmentPanel(JButton backButton) {
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(branding.lightgray);
-    
-        // Layout with button panel at the bottom
-        JPanel itemsContainerPanel = new JPanel(new BorderLayout());
-        itemsContainerPanel.setBackground(branding.lightgray);
-        
-        // Create scrollable grid panel
-        JPanel gridPanel = new JPanel(new GridLayout(0, 4, 20, 20)); // 0 rows = auto, 4 columns fixed
-        gridPanel.setBackground(branding.lightgray);
-        gridPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
-        // Scroll pane with vertical-only scrolling
-        JScrollPane scrollPane = new JScrollPane(gridPanel);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.setBorder(null);
-        branding.reskinScrollBar(scrollPane, branding.gray);
-        
-        itemsContainerPanel.add(scrollPane, BorderLayout.CENTER);
-        mainPanel.add(itemsContainerPanel, BorderLayout.CENTER);
-        
-        // Add button panel at the bottom
-        JPanel buttonPanel = createButtonPanel(backButton);
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
-        
-        // Store the gridPanel as a property of the main panel for later access
-        mainPanel.putClientProperty("gridPanel", gridPanel);
-    
-        return mainPanel;
-    }
-    
-    // Method to show "No Category is Selected" message
-    private void showNoCategorySelectedMessage() {
-        if (equipmentPanel == null) return;
-        
-        // Get the grid panel from the equipment panel
-        JPanel gridPanel = (JPanel) equipmentPanel.getClientProperty("gridPanel");
-        if (gridPanel == null) return;
-        
-        // Clear the grid panel
-        gridPanel.removeAll();
-        
-        // Create a message panel
-        JPanel messagePanel = new JPanel(new GridBagLayout());
-        messagePanel.setBackground(branding.lightgray);
-        
-        JLabel messageLabel = new JLabel("No Category is Selected");
-        messageLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        messageLabel.setForeground(branding.maroon);
-        
-        messagePanel.add(messageLabel);
-        
-        // Add the message panel to the grid panel
-        gridPanel.setLayout(new BorderLayout());
-        gridPanel.add(messagePanel, BorderLayout.CENTER);
-        
-        // Refresh the panel
-        gridPanel.revalidate();
-        gridPanel.repaint();
-    }
-    
-    // Method to update equipment panel based on selected category
-    public void updateEquipmentPanel(int categoryIndex) {
-        if (equipmentPanel == null) return;
-        
-        // Get the grid panel from the equipment panel
-        JPanel gridPanel = (JPanel) equipmentPanel.getClientProperty("gridPanel");
-        if (gridPanel == null) return;
-        
-        // Clear the grid panel and reset selected item
-        gridPanel.removeAll();
-        
-        // Reset to GridLayout for displaying equipment items
-        gridPanel.setLayout(new GridLayout(0, 4, 20, 20));
-        
-        // Get the current category name
-        String currentCategory = queries.getCategoryName(categoryIndex);
-        
-        // Add the equipment items for the selected category
-        String[] categoryItems = queries.getItems(categoryIndex);
-        int cardWidth = 140, cardHeight = 140;
-        
-        for (String itemName : categoryItems) {
-            JPanel itemCard = new JPanel();
-            itemCard.setLayout(new BoxLayout(itemCard, BoxLayout.Y_AXIS));
-            
-            // Check if this item is in the basket and set background color accordingly
-            BasketItem basketItem = basketItemsMap.get(queries.getItemIDWithUnit(itemName));
-            if (basketItem != null) {
-                itemCard.setBackground(Color.YELLOW);
-            } else {
-                itemCard.setBackground(Color.WHITE);
-            }
-            
-            itemCard.setBorder(BorderFactory.createLineBorder(branding.maroon, 1));
-            itemCard.setPreferredSize(new Dimension(cardWidth, cardHeight));
-
-            // Placeholder space (simulates an image)
-            String imagePath = imageStorage.getImagePath(itemName);
-        
-        // Create image panel
-        JPanel imagePanel = new JPanel(new BorderLayout());
-        imagePanel.setPreferredSize(new Dimension(80,80));
-        imagePanel.setMaximumSize(new Dimension(80,80));
-        imagePanel.setBackground(Color.WHITE);
-        imagePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        if (imagePath != null) {
-            try {
-                // Load and resize image
-                BufferedImage originalImage = ImageIO.read(new File(imagePath));
-                
-                // Calculate dimensions to maintain aspect ratio
-                int targetWidth = 80;
-                int targetHeight = 80;
-                
-                // Scale while maintaining aspect ratio
-                double aspectRatio = (double) originalImage.getWidth() / originalImage.getHeight();
-                int scaledWidth, scaledHeight;
-                
-                if (aspectRatio > 1) { // Wider than tall
-                    scaledWidth = targetWidth;
-                    scaledHeight = (int) (targetWidth / aspectRatio);
-                } else { // Taller than wide or square
-                    scaledHeight = targetHeight;
-                    scaledWidth = (int) (targetHeight * aspectRatio);
-                }
-                
-                // Create scaled version of the image
-                Image scaledImage = originalImage.getScaledInstance(
-                        scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
-                
-                // Create a label with the image
-                JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
-                imageLabel.setHorizontalAlignment(JLabel.CENTER);
-                
-                imagePanel.add(imageLabel, BorderLayout.CENTER);
-                
-            } catch (IOException e) {
-                // If image can't be loaded, show a placeholder
-                JLabel placeholderLabel = new JLabel("No Image");
-                placeholderLabel.setHorizontalAlignment(JLabel.CENTER);
-                placeholderLabel.setForeground(Color.GRAY);
-                imagePanel.add(placeholderLabel, BorderLayout.CENTER);
-            }
-        } else {
-            // If no image path found, show a placeholder
-            JLabel placeholderLabel = new JLabel("No Image");
-            placeholderLabel.setHorizontalAlignment(JLabel.CENTER);
-            placeholderLabel.setForeground(Color.GRAY);
-            imagePanel.add(placeholderLabel, BorderLayout.CENTER);
-        }
-            JLabel nameLabel = new JLabel(itemName, JLabel.CENTER);
-            nameLabel.setForeground(branding.maroon);
-            nameLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-            nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-            itemCard.add(Box.createVerticalStrut(10));
-            itemCard.add(imagePanel);
-            itemCard.add(Box.createVerticalStrut(5));
-            itemCard.add(nameLabel);
-            itemCard.add(javax.swing.Box.createVerticalGlue());
-            
-            // Store the item name and category as client properties for reference
-            itemCard.putClientProperty("itemName", itemName);
-            itemCard.putClientProperty("category", currentCategory);
-            
-            // Add click listener to select the item
-            itemCard.addMouseListener(new java.awt.event.MouseAdapter() {
-                @Override
-                public void mouseClicked(java.awt.event.MouseEvent evt) {
-                    boolean isInBasket = basketItemsMap.containsKey(queries.getItemIDWithUnit(itemName));
-                    if (isInBasket) return; // Do not allow selection if it's already in basket
-            
-                    if (selectedItemCards.contains(itemCard)) {
-                        // Deselect item
-                        itemCard.setBackground(Color.WHITE);
-                        selectedItemCards.remove(itemCard);
-                    } else {
-                        // Select item
-                        itemCard.setBackground(Color.GRAY);
-                        selectedItemCards.add(itemCard);
-                    }
-                }
-                
-                @Override
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    // Only highlight if not already selected or in basket
-                    System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAA"+queries.getItemIDWithUnit(itemName));
-                    boolean isInBasket = basketItemsMap.containsKey(queries.getItemIDWithUnit(itemName));
-                    if (!itemCard.getBackground().equals(Color.GRAY) && !isInBasket) {
-                        itemCard.setBackground(new Color(245, 245, 245)); // Light hover effect
-                    }
-                    setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-                }
-                
-                @Override
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    // Reset hover effect if not selected or in basket
-                    boolean isInBasket = basketItemsMap.containsKey(queries.getItemIDWithUnit(itemName));
-                    if (!itemCard.getBackground().equals(Color.GRAY) && !isInBasket) {
-                        itemCard.setBackground(Color.WHITE);
-                    }
-                    setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-                }
-            });
-
-            gridPanel.add(itemCard);
-        }
-        
-        // Refresh the panel to show the updated items
-        gridPanel.revalidate();
-        gridPanel.repaint();
-    }
-    
-    private JPanel createButtonPanel(JButton backButton) {
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 30));
-        buttonPanel.setBackground(branding.lightgray);
-        
-        // Ensure the back button is visible and has appropriate size
-        backButton.setText("Go Back");
-        addToBasketButton = new JButton("Add To Basket");
-        continueButton = new JButton("Continue");
-        
-        styleActionButton(backButton);
-        styleActionButton(addToBasketButton);
-        styleActionButton(continueButton);
-        
-        // Add action listener to the Add To Basket button
-        addToBasketButton.addActionListener(e -> {
-            if (!selectedItemCards.isEmpty()) {
-                for (JPanel card : new HashSet<>(selectedItemCards)) {
-                    String itemName = (String) card.getClientProperty("itemName");
-                    System.out.println("Selected item: " + itemName);
-                    
-                    int itemID = queries.getItemIDWithUnit(itemName);
-                    System.out.println("Item ID: " + itemID);
-                    String category = (String) card.getClientProperty("category");
-                    int categoryID = queries.getCategoryID(category);
-
-                    if (!basketItemsMap.containsKey(itemID)) {
-                        BasketItem newItem = new BasketItem(categoryID, itemID);
-                        System.out.println("Selected Item: " + itemName);
-                        basketItems.add(newItem);
-                        basketItemsMap.put(itemID, newItem);
-            
-                        card.setBackground(Color.YELLOW);
-                    }
-                    selectedItemCards.remove(card); // Deselect after adding
-                }
-            
-                // Print basket
-                System.out.println("\n--- Current Basket Contents ---");
-                for (int i = 0; i < basketItems.size(); i++) {
-                    System.out.println((i + 1) + ". " + basketItems.get(i));
-                }
-                System.out.println("-----------------------------\n");
-            }
-        });
-
-        continueButton.addActionListener(e -> {
-            if (basketItems.isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "You must add at least one item to the basket before continuing.",
-                    "No Items in Basket",
-                    JOptionPane.WARNING_MESSAGE
-                );
-            } else {
-                updateBasketDisplayPanel();
-                cardLayout.next(GUIBorrowItemPanel.this);
-            }
-        });
-        
-        // Ensure all buttons are added properly to the button panel
-        buttonPanel.add(backButton);
-        buttonPanel.add(addToBasketButton);
-        buttonPanel.add(continueButton);
-        
-        return buttonPanel;
-    }
-    
-    private void refreshEquipmentItemBackground(String itemName) {
-        // Get the grid panel from the equipment panel
-        if (equipmentPanel == null) return;
-        JPanel gridPanel = (JPanel) equipmentPanel.getClientProperty("gridPanel");
-        if (gridPanel == null) return;
-        
-        // Loop through all components in the grid panel
-        for (Component component : gridPanel.getComponents()) {
-            if (component instanceof JPanel) {
-                JPanel itemCard = (JPanel) component;
-                String cardItemName = (String) itemCard.getClientProperty("itemName");
-                
-                // If this is the card for the removed item, reset its background
-                if (itemName.equals(cardItemName)) {
-                    itemCard.setBackground(Color.WHITE);
-                    break; // Found the item, no need to continue searching
-                }
-            }
-        }
-        
-        // Ensure the UI is updated
-        gridPanel.revalidate();
-        gridPanel.repaint();
-    }
-
     public void resetPanel() {
+        resetAllEquipmentItemBackgrounds();
         selectedCategoryButton = null;
         selectedItemCards.clear();
         basketItems.clear();
@@ -1243,8 +1322,37 @@ public class GUIBorrowItemPanel extends JPanel{
         this.repaint();
         cardLayout.show(this, "Panel 1");
     }
-    
 
+    private void resetAllEquipmentItemBackgrounds() {
+        System.out.println("RESET ALL EQUIPMENT ITEMS BACKGROUND");
+
+        if (categoryGridPanels == null || categoryGridPanels.isEmpty()) {
+            System.out.println("Category grid panels map is empty.");
+            return;
+        }
+
+        for (Map.Entry<Integer, JPanel> entry : categoryGridPanels.entrySet()) {
+            int categoryId = entry.getKey();
+            JPanel gridPanel = entry.getValue();
+
+            if (gridPanel == null) {
+                System.out.println("Grid panel for category " + categoryId + " is null.");
+                continue;
+            }
+
+            for (Component component : gridPanel.getComponents()) {
+                if (component instanceof JPanel itemCard) {
+                    itemCard.setBackground(Color.WHITE);
+                    itemCard.revalidate();
+                    itemCard.repaint();
+                }
+            }
+
+            gridPanel.revalidate();
+            gridPanel.repaint();
+        }
+    }
+    
     //helper method for formsAddBorrowerBtn and resetPanel;
     private void addBorrowerPanel() {
         JPanel newBorrowerPanel = createBorrowerInfoPanel(
@@ -1284,6 +1392,14 @@ public class GUIBorrowItemPanel extends JPanel{
 
     public void setSelectedCategoryButton(JButton selectedCategoryButton) {
         this.selectedCategoryButton = selectedCategoryButton;
+    }
+
+    public int getCurrentCategoryID() {
+        return currentCategoryID;
+    }
+
+    public void setCurrentCategoryID(int currentCategoryID) {
+        this.currentCategoryID = currentCategoryID;
     }
 
 }

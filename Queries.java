@@ -1,8 +1,3 @@
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Insets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,40 +5,25 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.JButton;
+import java.util.List;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 
 public class Queries {
     static final String DB_URL = "jdbc:mysql://caboose.proxy.rlwy.net:51384/genlab_db";
-    private String user = "root";
-    private String pass = "weoZeizOaesHkpjieIetoaQTyKfFwjKm";
-    //String user;
-    //String pass;
+    //private String user = "root";
+    //private String pass = "weoZeizOaesHkpjieIetoaQTyKfFwjKm";
+    private String user;
+    private String pass;
+    private Boolean connected;
     private Connection conn;
     private Statement stmt;
     private PreparedStatement ptmt;
-    private boolean bypassDB = false;
     private int currentCategoryID = -1;
     
-    public Queries(){
-        try {
-            conn = DriverManager.getConnection(DB_URL, user, pass);
-        } catch (SQLException ex) {
-        }
-    }
+    public Queries(){}
 
     public void setUser(String user){
         this.user = user;
@@ -52,61 +32,26 @@ public class Queries {
     public void setPass(String pass){
         this.pass = pass;
     }
-    public Connection getConn(){
-        return conn;
-    }
 
-    public Statement getStmt(){
-        return stmt;
-    }   
-
-    public PreparedStatement getPtmt(){
-        return ptmt;
-    }
-
-    public void login(JTextField username, JPasswordField password, JPanel loginPanel, JFrame mainFrame, JPanel mainPanel, JLabel statusLabel){
-        statusLabel.setText("Logging in...");
-        statusLabel.setForeground(Color.BLACK);
-
-        //setUser(username.getText());
-        //setPass(new String(password.getPassword()));
-
-        if (bypassDB) {
-            // Skip DB connection and go straight to mainPanel
-            JOptionPane.showMessageDialog(mainFrame, "Login bypassed for testing.", "Bypass Mode", JOptionPane.INFORMATION_MESSAGE);
-            statusLabel.setText("Login Success (bypassed)");
-            statusLabel.setForeground(Color.GREEN);
-            mainFrame.remove(loginPanel);
-            mainFrame.add(mainPanel);
-            mainFrame.revalidate();
-            mainFrame.repaint();
-            return;
-        }
-        
+    public Boolean login(String username, String password, JFrame mainFrame){
+        setUser(username);
+        setPass(password);
         try{
             conn = DriverManager.getConnection(DB_URL, user, pass);
             stmt = conn.createStatement();
-            
-            statusLabel.setText("Login Success");
-            statusLabel.setForeground(Color.GREEN);
-            JOptionPane.showMessageDialog(mainFrame, new JLabel("Login successful!", SwingConstants.CENTER), "Success", JOptionPane.PLAIN_MESSAGE );
-            username.setText("");
-            password.setText("");
-            mainFrame.remove(loginPanel);
-            mainFrame.add(mainPanel);
-            mainFrame.revalidate();
-            mainFrame.repaint();
+            connected = true;
         }catch(SQLException e){
+            connected = false;
             JOptionPane.showMessageDialog(mainFrame, 
                 "Login failed: " + e.getMessage(), 
                 "Error", 
                 JOptionPane.ERROR_MESSAGE);
-                statusLabel.setText("Login Denied.\n Please Try Again.");
-                statusLabel.setForeground(Color.RED);
         }
+        return connected;
     }
 
-    public void borrowItems(Scanner scn){
+    //This only prints out the items to the terminal (removed from Graphical User Interface Class)
+    public void borrowItems(){
         String query = "SELECT * FROM item WHERE status = 'Available' ORDER BY category_id, item_name";
         try{
             ptmt = conn.prepareStatement(query);
@@ -117,7 +62,6 @@ public class Queries {
         }catch(SQLException e){
             System.err.println("SQL Error: " + e.getMessage());
         }
-        //selectItems(scn);   
     }
 
     public void showBorrowerList(){
@@ -141,93 +85,27 @@ public class Queries {
         return currentCategoryID;
     }
 
-    public void showCategoryList(Branding branding, JPanel categoryPanel, GUIBorrowItemPanel borrowItemPanel) {
-        // Get the initially selected button but don't modify this variable later
-        final JButton initialSelectedButton = borrowItemPanel.getSelectedCategoryButton();
-        
+    public List<String[]> getAllCategories() {
+        List<String[]> categories = new ArrayList<>();
         try {
-            // Query to get all categories from the database
             String query = "SELECT category_id, category_name FROM category ORDER BY category_name";
             PreparedStatement pstmt = conn.prepareStatement(query);
             ResultSet rs = pstmt.executeQuery();
-            
-            // Map to store category ID to index mapping for later use
-            Map<Integer, Integer> categoryIdToIndex = new HashMap<>();
-            int index = 0;
-            
+
             while (rs.next()) {
-                int categoryId = rs.getInt("category_id");
+                String categoryId = String.valueOf(rs.getInt("category_id"));
                 String categoryName = rs.getString("category_name");
-                
-                // Store category ID to index mapping
-                categoryIdToIndex.put(categoryId, index);
-                index++;
-                
-                // Create button for each category
-                JButton categoryButton = new JButton(categoryName);
-                categoryButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-                categoryButton.setPreferredSize(new Dimension(200, 40));
-                categoryButton.setMaximumSize(new Dimension(200, 40));
-                categoryButton.setMinimumSize(new Dimension(200, 40));
-                categoryButton.setBackground(branding.lightergray);
-                categoryButton.setForeground(branding.maroon);
-                categoryButton.setFont(new Font("Arial", Font.PLAIN, 14));
-                categoryButton.setFocusPainted(false);
-                categoryButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-                categoryButton.setMargin(new Insets(0, 0, 0, 0));
-                
-                // Store the category ID in the button's client properties
-                categoryButton.putClientProperty("categoryId", categoryId);
-        
-                // Hover and selection effect
-                categoryButton.addMouseListener(new java.awt.event.MouseAdapter() {
-                    @Override
-                    public void mouseEntered(java.awt.event.MouseEvent evt) {
-                        categoryButton.setBackground(branding.lightgray);
-                    }
-        
-                    @Override
-                    public void mouseExited(java.awt.event.MouseEvent evt) {
-                        // Use the borrowItemPanel's method to check if this is the selected button
-                        if (borrowItemPanel.getSelectedCategoryButton() != categoryButton) {
-                            categoryButton.setBackground(branding.lightergray);
-                        }
-                    }
-                });
-                
-                // Action listener to update equipment panel when a category is selected
-                categoryButton.addActionListener(e -> {
-                    // Get the currently selected button from borrowItemPanel
-                    JButton currentSelectedButton = borrowItemPanel.getSelectedCategoryButton();
-                    if (currentSelectedButton != null) {
-                        currentSelectedButton.setBackground(branding.lightergray);
-                    }
-                    
-                    // Update the selected button
-                    categoryButton.setBackground(branding.gray);
-                    
-                    // Update the selected button in the borrowItemPanel
-                    borrowItemPanel.setSelectedCategoryButton(categoryButton);
-                    
-                    // Get the category ID from the button
-                    int selectedCategoryId = (int) categoryButton.getClientProperty("categoryId");
-                    setCurrentCategoryID(selectedCategoryId);
-                    // Update equipment display with items from the selected category
-                    borrowItemPanel.updateEquipmentPanel(selectedCategoryId);
-                });
-        
-                categoryPanel.add(categoryButton);
-                categoryPanel.add(Box.createVerticalStrut(10)); // Small space between buttons
+                categories.add(new String[]{categoryId, categoryName});
             }
-            
+
             rs.close();
             pstmt.close();
-            
         } catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Error loading categories: " + e.getMessage(),
                     "Database Error", JOptionPane.ERROR_MESSAGE);
         }
+        return categories;
     }
 
     public String getCategoryName(int categoryID) {
@@ -407,15 +285,15 @@ public class Queries {
         try { 
             PreparedStatement ptmt = conn.prepareStatement(query);
             ptmt.setString(1, courseID);
-            System.out.println("Course ID: " + courseID);
+            //System.out.println("Course ID: " + courseID);
             ptmt.setInt(2, getSectionID(sectionName));
-            System.out.println("Section ID: " + getSectionID(sectionName));
+            //System.out.println("Section ID: " + getSectionID(sectionName));
             ResultSet rs = ptmt.executeQuery();
-            System.out.println("Query executed successfully.");
+            //System.out.println("Query executed successfully.");
             int index = 0;
             while (rs.next()) {
                 instructorOption[index++] = rs.getString("first_name") + " " + rs.getString("surname");
-                System.out.println("Instructor: " + rs.getString("first_name") + " " + rs.getString("surname"));
+                //System.out.println("Instructor: " + rs.getString("first_name") + " " + rs.getString("surname"));
             }
             
             rs.close();
@@ -438,7 +316,7 @@ public class Queries {
             int index = 0;
             while (rs.next()) {
                 sectionOption[index++] = rs.getString("section_name");
-                System.out.println("Section: " + rs.getString("section_name"));
+                //System.out.println("Section: " + rs.getString("section_name"));
             }
             
             rs.close();
@@ -847,34 +725,74 @@ public class Queries {
         }
     }
     
-    public String[][] getBorrowList() {
+    public List<String[]> getBorrowList() {
         String query = "SELECT DISTINCT full_name, borrower_id, date_borrowed, expected_return_date, " +
                         "degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id) WHERE actual_return_date IS NULL ORDER BY date_borrowed DESC, expected_return_date DESC";
 
         // Updated Query as of May 7 2025: "SELECT DISTINCT full_name, borrower_id," + "degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id)"
-        String[][] data = null;
+        List<String[]> data = new ArrayList<>();
 
         try{
             ptmt = conn.prepareStatement(query);
             ResultSet rs = ptmt.executeQuery();
 
-            data = new String[getRows(query)][7];
-            int rowIndex = 0;
             while (rs.next()) {
-                data[rowIndex][0] = rs.getString("full_name");
-                data[rowIndex][1] = rs.getString("borrower_id");
-                data[rowIndex][2] = rs.getString("date_borrowed");
-                data[rowIndex][3] = rs.getString("expected_return_date");
-                data[rowIndex][4] = rs.getString("degree_prog");
-                data[rowIndex][5] = rs.getString("course_id");
-                data[rowIndex][6] = rs.getString("section_name");
-                rowIndex++;
+                String[] row = new String[7];
+                row[0] = rs.getString("full_name");
+                row[1] = rs.getString("borrower_id");
+                row[2] = rs.getString("date_borrowed");
+                row[3] = rs.getString("expected_return_date");
+                row[4] = rs.getString("degree_prog");
+                row[5] = rs.getString("course_id");
+                row[6] = rs.getString("section_name");
+                data.add(row);
             }
         }catch(SQLException e){
             System.err.println("SQL Error 2C: " + e.getMessage());
         }
 
         return data;
+    }
+
+
+    // used in controller to load all items borrowed by each user
+    public List<String[]> getAllItemsBorrowed() {
+        List<String[]> dataList = new ArrayList<>();
+        String query = "SELECT qty_borrowed, item_name, unit, item_id, borrow_id, borrower_id, date_borrowed, expected_return_date FROM borrow JOIN borrower USING(borrower_id) JOIN item USING(item_id) WHERE actual_return_date IS NULL ORDER BY date_borrowed DESC";
+
+        try {
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            ptmt = conn.prepareStatement(query);
+            ResultSet rs = ptmt.executeQuery();
+
+            while (rs.next()) {
+                String[] row = new String[]{
+                    rs.getString("qty_borrowed"),
+                    rs.getString("item_name"),
+                    rs.getString("unit"),
+                    rs.getString("item_id"),
+                    rs.getString("borrow_id"),
+                    rs.getString("borrower_id"),
+                    rs.getString("date_borrowed"),
+                    rs.getString("expected_return_date")
+                };
+                dataList.add(row);
+            }
+
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+        } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error: " + e1.getMessage());
+            }
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+
+        return dataList;
     }
 
     public String[][] getItemsBorrowed(String borrowerID, String dateBorrowed, String expectedReturnDate) {
@@ -1009,7 +927,7 @@ public class Queries {
         }
     }
 
-    public String[][] getTransactionHistory() {
+    public List<String[]> getTransactionHistory() {
         // Get borrow details
         String borrowQuery = "SELECT DISTINCT date_borrowed, full_name, borrower_id, expected_return_date FROM borrow JOIN borrower USING(borrower_id)";
         // Get return details
@@ -1018,28 +936,22 @@ public class Queries {
                         "JOIN borrower br ON b.borrower_id = br.borrower_id\r\n" + //
                         "JOIN item i ON b.item_id = i.item_id\r\n" + //
                         "ORDER BY r.return_date DESC";
-        String data[][] = null;
+        List<String[]> data = new ArrayList<>();
 
         try{
-            // Get borrow and query countquery count
-            int rows = getRows(borrowQuery) + getRows(returnQuery);
-            System.out.println(rows);
-
-            data = new String[rows][6];
-            int rowIndex = 0;
-
             conn.setAutoCommit(false);
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             PreparedStatement ptmt1 = conn.prepareStatement(returnQuery);
             ResultSet rsReturn = ptmt1.executeQuery();
             while(rsReturn.next()) {
-                data[rowIndex][0] = "Return";
-                data[rowIndex][1] = rsReturn.getString("return_date");
-                data[rowIndex][2] = rsReturn.getString("full_name");
-                data[rowIndex][3] = rsReturn.getString("item_name");
-                data[rowIndex][4] = rsReturn.getString("item_condition");
-                data[rowIndex][5] = rsReturn.getString("late_fee");
-                rowIndex++;
+                String[] row = new String[6];
+                row[0] = "Return";
+                row[1] = rsReturn.getString("return_date");
+                row[2] = rsReturn.getString("full_name");
+                row[3] = rsReturn.getString("item_name");
+                row[4] = rsReturn.getString("item_condition");
+                row[5] = rsReturn.getString("late_fee");
+                data.add(row);
             }
 
             conn.commit();
@@ -1050,21 +962,22 @@ public class Queries {
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             ptmt = conn.prepareStatement(borrowQuery);
             ResultSet rsBorrow = ptmt.executeQuery();
-            while(rsBorrow.next()) {
-                data[rowIndex][0] = "Borrow";
-                data[rowIndex][1] = rsBorrow.getString("date_borrowed");
-                data[rowIndex][2] = rsBorrow.getString("full_name");
-                data[rowIndex][3] = rsBorrow.getString("borrower_id");
-                data[rowIndex][4] = rsBorrow.getString("expected_return_date");
-                data[rowIndex][5] = null;
-                rowIndex++;
+            while (rsBorrow.next()) {
+                String[] row = new String[6];
+                row[0] = "Borrow";
+                row[1] = rsBorrow.getString("date_borrowed");
+                row[2] = rsBorrow.getString("full_name");
+                row[3] = rsBorrow.getString("borrower_id");
+                row[4] = rsBorrow.getString("expected_return_date");
+                row[5] = null;
+                data.add(row);
             }
 
             conn.commit();
             conn.setAutoCommit(true);
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
 
-            Arrays.sort(data, Comparator.comparing((String[] row) -> row[1]).reversed());
+            data.sort(Comparator.comparing((String[] row) -> row[1]).reversed());
         }catch(SQLException e){
             try {
                 conn.rollback();
@@ -1075,4 +988,5 @@ public class Queries {
         }
 
         return data;
-    }}
+    }
+}

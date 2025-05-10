@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -17,8 +18,10 @@ public class GUITransactionHistoryPanel extends JPanel{
     private Branding branding;
     private JPanel screen1, scrn1TransactionContentPanel;
     private JButton screen1BackButton;
+    private Controller ctrl;
 
-    public GUITransactionHistoryPanel(Branding branding, JButton tranBackBtn ){
+    public GUITransactionHistoryPanel(Controller ctrl, Branding branding, JButton tranBackBtn ){
+        this.ctrl = ctrl;
         this.branding = branding;
         this.screen1BackButton = tranBackBtn;
         this.setLayout(new GridBagLayout());
@@ -76,7 +79,7 @@ public class GUITransactionHistoryPanel extends JPanel{
         screen1.add(scrn1MenuPanel, screen1GBC);
     }
 
-    public void refreshEntries(String[][] entries) {
+    public void refreshEntries(List<String[]> entries) {
         scrn1TransactionContentPanel.removeAll();
 
         for (String[] tuple : entries){

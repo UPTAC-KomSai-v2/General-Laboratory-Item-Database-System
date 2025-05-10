@@ -28,15 +28,11 @@ public class GraphicalUserInterface implements ActionListener {
     private GUILoginPanel loginPanel;
     private GUIMainPanel mainPanel;
     private JFrame mainFrame;
-    private Queries queries;
+    private Controller ctrl;
     private Branding branding;
 
-    private GUIBorrowerListPanel borrowerListPanel;
-    private GUIUpdateInventoryPanel updateInventoryPanel;
-    private GUITransactionHistoryPanel transactionHistoryPanel;
-
     public GraphicalUserInterface() {
-        queries = new Queries();
+        ctrl = new Controller();
         branding = new Branding();
 
         intializeMainFrame();
@@ -117,17 +113,10 @@ public class GraphicalUserInterface implements ActionListener {
         );
 
         // Sub-panel views with back buttons
-        borrowerListPanel = new GUIBorrowerListPanel(branding, blstBackBtn);
-        updateInventoryPanel = new GUIUpdateInventoryPanel(branding, upinBackBtn);
-        transactionHistoryPanel = new GUITransactionHistoryPanel(branding, tranBackBtn);
-
-        ctntBorrowItemPanel = new GUIBorrowItemPanel(branding, bitmBackBtn);
-        ctntBorrowerListPanel = borrowerListPanel;
-        ctntUpdateInventoryPanel = updateInventoryPanel;
-        ctntTransactionHistoryPanel = transactionHistoryPanel;
-
-        // Set up Queries queries in GUI panels
-        updateInventoryPanel.setQueries(queries);
+        ctntBorrowItemPanel = new GUIBorrowItemPanel(ctrl, branding, bitmBackBtn);
+        ctntBorrowerListPanel = new GUIBorrowerListPanel(ctrl, branding, blstBackBtn);
+        ctntUpdateInventoryPanel = new GUIUpdateInventoryPanel(ctrl, branding, upinBackBtn);
+        ctntTransactionHistoryPanel = new GUITransactionHistoryPanel(ctrl, branding, tranBackBtn);
     }
 
     @Override
@@ -135,21 +124,20 @@ public class GraphicalUserInterface implements ActionListener {
         Object src = e.getSource();
 
         if (src == lgnLoginBtn) {
-            queries.login(loginPanel.lgnInputUsernameField, loginPanel.lgnInputPasswordField, loginPanel, mainFrame, mainPanel, loginPanel.lgnStatusLabel);
-            mainFrame.remove(loginPanel);
-            mainFrame.add(mainPanel);
-            mainFrame.revalidate();
-            mainFrame.repaint();
+            ctrl.controllerLogin(loginPanel, mainFrame, mainPanel, loginPanel.lgnStatusLabel);
+            ctrl.controllerGetAllDatabaseInformation();
+            System.out.println("Loading Panels");
+            ((GUIBorrowItemPanel) ctntBorrowItemPanel).LoadCategoryPanel(ctrl.getCategoryList());
         } else if (src == ctntBorrowItemBtn) {
             showPanel(ctntBorrowItemPanel);
-            queries.borrowItems(new java.util.Scanner(System.in));
+            ((GUIBorrowItemPanel) ctntBorrowItemPanel).refreshFormDropdowns();
         } else if (src == ctntBorrowerListBtn) {
-            borrowerListPanel.refreshEntries1(queries.getBorrowList(), queries);
+            ((GUIBorrowerListPanel) ctntBorrowerListPanel).refreshEntries1(ctrl.getBorrowerListEntries());
             showPanel(ctntBorrowerListPanel);
-        } else if (src == ctntUpdateInventoryBtn) {
+        } else if (src == ctntUpdateInventoryBtn) { 
             showPanel(ctntUpdateInventoryPanel);
         } else if (src == ctntTransactionHistoryBtn) {
-            transactionHistoryPanel.refreshEntries(queries.getTransactionHistory());
+            ((GUITransactionHistoryPanel) ctntTransactionHistoryPanel).refreshEntries(ctrl.getAllTransactionHistory());
             showPanel(ctntTransactionHistoryPanel);
         } else if (src == rbbnLogoutBtn) {
             int result = JOptionPane.showConfirmDialog(
