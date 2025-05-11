@@ -1,11 +1,10 @@
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.Font;
-
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -132,7 +131,4 @@ public class GUILoginPanel extends JPanel{
         // Add login container to login panel and show it in the main frame
         this.add(lgnContainer);
     }
-
-
-    
 }

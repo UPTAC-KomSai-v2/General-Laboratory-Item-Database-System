@@ -6,7 +6,7 @@ public class ImageStorage {
 
     private final Map<String, String> imagePaths;
     private final String basePath = "Assets/ItemImages/";
-    private final String extension = ".jpg";
+    private final String extension = ".png";
 
     public ImageStorage() {
         imagePaths = new HashMap<>();
@@ -29,6 +29,7 @@ public class ImageStorage {
             {"Cuvette", "Cuvette"},
             {"Desiccator", "Desiccator"},
             {"Electrophoresis Apparatus", "ElectrophoresisApparatus"},
+            {"Erlenmeyer Flask", "ErlenmeyerFlask"},
             {"Forcep", "Forcep"},
             {"Funnel", "Funnel"},
             {"Glass Rod", "GlassRod"},
@@ -40,8 +41,8 @@ public class ImageStorage {
             {"Multimeter", "Multimeter"},
             {"Petri Dish", "PetriDish"},
             {"pH Meter", "pHMeter"},
-            {"Pipettes", "Pipettes"},
-            {"Reagents Bottle", "ReagentsBottle"},
+            {"Pipettes", "Pipette"},
+            {"Reagents Bottle", "ReagentBottle"},
             {"Refractometer", "Refractometer"},
             {"Safety Goggles", "SafetyGoggles"},
             {"Scalpel", "Scalpel"},
@@ -51,11 +52,11 @@ public class ImageStorage {
             {"Test Tube Clamp", "TestTubeClamp"},
             {"Test Tube Rack", "TestTubeRack"},
             {"Thermometer", "Thermometer"},
-            {"Tong", "Tong"},
+            {"Tong", "Tongs"},
             {"Triple Beam Balance", "TripleBeamBalance"},
             {"Tweezers", "Tweezers"},
             {"Volumetric Flask", "VolumetricFlask"},
-            {"Wash Bottles", "WashBottles"},
+            {"Wash Bottles", "WashBottle"},
             {"Watch Glass", "WatchGlass"}
         };
 
@@ -69,7 +70,12 @@ public class ImageStorage {
     }
 
     public String getImagePath(String itemName) {
-        return imagePaths.get(itemName);
+        for (String key : imagePaths.keySet()) {
+            if (itemName.contains(key)) {
+                return imagePaths.get(key);
+            }
+        }
+        return null;
     }
 
     public Set<String> getAllItemNames() {

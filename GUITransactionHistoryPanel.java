@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -17,8 +18,10 @@ public class GUITransactionHistoryPanel extends JPanel{
     private Branding branding;
     private JPanel screen1, scrn1TransactionContentPanel;
     private JButton screen1BackButton;
+    private Controller ctrl;
 
-    public GUITransactionHistoryPanel(Branding branding, JButton tranBackBtn ){
+    public GUITransactionHistoryPanel(Controller ctrl, Branding branding, JButton tranBackBtn ){
+        this.ctrl = ctrl;
         this.branding = branding;
         this.screen1BackButton = tranBackBtn;
         this.setLayout(new GridBagLayout());
@@ -48,103 +51,6 @@ public class GUITransactionHistoryPanel extends JPanel{
         scrn1TransactionContentPanel.setLayout(new BoxLayout(scrn1TransactionContentPanel, BoxLayout.Y_AXIS));
         scrn1TransactionContentPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
 
-        // Temporary data only. To be replaced by the final sql to java implementation 
-        String[][] entries = {
-            {"Borrow", "Roberto, Jack Cole", "202300000", "2:43 PM", "1 03 Feb 2023"},
-            {"Return", "Roberto, Jack Cole", "202300000", "5:23 PM", "2 03 Feb 2023"},
-            {"Borrow", "Montes, Jhun Kenneth", "10030302", "11:22 AM", "3 05 Feb 2023"},
-            {"Return", "Montes, Jhun Kenneth", "10030302", "3:22 PM", "4 05 Feb 2023"},
-            {"Borrow", "Roberto, Jack Cole", "202300000", "2:43 PM", "5 03 Feb 2023"},
-            {"Return", "Roberto, Jack Cole", "202300000", "5:23 PM", "6 03 Feb 2023"},
-            {"Borrow", "Montes, Jhun Kenneth", "10030302", "11:22 AM", "7 05 Feb 2023"},
-            {"Return", "Montes, Jhun Kenneth", "10030302", "3:22 PM", "8 05 Feb 2023"},
-            {"Borrow", "Roberto, Jack Cole", "202300000", "2:43 PM", "9 03 Feb 2023"},
-            {"Return", "Roberto, Jack Cole", "202300000", "5:23 PM", "10 03 Feb 2023"},
-            {"Borrow", "Montes, Jhun Kenneth", "10030302", "11:22 AM", "11 05 Feb 2023"},
-            {"Return", "Montes, Jhun Kenneth", "10030302", "3:22 PM", "12 05 Feb 2023"},
-        };
-        
-        for (String[] tuple: entries){
-            int i = 0;
-            JLabel stateLabel = new JLabel();
-            switch (tuple[i++]) {
-                case "Borrow" -> stateLabel.setIcon(new ImageIcon(branding.borrowIcon));
-                case "Return" -> stateLabel.setIcon(new ImageIcon(branding.returnIcon));
-                default -> System.err.println("Transaction History Label Error");
-            }
-            JLabel nameLabel = new JLabel(tuple[i++]);
-            JLabel studentIdLabel = new JLabel(tuple[i++]);
-            JLabel timeLabel = new JLabel(tuple[i++]);
-            JLabel dateLabel = new JLabel(tuple[i++]);
-
-            nameLabel.setForeground(branding.white);
-            studentIdLabel.setForeground(branding.white);
-            timeLabel.setForeground(branding.white);
-            dateLabel.setForeground(branding.white);
-
-            JPanel statePanel = new JPanel();
-            JPanel namePanel = new JPanel();
-            JPanel studentIdPanel = new JPanel();
-            JPanel timePanel = new JPanel();
-            JPanel datePanel = new JPanel();
-
-            statePanel.setLayout(new BorderLayout());
-            namePanel.setLayout(new BorderLayout());
-            studentIdPanel.setLayout(new BorderLayout());
-            timePanel.setLayout(new BorderLayout());
-            datePanel.setLayout(new BorderLayout());
-
-            statePanel.setPreferredSize(new Dimension(30, 70));
-            namePanel.setPreferredSize(new Dimension(70, 70));
-            studentIdPanel.setPreferredSize(new Dimension(50, 70));
-            timePanel.setPreferredSize(new Dimension(50, 70));
-            datePanel.setPreferredSize(new Dimension(50, 70));
-
-            statePanel.setOpaque(false);
-            namePanel.setOpaque(false);
-            studentIdPanel.setOpaque(false);
-            timePanel.setOpaque(false);
-            datePanel.setOpaque(false);
-
-            statePanel.add(stateLabel, BorderLayout.WEST);
-            namePanel.add(nameLabel, BorderLayout.WEST);
-            studentIdPanel.add(studentIdLabel, BorderLayout.WEST);
-            timePanel.add(timeLabel, BorderLayout.WEST);
-            datePanel.add(dateLabel, BorderLayout.WEST);
-
-            JPanel tupleInfoPanel = new JPanel();
-            tupleInfoPanel.setMaximumSize(new Dimension(900, 70));
-            tupleInfoPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
-            tupleInfoPanel.setLayout(new GridBagLayout());
-            tupleInfoPanel.setBackground(branding.maroon);
-
-
-            GridBagConstraints tupleInfoPanelGBC = new GridBagConstraints();
-            tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
-            tupleInfoPanelGBC.gridx = 0;
-            tupleInfoPanelGBC.ipadx = 50;
-            tupleInfoPanelGBC.weightx = 0.1;
-            tupleInfoPanel.add(statePanel, tupleInfoPanelGBC);
-            tupleInfoPanelGBC.gridx++;
-            tupleInfoPanelGBC.ipadx = 150;
-            tupleInfoPanelGBC.weightx = 0.3;
-            tupleInfoPanel.add(namePanel, tupleInfoPanelGBC);
-            tupleInfoPanelGBC.gridx++;
-            tupleInfoPanelGBC.ipadx = 100;
-            tupleInfoPanelGBC.weightx = 0.2;
-            tupleInfoPanel.add(studentIdPanel, tupleInfoPanelGBC);
-            tupleInfoPanelGBC.gridx++;
-            tupleInfoPanelGBC.ipadx = 100;
-            tupleInfoPanelGBC.weightx = 0.2;
-            tupleInfoPanel.add(timePanel, tupleInfoPanelGBC);
-            tupleInfoPanelGBC.gridx++;
-            tupleInfoPanelGBC.ipadx = 100;
-            tupleInfoPanelGBC.weightx = 0.2;
-            tupleInfoPanel.add(datePanel, tupleInfoPanelGBC);
-            scrn1TransactionContentPanel.add(tupleInfoPanel);
-            scrn1TransactionContentPanel.add(Box.createVerticalStrut(10)); //add gaps between touples
-        }
-
         JScrollPane scrollContentPanel = new JScrollPane(scrn1TransactionContentPanel);
         scrollContentPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollContentPanel.getVerticalScrollBar().setUnitIncrement(16);
@@ -173,7 +79,7 @@ public class GUITransactionHistoryPanel extends JPanel{
         screen1.add(scrn1MenuPanel, screen1GBC);
     }
 
-    public void refreshEntries(String[][] entries) {
+    public void refreshEntries(List<String[]> entries) {
         scrn1TransactionContentPanel.removeAll();
 
         for (String[] tuple : entries){
@@ -184,10 +90,10 @@ public class GUITransactionHistoryPanel extends JPanel{
                 case "Return" -> stateLabel.setIcon(new ImageIcon(branding.returnIcon));
                 default -> System.err.println("Transaction History Label Error");
             }
-            JLabel label1 = new JLabel(tuple[i++]);
+            JLabel label1 = new JLabel(branding.reformatDateLabel(tuple[i++]));
             JLabel label2 = new JLabel(tuple[i++]);
             JLabel label3 = new JLabel(tuple[i++]);
-            JLabel label4 = new JLabel(tuple[i++]);
+            JLabel label4 = new JLabel("");i++;
             JLabel label5 = new JLabel();
             if(tuple[i] != null) label5.setText("Php " + tuple[i++]);
             else label5.setText("");
@@ -212,7 +118,7 @@ public class GUITransactionHistoryPanel extends JPanel{
             label4Panel.setLayout(new BorderLayout());
             label5Panel.setLayout(new BorderLayout());
 
-            statePanel.setPreferredSize(new Dimension(30, 70));
+            statePanel.setPreferredSize(new Dimension(10, 70));
             label1Panel.setPreferredSize(new Dimension(50, 70));
             label2Panel.setPreferredSize(new Dimension(70, 70));
             label3Panel.setPreferredSize(new Dimension(50, 70));
@@ -243,7 +149,7 @@ public class GUITransactionHistoryPanel extends JPanel{
             tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
             tupleInfoPanelGBC.gridx = 0;
             tupleInfoPanelGBC.ipadx = 50;
-            tupleInfoPanelGBC.weightx = 0.1;
+            tupleInfoPanelGBC.weightx = 0.01;
             tupleInfoPanel.add(statePanel, tupleInfoPanelGBC);
             tupleInfoPanelGBC.gridx++;
             tupleInfoPanelGBC.ipadx = 100;

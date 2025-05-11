@@ -12,7 +12,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -34,11 +33,12 @@ public class GUIUpdateInventoryPanel extends JPanel {
     private JTable inventoryTable;
     private DefaultTableModel tableModel;
     private JPanel inventoryPanel; // Panel to hold the inventory table
-
-    private Queries queries;
+    private Controller ctrl;
+    private Queries queries = new Queries();
     private int selectedCategoryIndexDatabase, selectedCategoryIndexArray;
 
-    public GUIUpdateInventoryPanel(Branding branding, JButton backButton) {
+    public GUIUpdateInventoryPanel(Controller ctrl, Branding branding, JButton backButton) {
+        this.ctrl = ctrl;
         this.branding = branding;
         this.setLayout(new BorderLayout());
         this.setBackground(Color.WHITE);
@@ -347,7 +347,7 @@ public class GUIUpdateInventoryPanel extends JPanel {
     }
     
     private JPanel createButtonPanel(JButton backButton) {
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
         buttonPanel.setBackground(branding.lightgray);
         
         // Use the provided back button
@@ -633,11 +633,10 @@ public class GUIUpdateInventoryPanel extends JPanel {
     // }
     
     private void styleActionButton(JButton button) {
-        button.setPreferredSize(new Dimension(170, 40));
+        button.setPreferredSize(new Dimension(150, 30));
         button.setBackground(branding.maroon);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
-        button.setFont(new Font("Arial", Font.BOLD, 15));
         button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
     }
     
@@ -649,9 +648,5 @@ public class GUIUpdateInventoryPanel extends JPanel {
             panel.setPreferredSize(new Dimension(0, height));
             return panel;
         }
-    }
-
-    public void setQueries(Queries queries) {
-        this.queries = queries;
     }
 }
