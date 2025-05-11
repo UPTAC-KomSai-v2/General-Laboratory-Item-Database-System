@@ -12,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -29,6 +31,7 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 
 public class GUIUpdateInventoryPanel extends JPanel {
     private Branding branding;
@@ -229,19 +232,47 @@ public class GUIUpdateInventoryPanel extends JPanel {
         tablePanel.setBorder(compoundBorder);
     
         String[][] data = ctrl.getItemsPerCategory(categoryId);
-        String[] columnNames = {"Item ID", "Item Name", "Unit", "Quantity"};
+        // Add checkbox column as the first column
+        String[] columnNames = {"Select", "Item ID", "Item Name", "Unit", "Quantity"};
     
-        tableModel = new DefaultTableModel(data, columnNames) {
+        // Create a table model that properly handles the checkbox column
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                return columnIndex == 0 ? Boolean.class : String.class;
+            }
+            
             @Override
             public boolean isCellEditable(int row, int column) {
-                return true;
+                return column == 0; // Only checkbox column is editable
             }
         };
+        
+        // Add data to the table model with checkboxes
+        if (data != null) {
+            for (String[] row : data) {
+                Object[] rowData = new Object[5];
+                rowData[0] = Boolean.FALSE; // Checkbox (unchecked by default)
+                rowData[1] = row[0]; // Item ID
+                rowData[2] = row[1]; // Item Name
+                rowData[3] = row[2]; // Unit
+                rowData[4] = row[3]; // Quantity
+                tableModel.addRow(rowData);
+            }
+        }
     
         inventoryTable = new JTable(tableModel);
         inventoryTable.setRowHeight(50);
         inventoryTable.setForeground(branding.maroon);
         inventoryTable.setBackground(branding.lightgray);
+        
+        // Set checkbox column width
+        inventoryTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+        inventoryTable.getColumnModel().getColumn(0).setMaxWidth(50);
+        
+        // Make sure table properly renders Boolean values as checkboxes
+        TableCellRenderer checkboxRenderer = inventoryTable.getDefaultRenderer(Boolean.class);
+        inventoryTable.getColumnModel().getColumn(0).setCellRenderer(checkboxRenderer);
     
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
@@ -296,14 +327,15 @@ public class GUIUpdateInventoryPanel extends JPanel {
         backButton.setText("Go Back");
         styleActionButton(backButton);
         
-        removeItemButton = new JButton("Remove Item");
+        // Update the remove item button text to reflect multiple selection capability
+        removeItemButton = new JButton("Remove Item(s)");
         addItemButton = new JButton("Add Item");
         
         styleActionButton(removeItemButton);
         styleActionButton(addItemButton);
         
         // Add action listener for Remove Item button
-        removeItemButton.addActionListener(e -> removeSelectedItem());
+        removeItemButton.addActionListener(e -> removeSelectedItems());
         
         buttonPanel.add(backButton);
         buttonPanel.add(removeItemButton);
@@ -414,9 +446,9 @@ public class GUIUpdateInventoryPanel extends JPanel {
     }
     
     /**
-     * Removes the selected item from the inventory table after confirming with the user
+     * Removes multiple selected items from the inventory table after confirming with the user
      */
-    private void removeSelectedItem() {
+    private void removeSelectedItems() {
         // Check if a category is selected
         if (selectedCategoryButton == null) {
             JOptionPane.showMessageDialog(
@@ -428,41 +460,66 @@ public class GUIUpdateInventoryPanel extends JPanel {
             return;
         }
         
-        // Check if an item is selected
-        int selectedRow = inventoryTable.getSelectedRow();
-        if (selectedRow != -1) {
-            String itemName = (String) tableModel.getValueAt(selectedRow, 1);
-            String itemId = (String) tableModel.getValueAt(selectedRow, 0);
-            
-            // Confirmation dialog
-            int choice = JOptionPane.showConfirmDialog(
-                this,
-                "Are you sure you want to remove '" + itemName + "' from the inventory database?",
-                "Confirm Removal",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-            );
-            
-            if (choice == JOptionPane.YES_OPTION) {
-                // Use controller to remove the item
-                ctrl.removeItemFromDatabase(Integer.parseInt(itemId));
-                
-                // Update the table model
-                tableModel.removeRow(selectedRow);
-                
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Item '" + itemName + "' (ID: " + itemId + ") has been removed from inventory.",
-                    "Item Removed",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
+        // Get all selected items
+        List<Integer> selectedRows = new ArrayList<>();
+        List<String> selectedItemNames = new ArrayList<>();
+        List<Integer> selectedItemIds = new ArrayList<>();
+        
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            Boolean isSelected = (Boolean) tableModel.getValueAt(i, 0);
+            if (isSelected != null && isSelected) {
+                selectedRows.add(i);
+                selectedItemNames.add((String) tableModel.getValueAt(i, 2));
+                selectedItemIds.add(Integer.parseInt((String) tableModel.getValueAt(i, 1)));
             }
-        } else {
+        }
+        
+        // Check if any items are selected
+        if (selectedRows.isEmpty()) {
             JOptionPane.showMessageDialog(
                 this,
-                "Please select an item to remove.",
-                "No Selection",
+                "Please select at least one item to remove.",
+                "No Items Selected",
                 JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+        
+        // Confirmation dialog
+        String message = selectedRows.size() == 1 
+            ? "Are you sure you want to remove '" + selectedItemNames.get(0) + "' from the inventory database?"
+            : "Are you sure you want to remove these " + selectedRows.size() + " items from the inventory database?";
+        
+        int choice = JOptionPane.showConfirmDialog(
+            this,
+            message,
+            "Confirm Removal",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+        
+        if (choice == JOptionPane.YES_OPTION) {
+            // Remove items in reverse order to avoid index shifting issues
+            for (int i = selectedRows.size() - 1; i >= 0; i--) {
+                int row = selectedRows.get(i);
+                int itemId = selectedItemIds.get(i);
+                
+                // Use controller to remove the item
+                ctrl.removeItemFromDatabase(itemId);
+                
+                // Update the table model
+                tableModel.removeRow(row);
+            }
+            
+            String successMessage = selectedRows.size() == 1 
+                ? "Item '" + selectedItemNames.get(0) + "' has been removed from inventory."
+                : selectedRows.size() + " items have been removed from inventory.";
+            
+            JOptionPane.showMessageDialog(
+                this,
+                successMessage,
+                "Items Removed",
+                JOptionPane.INFORMATION_MESSAGE
             );
         }
     }
@@ -483,7 +540,8 @@ public class GUIUpdateInventoryPanel extends JPanel {
         }
         
         // Add a new row with empty fields for the user to fill in
-        tableModel.addRow(new Object[]{"", "", "", "0"});
+        // First column is checkbox (false), then other columns
+        tableModel.addRow(new Object[]{Boolean.FALSE, "", "", "", "0"});
         
         // Select the newly added row
         int newRowIndex = tableModel.getRowCount() - 1;
@@ -492,16 +550,16 @@ public class GUIUpdateInventoryPanel extends JPanel {
         // Scroll to the new row
         inventoryTable.scrollRectToVisible(inventoryTable.getCellRect(newRowIndex, 0, true));
         
-        // Request user input for columns 1–3 (index 0–2)
+        // Request user input for columns 2–4 (index 1–3)
         String input[] = new String[3];
-        for (int col = 1; col <= 3; col++) {
+        for (int col = 2; col <= 4; col++) {
             boolean validInput = false;
             while (!validInput) {
-                input[col-1] = JOptionPane.showInputDialog(
+                input[col-2] = JOptionPane.showInputDialog(
                     this,
                     "Enter value for " + inventoryTable.getColumnName(col) + ":"
                 );
-                if (input[col-1] == null || input[col-1].trim().isEmpty()) {
+                if (input[col-2] == null || input[col-2].trim().isEmpty()) {
                     JOptionPane.showMessageDialog(
                         this,
                         "You must enter a value for " + inventoryTable.getColumnName(col) + ".",
@@ -509,7 +567,7 @@ public class GUIUpdateInventoryPanel extends JPanel {
                         JOptionPane.WARNING_MESSAGE
                     );
                 } else {
-                    tableModel.setValueAt(input[col-1].trim(), newRowIndex, col);
+                    tableModel.setValueAt(input[col-2].trim(), newRowIndex, col);
                     validInput = true;
                 }
             }
@@ -524,6 +582,7 @@ public class GUIUpdateInventoryPanel extends JPanel {
                 ctrl.addItemToDatabase(input[0], input[1], qty, categoryId);
                 
                 // Update the panel
+                ctrl.refreshCachedData(); // Ensure latest DB state is reflected
                 updateInventoryPanel(categoryId, getCategoryNameById(categoryId));
                 
                 JOptionPane.showMessageDialog(
