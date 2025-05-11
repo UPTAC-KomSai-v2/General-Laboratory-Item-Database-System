@@ -12,6 +12,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -28,15 +32,15 @@ import javax.swing.table.DefaultTableModel;
 
 public class GUIUpdateInventoryPanel extends JPanel {
     private Branding branding;
-    private JPanel mainContentPanel, categoryPanel;
+    private JPanel mainContentPanel, categoryPanelContents;
     private JButton selectedCategoryButton = null, removeItemButton, addItemButton;
     private JTable inventoryTable;
     private DefaultTableModel tableModel;
     private JPanel inventoryPanel; // Panel to hold the inventory table
     private Controller ctrl;
-    private Queries queries = new Queries();
-    private int selectedCategoryIndexDatabase, selectedCategoryIndexArray;
-
+    private int currentCategoryID = -1;
+    private Map<Integer, JPanel> categoryGridPanels = new HashMap<>();
+    
     public GUIUpdateInventoryPanel(Controller ctrl, Branding branding, JButton backButton) {
         this.ctrl = ctrl;
         this.branding = branding;
@@ -49,85 +53,6 @@ public class GUIUpdateInventoryPanel extends JPanel {
         initializeMainContentPanel(backButton);
         add(mainContentPanel, BorderLayout.CENTER);
     }
-
-    // Categories of laboratory equipment
-    private String[] categories = {
-        "Biological Materials",
-        "Consumables and Miscellaneous",
-        "Electrical Equipment",
-        "Glassware/Plasticware",
-        "Lab Tools and Accessories",
-        "Measuring and Analytical Instruments",
-        "Safety Equipment",
-        "Storage Containers"
-    };
-    
-    // // Sample inventory data for each category
-    // private String[][][] categoryInventoryData = {
-    //     // Glassware and Plasticware
-    //     {
-    //         {"LAB001", "Beaker (100ml)", "Unit", "35"},
-    //         {"LAB002", "Erlenmeyer Flask", "Unit", "18"},
-    //         {"LAB009", "Graduated Cylinder", "Unit", "22"},
-    //         {"LAB013", "Test Tube", "Pack", "45"},
-    //         {"LAB017", "Pipette", "Unit", "12"},
-    //         {"LAB024", "Glass Funnel", "Unit", "10"}
-    //     },
-    //     // Measuring and Analytical Instruments
-    //     {
-    //         {"LAB003", "Digital Scale", "Unit", "7"},
-    //         {"LAB014", "Microscope", "Unit", "5"},
-    //         {"LAB021", "Thermometers", "Unit", "18"},
-    //         {"LAB028", "pH Meter", "Unit", "4"},
-    //         {"LAB033", "Lab Timer", "Unit", "14"}
-    //     },
-    //     // Lab Tools and Accessories
-    //     {
-    //         {"LAB005", "Bunsen Burner", "Unit", "8"},
-    //         {"LAB018", "Forceps", "Unit", "20"},
-    //         {"LAB019", "Scalpel Blades", "Box", "10"},
-    //         {"LAB028", "Stirring Rods", "Pack", "15"},
-    //         {"LAB035", "Burette Stand", "Unit", "6"}
-    //     },
-    //     // Consumables and Miscellaneous
-    //     {
-    //         {"LAB006", "Laboratory Gloves", "Box", "45"},
-    //         {"LAB011", "pH Test Strips", "Box", "40"},
-    //         {"LAB012", "Distilled Water", "Liter", "50"},
-    //         {"LAB022", "Alcohol Swabs", "Box", "35"},
-    //         {"LAB026", "Filter Paper", "Pack", "25"},
-    //         {"LAB031", "Ethanol Solution", "Liter", "12"},
-    //         {"LAB036", "Rubber Stoppers", "Pack", "20"}
-    //     },
-    //     // Storage Containers
-    //     {
-    //         {"LAB004", "Specimen Containers", "Pack", "30"},
-    //         {"LAB017", "Centrifuge Tubes", "Pack", "25"},
-    //         {"LAB027", "Reagent Bottles", "Unit", "20"},
-    //         {"LAB032", "Autoclave Bags", "Pack", "18"}
-    //     },
-    //     // Biological Materials
-    //     {
-    //         {"LAB001", "Microscope Slides", "Box", "15"},
-    //         {"LAB003", "Petri Dishes", "Pack", "30"},
-    //         {"LAB023", "Glass Slides", "Box", "22"},
-    //         {"LAB024", "Cover Slips", "Box", "22"}
-    //     },
-    //     // Electrical Equipment
-    //     {
-    //         {"LAB014", "Digital Scale", "Unit", "7"},
-    //         {"LAB020", "Multimeter", "Unit", "5"},
-    //         {"LAB029", "Power Supply", "Unit", "3"},
-    //         {"LAB034", "Hot Plate", "Unit", "8"}
-    //     },
-    //     // Safety Equipment
-    //     {
-    //         {"LAB007", "Safety Goggles", "Unit", "20"},
-    //         {"LAB013", "Lab Coats", "Unit", "15"},
-    //         {"LAB025", "Lab Notebook", "Unit", "30"},
-    //         {"LAB030", "Safety Face Shield", "Unit", "8"}
-    //     }
-    // };
     
     private void initializeMainContentPanel(JButton backButton) {
         // Main panel with border layout
@@ -154,15 +79,32 @@ public class GUIUpdateInventoryPanel extends JPanel {
     
     private JPanel createCategoryPanel() {
         // The panel that contains the category buttons (BoxLayout for vertical stack)
-        categoryPanel = new JPanel();
-        categoryPanel.setLayout(new BoxLayout(categoryPanel, BoxLayout.Y_AXIS));
+        categoryPanelContents = new JPanel();
+        categoryPanelContents.setLayout(new BoxLayout(categoryPanelContents, BoxLayout.Y_AXIS));
+        categoryPanelContents.setBackground(branding.maroon);
+        categoryPanelContents.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        categoryPanelContents.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel categoryPanel = new JPanel(new GridBagLayout());
         categoryPanel.setBackground(branding.maroon);
-        categoryPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        categoryPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    
-        for (int i = 0; i < categories.length; i++) {
-            final int categoryIndex = i;
-            JButton categoryButton = new JButton(categories[i]);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        categoryPanel.add(categoryPanelContents, gbc);
+        categoryPanel.setPreferredSize(new Dimension(220, 0)); // Force fixed width like before
+        return categoryPanel;
+    }
+
+    public void LoadCategoryPanel(List<String[]> categoryList) {
+        categoryPanelContents.removeAll();
+        int panelCount = 1;
+        for (String[] category : categoryList) {
+            System.out.printf("Loading Panel (%d/%d)\n",  panelCount++, categoryList.size());
+            int categoryId = Integer.parseInt(category[0]);
+            String categoryName = category[1];
+
+            JButton categoryButton = new JButton(categoryName);
             categoryButton.setAlignmentX(Component.CENTER_ALIGNMENT);
             categoryButton.setPreferredSize(new Dimension(200, 40));
             categoryButton.setMaximumSize(new Dimension(200, 40));
@@ -173,53 +115,52 @@ public class GUIUpdateInventoryPanel extends JPanel {
             categoryButton.setFocusPainted(false);
             categoryButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
             categoryButton.setMargin(new Insets(0, 0, 0, 0));
-    
-            // Hover and selection effect
+
+            categoryButton.putClientProperty("categoryId", categoryId);
+            categoryButton.putClientProperty("categoryName", categoryName);
+            
+            // Hover effects
             categoryButton.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseEntered(java.awt.event.MouseEvent evt) {
                     categoryButton.setBackground(branding.lightgray);
                 }
-    
+
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent evt) {
-                    if (selectedCategoryButton != categoryButton) {
+                    if (getSelectedCategoryButton() != categoryButton) {
                         categoryButton.setBackground(branding.lightergray);
                     }
                 }
             });
-            
-            // Action listener to update inventory panel when a category is selected
+
+            // Action listener
             categoryButton.addActionListener(e -> {
-                if (selectedCategoryButton != null) {
-                    selectedCategoryButton.setBackground(branding.lightergray);
+                JButton currentSelectedButton = getSelectedCategoryButton();
+                if (currentSelectedButton != null) {
+                    currentSelectedButton.setBackground(branding.lightergray);
                 }
+
                 categoryButton.setBackground(branding.gray);
-                selectedCategoryButton = categoryButton;
-                
-                // Update inventory display with items from the selected category
-                selectedCategoryIndexDatabase = queries.getCategoryID(categories[categoryIndex]);
-                selectedCategoryIndexArray = categoryIndex;
-                System.out.println("Selected Category ID from Database: " + selectedCategoryIndexDatabase);
-                System.out.println("Selected Category ID from Array: " + selectedCategoryIndexArray);
-                updateInventoryPanel(queries.getCategoryID(categories[categoryIndex]), categoryIndex);
+                setSelectedCategoryButton(categoryButton);
+
+                int selectedCategoryId = (int) categoryButton.getClientProperty("categoryId");
+                String selectedCategoryName = (String) categoryButton.getClientProperty("categoryName");
+                setCurrentCategoryID(selectedCategoryId);
+
+                // Update the inventory panel with the selected category
+                updateInventoryPanel(selectedCategoryId, selectedCategoryName);
             });
-    
-            categoryPanel.add(categoryButton);
-            categoryPanel.add(Box.createVerticalStrut(10)); // Small space between buttons
+
+            JPanel tablePanel = createInventoryTablePanel(categoryId);
+            categoryGridPanels.put(categoryId, tablePanel);
+
+            categoryPanelContents.add(categoryButton);
+            categoryPanelContents.add(Box.createVerticalStrut(10));
         }
-    
-        // Wrapper panel to center the category panel vertically
-        JPanel centeredPanel = new JPanel(new GridBagLayout());
-        centeredPanel.setBackground(branding.maroon);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.CENTER;
-        centeredPanel.add(categoryPanel, gbc);
-    
-        centeredPanel.setPreferredSize(new Dimension(220, 0)); // Force fixed width like before
-        return centeredPanel;
+
+        categoryPanelContents.revalidate();
+        categoryPanelContents.repaint();
     }
     
     private JPanel createItemInventoryPanel(JButton backButton) {
@@ -248,7 +189,76 @@ public class GUIUpdateInventoryPanel extends JPanel {
     
         return mainPanel;
     }
+
+    // Method to update inventory panel based on selected category
+    private void updateInventoryPanel(int categoryId, String categoryName) {
+        if (inventoryPanel == null) return;
     
+        JPanel tableContainerPanel = (JPanel) inventoryPanel.getClientProperty("tableContainerPanel");
+        if (tableContainerPanel == null) return;
+    
+        tableContainerPanel.removeAll();
+    
+        // Get cached panel
+        JPanel cachedPanel = categoryGridPanels.get(categoryId);
+        if (cachedPanel != null) {
+            tableContainerPanel.add(cachedPanel, BorderLayout.CENTER);
+        }
+    
+        // Header
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        headerPanel.setBackground(branding.lightgray);
+        JLabel headerLabel = new JLabel(categoryName + " Inventory");
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        headerLabel.setForeground(branding.maroon);
+        headerPanel.add(headerLabel);
+        tableContainerPanel.add(headerPanel, BorderLayout.NORTH);
+    
+        tableContainerPanel.revalidate();
+        tableContainerPanel.repaint();
+    
+        refreshAddItemButton();
+    }
+    
+    private JPanel createInventoryTablePanel(int categoryId) {
+        JPanel tablePanel = new JPanel(new GridBagLayout());
+        tablePanel.setBackground(branding.lightgray);
+        Border lineBorder = BorderFactory.createLineBorder(branding.maroon, 5);
+        Border emptyBorder = BorderFactory.createEmptyBorder(20, 20, 20, 20);
+        CompoundBorder compoundBorder = new CompoundBorder(emptyBorder, lineBorder);
+        tablePanel.setBorder(compoundBorder);
+    
+        String[][] data = ctrl.getItemsPerCategory(categoryId);
+        String[] columnNames = {"Item ID", "Item Name", "Unit", "Quantity"};
+    
+        tableModel = new DefaultTableModel(data, columnNames) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return true;
+            }
+        };
+    
+        inventoryTable = new JTable(tableModel);
+        inventoryTable.setRowHeight(50);
+        inventoryTable.setForeground(branding.maroon);
+        inventoryTable.setBackground(branding.lightgray);
+    
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1;
+    
+        gbc.gridy = 0;
+        gbc.ipady = 20;
+        tablePanel.add(inventoryTable.getTableHeader(), gbc);
+    
+        gbc.gridy = 1;
+        gbc.ipady = 0;
+        gbc.weighty = 1;
+        tablePanel.add(inventoryTable, gbc);
+    
+        return tablePanel;
+    }
+
     // Method to show "No Category is Selected" message
     private void showNoCategorySelectedMessage() {
         if (inventoryPanel == null) return;
@@ -272,74 +282,6 @@ public class GUIUpdateInventoryPanel extends JPanel {
         
         // Add the message panel
         tableContainerPanel.add(messagePanel, BorderLayout.CENTER);
-        
-        // Refresh the panel
-        tableContainerPanel.revalidate();
-        tableContainerPanel.repaint();
-    }
-    
-    // Method to update inventory panel based on selected category
-    private void updateInventoryPanel(int categoryIndexDatabase, int categoryIndex) {
-        if (inventoryPanel == null) return;
-        
-        // Get the table container panel
-        JPanel tableContainerPanel = (JPanel) inventoryPanel.getClientProperty("tableContainerPanel");
-        if (tableContainerPanel == null) return;
-        
-        // Clear the panel
-        tableContainerPanel.removeAll();
-        
-        // Create table panel with a border
-        JPanel tablePanel = new JPanel(new GridBagLayout());
-        tablePanel.setBackground(branding.lightgray);
-        Border lineBorder = BorderFactory.createLineBorder(branding.maroon, 5);
-        Border emptyBorder = BorderFactory.createEmptyBorder(20, 20, 20, 20);
-        CompoundBorder compoundBorder = new CompoundBorder(emptyBorder, lineBorder);
-        tablePanel.setBorder(compoundBorder);
-
-        // Get data for selected category
-        String[][] data = queries.getItemsPerCategory(categoryIndexDatabase);
-
-        // Column names
-        String[] columnNames = {"Item ID", "Item Name", "Unit", "Quantity"};
-
-        // Create table model that allows cell editing
-        tableModel = new DefaultTableModel(data, columnNames) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                // Make cells editable
-                return true;
-            }
-        };
-
-        // Create JTable with the table model
-        inventoryTable = new JTable(tableModel);
-        inventoryTable.setRowHeight(50);
-        inventoryTable.setForeground(branding.maroon);
-        inventoryTable.setBackground(branding.lightgray);
-
-        GridBagConstraints tablePanelGBC = new GridBagConstraints();
-        tablePanelGBC.fill = GridBagConstraints.BOTH;
-        tablePanelGBC.weightx = 1;
-        tablePanelGBC.ipady = 20;
-        tablePanelGBC.gridy = 0;
-        tablePanel.add(inventoryTable.getTableHeader(), tablePanelGBC); 
-        tablePanelGBC.weighty = 1;
-        tablePanelGBC.ipady = 0;
-        tablePanelGBC.gridy = 1;
-        tablePanel.add(inventoryTable, tablePanelGBC);  
-        
-        // Add the table panel to the container
-        tableContainerPanel.add(tablePanel, BorderLayout.CENTER);
-        
-        // Add a header label showing which category is selected
-        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        headerPanel.setBackground(branding.lightgray);
-        JLabel headerLabel = new JLabel(categories[categoryIndex] + " Inventory");
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        headerLabel.setForeground(branding.maroon);
-        headerPanel.add(headerLabel);
-        tableContainerPanel.add(headerPanel, BorderLayout.NORTH);
         
         // Refresh the panel
         tableContainerPanel.revalidate();
@@ -371,7 +313,15 @@ public class GUIUpdateInventoryPanel extends JPanel {
     }
 
     public void refreshAddItemButton() {
-        if (queries.getNoOfItems() != 0) {
+        // Get the number of items from the controller
+        int itemCount = ctrl.getNoOfItems();
+        
+        // Remove existing action listeners
+        for (ActionListener listener : addItemButton.getActionListeners()) {
+            addItemButton.removeActionListener(listener);
+        }
+        
+        if (itemCount != 0) {
             addItemButton.setText("Add Item");
             addItemButton.addActionListener(e -> addNewItem());
             removeItemButton.setEnabled(true);
@@ -454,11 +404,13 @@ public class GUIUpdateInventoryPanel extends JPanel {
             br1.close();
             br2.close();
 
-            queries.importToItems(filepath, data);
+            // Use the controller to import items
+            ctrl.importItemsFromCSV(filepath, data);
             return true;
-        } catch (IOException e) {}
-
-        return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
     
     /**
@@ -492,14 +444,18 @@ public class GUIUpdateInventoryPanel extends JPanel {
             );
             
             if (choice == JOptionPane.YES_OPTION) {
+                // Use controller to remove the item
+                ctrl.removeItemFromDatabase(Integer.parseInt(itemId));
+                
+                // Update the table model
                 tableModel.removeRow(selectedRow);
+                
                 JOptionPane.showMessageDialog(
                     this,
                     "Item '" + itemName + "' (ID: " + itemId + ") has been removed from inventory.",
                     "Item Removed",
                     JOptionPane.INFORMATION_MESSAGE
                 );
-                queries.removeItemFromDatabase(Integer.parseInt(itemId));
             }
         } else {
             JOptionPane.showMessageDialog(
@@ -526,10 +482,7 @@ public class GUIUpdateInventoryPanel extends JPanel {
             return;
         }
         
-        // Generate a new item ID based on the highest existing ID
-        // String newId = generateNewItemId();
-        
-        // Add a new row with the generated ID and empty fields for the user to fill in
+        // Add a new row with empty fields for the user to fill in
         tableModel.addRow(new Object[]{"", "", "", "0"});
         
         // Select the newly added row
@@ -539,17 +492,6 @@ public class GUIUpdateInventoryPanel extends JPanel {
         // Scroll to the new row
         inventoryTable.scrollRectToVisible(inventoryTable.getCellRect(newRowIndex, 0, true));
         
-        // // Optional: Start editing the item name cell
-        // inventoryTable.editCellAt(newRowIndex, 1);
-        // inventoryTable.getEditorComponent().requestFocus();
-        
-        // JOptionPane.showMessageDialog(
-        //     this,
-        //     "New item added. Please fill in the details.",
-        //     "New Item",
-        //     JOptionPane.INFORMATION_MESSAGE
-        // );
-
         // Request user input for columns 1–3 (index 0–2)
         String input[] = new String[3];
         for (int col = 1; col <= 3; col++) {
@@ -575,62 +517,49 @@ public class GUIUpdateInventoryPanel extends JPanel {
 
         try {
             int qty = Integer.parseInt(input[2]);
+            int categoryId = getCurrentCategoryID();
 
             if(qty > 0) {
+                // Use controller to add the item
+                ctrl.addItemToDatabase(input[0], input[1], qty, categoryId);
+                
+                // Update the panel
+                updateInventoryPanel(categoryId, getCategoryNameById(categoryId));
+                
                 JOptionPane.showMessageDialog(
-                this,
-                "New item added. You may now edit other details if needed.",
-                "New Item",
-                JOptionPane.INFORMATION_MESSAGE
+                    this,
+                    "New item added. You may now edit other details if needed.",
+                    "New Item",
+                    JOptionPane.INFORMATION_MESSAGE
                 );
-
-                queries.addItemToDatabase(input[0], input[1], qty, selectedCategoryIndexDatabase);
-                updateInventoryPanel(selectedCategoryIndexDatabase, selectedCategoryIndexArray);
             } else {
                 JOptionPane.showMessageDialog(
-                this,
-                "Quantity input is invalid.",
-                "Invalid Input",
-                JOptionPane.WARNING_MESSAGE
+                    this,
+                    "Quantity input is invalid.",
+                    "Invalid Input",
+                    JOptionPane.WARNING_MESSAGE
                 );
             }
             
         } catch(NumberFormatException e) {
             JOptionPane.showMessageDialog(
-            this,
-            "Quantity input is invalid.",
-            "Invalid Input",
-            JOptionPane.WARNING_MESSAGE
+                this,
+                "Quantity input is invalid.",
+                "Invalid Input",
+                JOptionPane.WARNING_MESSAGE
             );
         }
     }
     
-    /**
-     * Generates a new item ID based on the highest existing ID
-     * @return A new item ID string
-     */
-    // private String generateNewItemId() {
-    //     int highestNum = 0;
-    //     String prefix = "LAB";
+    // Helper method to get the category name by ID
+    private String getCategoryNameById(int categoryId) {
+        if (selectedCategoryButton != null) {
+            return (String) selectedCategoryButton.getClientProperty("categoryName");
+        }
         
-    //     // Find the highest item ID number
-    //     for (int i = 0; i < tableModel.getRowCount(); i++) {
-    //         String id = (String) tableModel.getValueAt(i, 0);
-    //         if (id != null && id.startsWith(prefix)) {
-    //             try {
-    //                 int num = Integer.parseInt(id.substring(prefix.length()));
-    //                 if (num > highestNum) {
-    //                     highestNum = num;
-    //                 }
-    //             } catch (NumberFormatException e) {
-    //                 // Skip non-numeric IDs
-    //             }
-    //         }
-    //     }
-        
-    //     // Generate new ID with zero-padding to ensure consistent format
-    //     return String.format("%s%03d", prefix, highestNum + 1);
-    // }
+        // Fallback to getting it from the controller
+        return ctrl.getCategoryName(categoryId);
+    }
     
     private void styleActionButton(JButton button) {
         button.setPreferredSize(new Dimension(150, 30));
@@ -648,5 +577,21 @@ public class GUIUpdateInventoryPanel extends JPanel {
             panel.setPreferredSize(new Dimension(0, height));
             return panel;
         }
+    }
+    
+    public JButton getSelectedCategoryButton() {
+        return selectedCategoryButton;
+    }
+
+    public void setSelectedCategoryButton(JButton selectedCategoryButton) {
+        this.selectedCategoryButton = selectedCategoryButton;
+    }
+
+    public int getCurrentCategoryID() {
+        return currentCategoryID;
+    }
+
+    public void setCurrentCategoryID(int currentCategoryID) {
+        this.currentCategoryID = currentCategoryID;
     }
 }

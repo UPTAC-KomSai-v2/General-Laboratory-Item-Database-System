@@ -128,6 +128,7 @@ public class GraphicalUserInterface implements ActionListener {
             ctrl.controllerGetAllDatabaseInformation();
             System.out.println("Loading Panels");
             ((GUIBorrowItemPanel) ctntBorrowItemPanel).LoadCategoryPanel(ctrl.getCategoryList());
+            ((GUIUpdateInventoryPanel) ctntUpdateInventoryPanel).LoadCategoryPanel(ctrl.getCategoryList());
         } else if (src == ctntBorrowItemBtn) {
             showPanel(ctntBorrowItemPanel);
             ((GUIBorrowItemPanel) ctntBorrowItemPanel).refreshFormDropdowns();

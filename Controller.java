@@ -363,6 +363,50 @@ public class Controller {
     // ========== Update Inventory Panel Methods ==========
     // ====================================================
 
+    // Get items for a specific category
+    public String[][] getItemsPerCategory(int categoryId) {
+        return queries.getItemsPerCategory(categoryId);
+    }
+
+    // Get total number of items
+    public int getNoOfItems() {
+        return queries.getNoOfItems();
+    }
+
+    // Import items from CSV
+    public void importItemsFromCSV(String filepath, String[][] data) {
+        queries.importToItems(filepath, data);
+        // Refresh cached data after import
+        refreshCachedData();
+        // Update category-specific data structures
+        loadData();
+    }
+
+    // Remove item from database
+    public void removeItemFromDatabase(int itemId) {
+        queries.removeItemFromDatabase(itemId);
+        // Refresh cached data after removal
+        refreshCachedData();
+        // Update category-specific data structures
+        loadData();
+    }
+
+    // Add item to database
+    public void addItemToDatabase(String name, String unit, int quantity, int categoryId) {
+        queries.addItemToDatabase(name, unit, quantity, categoryId);
+        // Refresh cached data after adding
+        refreshCachedData();
+        // Update category-specific data structures
+        loadData();
+    }
+
+    // Method to update items when returning
+    public void updateActualReturnDate(int borrowId, String borrowerId) {
+        queries.updateActualReturnDate(borrowId, borrowerId);
+        // Refresh cached data after returning items
+        refreshCachedData();
+    }
+
     // =======================================================
     // ========== Transaction History Panel Methods ==========
     // =======================================================
