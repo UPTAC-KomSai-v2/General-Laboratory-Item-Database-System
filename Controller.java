@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -316,8 +317,8 @@ public class Controller {
 
     // Insert borrow record into the database
     public void borrowItem(int borrowID, int itemID, String borrowerID, 
-                        String courseID, int sectionID, int qtyBorrowed) {
-        queries.borrowItem(borrowID, itemID, borrowerID, courseID, sectionID, qtyBorrowed);
+                        String courseID, int sectionID, int qtyBorrowed, Timestamp ts) {
+        queries.borrowItem(borrowID, itemID, borrowerID, courseID, sectionID, qtyBorrowed, ts);
     }
 
     // Refresh cached data after transaction

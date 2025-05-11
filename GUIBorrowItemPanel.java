@@ -14,6 +14,7 @@ import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1104,8 +1105,10 @@ public class GUIBorrowItemPanel extends JPanel{
                         degreeProgramComboBoxes.get(i).getSelectedItem().toString()
                     );
                 }
-            
+         
                 // For each item, associate with all students
+                Timestamp ts = new Timestamp(System.currentTimeMillis());
+                ts.setNanos(0);
                 while (!basketItems.isEmpty()) {
                     int itemID = basketItems.get(0).getItemID();
                     System.out.println("Inserting borrow");
@@ -1123,7 +1126,8 @@ public class GUIBorrowItemPanel extends JPanel{
                             studentNumber,
                             course,
                             sectionID,
-                            basketItems.get(0).itemQuantity
+                            basketItems.get(0).itemQuantity,
+                            ts
                         );
                     }
             

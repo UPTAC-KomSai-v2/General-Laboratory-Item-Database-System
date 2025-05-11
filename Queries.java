@@ -461,8 +461,8 @@ public class Queries {
         return 0;
     }
 
-    public void borrowItem(int borrowID, int itemID, String borrowerID, String courseID, int sectionID, int qtyBorrowed) {
-        String query = "INSERT INTO borrow(borrow_id, item_id, borrower_id, course_id, section_id, qty_borrowed) VALUES(?, ?, ?, ?, ?, ?)";
+    public void borrowItem(int borrowID, int itemID, String borrowerID, String courseID, int sectionID, int qtyBorrowed, Timestamp ts) {
+        String query = "INSERT INTO borrow(borrow_id, item_id, borrower_id, course_id, section_id, qty_borrowed, date_borrowed) VALUES(?, ?, ?, ?, ?, ?, ?)";
         
         try{ 
             PreparedStatement ptmt = conn.prepareStatement(query);
@@ -473,6 +473,7 @@ public class Queries {
             ptmt.setString(4, courseID);
             ptmt.setInt(5, sectionID);
             ptmt.setInt(6, qtyBorrowed);
+            ptmt.setTimestamp(7, ts);
             ptmt.executeUpdate();
             conn.commit();
         } catch (SQLException e) {
@@ -743,8 +744,7 @@ public class Queries {
     public List<String[]> getBorrowList() {
         String query = "SELECT DISTINCT full_name, borrower_id, date_borrowed, expected_return_date, " +
                         "degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id) WHERE actual_return_date IS NULL ORDER BY date_borrowed DESC, expected_return_date DESC";
-        String query1 = "SELECT DISTINCT full_name, borrower_id, date_borrowed, expected_return_date, " +
-                        "degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id) WHERE actual_return_date IS NULL ORDER BY date_borrowed DESC, expected_return_date DESC";
+        String query1 = "SELECT DISTINCT full_name, borrower_id, degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id)";
         // Updated Query as of May 7 2025: "SELECT DISTINCT full_name, borrower_id," + "degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id)"
         List<String[]> data = new ArrayList<>();
 
@@ -753,14 +753,15 @@ public class Queries {
             ResultSet rs = ptmt.executeQuery();
 
             while (rs.next()) {
-                String[] row = new String[7];
-                row[0] = rs.getString("full_name");
-                row[1] = rs.getString("borrower_id");
-                row[2] = rs.getString("date_borrowed");
-                row[3] = rs.getString("expected_return_date");
-                row[4] = rs.getString("degree_prog");
-                row[5] = rs.getString("course_id");
-                row[6] = rs.getString("section_name");
+                String[] row = new String[] {
+                    rs.getString("full_name"),
+                    rs.getString("borrower_id"),
+                    rs.getString("date_borrowed"),
+                    rs.getString("expected_return_date"),
+                    rs.getString("degree_prog"),
+                    rs.getString("course_id"),
+                    rs.getString("section_name")
+                };
                 data.add(row);
             }
         }catch(SQLException e){
