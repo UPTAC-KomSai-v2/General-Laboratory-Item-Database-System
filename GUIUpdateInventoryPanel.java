@@ -390,6 +390,50 @@ public class GUIUpdateInventoryPanel extends JPanel {
         addItemButton.addActionListener(e -> addNewItem());
     }
 
+    public void resetPanel() {
+        // Visually reset the category button
+        if (selectedCategoryButton != null) {
+            selectedCategoryButton.setBackground(branding.lightergray);
+            selectedCategoryButton = null;
+        }
+
+        // Reset current category ID
+        currentCategoryID = -1;
+
+        // Force-clear table model and selection
+        if (inventoryTable != null && tableModel != null) {
+            inventoryTable.clearSelection(); // Remove highlight
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                tableModel.setValueAt(false, i, 0); // Uncheck
+            }
+        }
+
+        // Refresh or clear categoryGridPanels (optional cache reset)
+        for (Map.Entry<Integer, JPanel> entry : categoryGridPanels.entrySet()) {
+            int categoryId = entry.getKey();
+            JPanel newTablePanel = createInventoryTablePanel(categoryId); // recreate fresh version
+            categoryGridPanels.put(categoryId, newTablePanel);
+        }
+
+        // Clear visible inventory panel
+        if (inventoryPanel != null) {
+            JPanel tableContainerPanel = (JPanel) inventoryPanel.getClientProperty("tableContainerPanel");
+            if (tableContainerPanel != null) {
+                tableContainerPanel.removeAll();
+                tableContainerPanel.revalidate();
+                tableContainerPanel.repaint();
+            }
+        }
+
+        // Display fallback message
+        showNoCategorySelectedMessage();
+
+        this.revalidate();
+        this.repaint();
+    }
+
+
+
     private boolean importItemsFromCSV() {
         try {
             String filepath = null;

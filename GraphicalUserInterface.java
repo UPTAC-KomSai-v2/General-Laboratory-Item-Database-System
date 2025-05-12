@@ -169,7 +169,12 @@ public class GraphicalUserInterface implements ActionListener {
         } else if (src == bitmBackBtn) {
             ((GUIBorrowItemPanel) ctntBorrowItemPanel).resetPanel();
             showMainMenu();
-        } else if (src == blstBackBtn || src == upinBackBtn || src == tranBackBtn) {
+        } else if (src == blstBackBtn) {
+            showMainMenu();
+        } else if (src == upinBackBtn) {
+            ((GUIUpdateInventoryPanel) ctntUpdateInventoryPanel).resetPanel();
+            showMainMenu();
+        } else if (src == tranBackBtn) {
             showMainMenu();
         }
     }
