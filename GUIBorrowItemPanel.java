@@ -589,6 +589,17 @@ public class GUIBorrowItemPanel extends JPanel{
         
         // Add each item in the basket to the panel
         for (BasketItem item : basketItems) {
+
+            int maxQty = Integer.MAX_VALUE;
+            String[][] categoryItems = ctrl.getItemsPerCategory(item.category);
+            for (String[] row : categoryItems) {
+                int id = Integer.parseInt(row[0]); // item_id
+                if (id == item.itemID) {
+                    maxQty = Integer.parseInt(row[3]); // available quantity
+                    break;
+                }
+            }
+            final int finalMaxQty = maxQty; // workaround for lambda access
             JLabel itemLabel = new JLabel(ctrl.getItemNameWithUnit(item.itemID));
             System.out.println("Item Label: " + itemLabel.getText());
             JLabel quantityLabel = new JLabel(String.valueOf(item.itemQuantity));
@@ -608,6 +619,11 @@ public class GUIBorrowItemPanel extends JPanel{
             addBtn.setPreferredSize(new Dimension(50, 35));
             addBtn.setBackground(branding.maroon);
             addBtn.setForeground(branding.white);
+
+            // Disable add button initially if already at or above max quantity
+            if (item.itemQuantity >= maxQty) {
+                addBtn.setEnabled(false);
+            }
             
             JButton subtractBtn = new JButton("-");
             subtractBtn.setPreferredSize(new Dimension(50, 35));
@@ -650,9 +666,14 @@ public class GUIBorrowItemPanel extends JPanel{
             // Add button listener
             addBtn.addActionListener(e -> {
                 BasketItem basketItem = basketItemsMap.get(itemID);
-                if (basketItem != null) {
+                if (basketItem != null && basketItem.itemQuantity < finalMaxQty) {
                     basketItem.itemQuantity++;
                     quantityLabel.setText(String.valueOf(basketItem.itemQuantity));
+
+                    if (basketItem.itemQuantity >= finalMaxQty) {
+                        addBtn.setEnabled(false);
+                    }
+                    subtractBtn.setEnabled(true);
                 }
             });
             
@@ -663,12 +684,14 @@ public class GUIBorrowItemPanel extends JPanel{
                     if (basketItem.itemQuantity > 1) {
                         basketItem.itemQuantity--;
                         quantityLabel.setText(String.valueOf(basketItem.itemQuantity));
+
+                        if (basketItem.itemQuantity < finalMaxQty) {
+                            addBtn.setEnabled(true);
+                        }
                     } else {
-                        // Remove the item completely
                         basketItems.remove(basketItem);
                         basketItemsMap.remove(itemID);
                         updateBasketDisplayPanel();
-                        // Update the item's background color in the equipment panel
                         refreshEquipmentItemBackground(ctrl.getItemNameWithUnit(itemID));
                     }
                 }
