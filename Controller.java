@@ -1,6 +1,4 @@
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Frame;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,14 +11,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.SwingWorker;
 
 public class Controller {
     private Queries queries;
@@ -32,6 +27,7 @@ public class Controller {
     private List<String[]> allTransactionHistory;
     private List<String[]> categoryList;
     private Map<Integer, List<String>> itemsByCategory; 
+    private Map<Integer, Integer> itemQuantityMap;
     private Map<String, Integer> itemIDMap; // Maps item name with unit to item ID
     private Map<Integer, String[]> itemDetailsMap; // Maps itemID to [itemName, unit]
     private Map<String, String[]> courseSectionsMap; // Maps course ID to available sections
@@ -68,34 +64,53 @@ public class Controller {
     }
 
     // GETS ALL INFORMATION FROM THE DATABASE AFTER LOG-IN
-    public void controllerGetAllDatabaseInformationWithLoading(){
+    public void controllerGetAllDatabaseInformationWithLoading() {
         updateLoadingStatus("Fetching Data From Database");
-        int steps = 6; int currentStep = 1; int progress= 0;
-        System.out.println("GETTING DATABASE DATA (1/7)");
+        int steps = 7; int currentStep = 1; int progress = 0;
+        
+        System.out.println("GETTING DATABASE DATA (1/8)"); // Updated count
         this.borrowerListEntries = queries.getBorrowList();
-        progress = (currentStep * 33) / steps; currentStep++;
+        progress = (currentStep * 33) / steps; 
+        currentStep++;
         updateLoadingProgress(progress);
-        System.out.println("GETTING DATABASE DATA (2/7)");
+        
+        System.out.println("GETTING DATABASE DATA (2/8)");
         this.allBorrowRecords = queries.getAllItemsBorrowed();
-        progress = (currentStep * 33) / steps; currentStep++;
+        progress = (currentStep * 33) / steps; 
+        currentStep++;
         updateLoadingProgress(progress);
-        System.out.println("GETTING DATABASE DATA (3/7)");
+        
+        System.out.println("GETTING DATABASE DATA (3/8)");
         this.allTransactionHistory = queries.getTransactionHistory();
-        progress = (currentStep * 33) / steps; currentStep++;
+        progress = (currentStep * 33) / steps; 
+        currentStep++;
         updateLoadingProgress(progress);
-        System.out.println("GETTING DATABASE DATA (4/7)");
+        
+        System.out.println("GETTING DATABASE DATA (4/8)");
         this.categoryList = queries.getAllCategories();
-        progress = (currentStep * 33) / steps; currentStep++;
+        progress = (currentStep * 33) / steps; 
+        currentStep++;
         updateLoadingProgress(progress);
-        System.out.println("GETTING DATABASE DATA (5/7)");
+        
+        System.out.println("GETTING DATABASE DATA (5/8)");
         loadData();
-        progress = (currentStep * 33) / steps; currentStep++;
+        progress = (currentStep * 33) / steps; 
+        currentStep++;
         updateLoadingProgress(progress);
-        System.out.println("GETTING DATABASE DATA (6/7)");
+        
+        System.out.println("GETTING DATABASE DATA (6/8)");
+        loadItemQuantities(); // New step for loading quantities
+        progress = (currentStep * 33) / steps; 
+        currentStep++;
+        updateLoadingProgress(progress);
+        
+        System.out.println("GETTING DATABASE DATA (7/8)");
         loadCourseData();
-        progress = (currentStep * 33) / steps; currentStep++;
+        progress = (currentStep * 33) / steps; 
+        currentStep++;
         updateLoadingProgress(progress);
-        System.out.println("GETTING DATABASE DATA (7/7)");
+        
+        System.out.println("GETTING DATABASE DATA (8/8)");
         System.out.println("DATABASE DATA RETRIEVED SUCCESSFULLY");
     }
 
@@ -116,58 +131,6 @@ public class Controller {
             System.out.println("GETTING DATABASE DATA (7/7)");
             System.out.println("DATABASE DATA RETRIEVED SUCCESSFULLY");
     }
-
-    
-    public void controllerGetAllDatabaseInformationWithProgress() {
-        // Create progress dialog components
-        JDialog progressDialog = new JDialog((Frame) null, "Loading Database", true);
-        JProgressBar progressBar = new JProgressBar(0, 7);
-        progressBar.setStringPainted(true);
-        progressBar.setIndeterminate(false);
-        progressDialog.setLayout(new BorderLayout());
-        progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        progressDialog.add(new JLabel("Fetching data, please wait...", SwingConstants.CENTER), BorderLayout.NORTH);
-        progressDialog.add(progressBar, BorderLayout.CENTER);
-        progressDialog.setSize(300, 100);
-        progressDialog.setLocationRelativeTo(null);
-
-        // Create a worker thread to perform database loading
-        SwingWorker<Void, Integer> worker = new SwingWorker<Void, Integer>() {
-            @Override
-            protected Void doInBackground() throws Exception {
-                publish(1);
-                borrowerListEntries = queries.getBorrowList();
-                publish(2);
-                allBorrowRecords = queries.getAllItemsBorrowed();
-                publish(3);
-                allTransactionHistory = queries.getTransactionHistory();
-                publish(4);
-                categoryList = queries.getAllCategories();
-                publish(5);
-                loadData();
-                publish(6);
-                loadCourseData();
-                publish(7);
-                return null;
-            }
-
-            @Override
-            protected void process(java.util.List<Integer> chunks) {
-                int latestProgress = chunks.get(chunks.size() - 1);
-                progressBar.setValue(latestProgress);
-            }
-
-            @Override
-            protected void done() {
-                progressDialog.dispose();
-                JOptionPane.showMessageDialog(null, "Database data retrieved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            }
-        };
-
-        worker.execute();
-        progressDialog.setVisible(true);
-    }
-
 
     // Cache category data for quick access
      private void loadData() {
@@ -190,6 +153,28 @@ public class Controller {
                 String itemName = parts[0].trim();
                 String unit = (parts.length > 1) ? parts[1].trim() : null;
                 itemDetailsMap.put(itemID, new String[]{itemName, unit});
+            }
+        }
+    }
+
+    private void loadItemQuantities() {
+        // Initialize itemQuantityMap if not already initialized
+        if (this.itemQuantityMap == null) {
+            this.itemQuantityMap = new HashMap<>();
+        }
+        
+        // For each category, get items and their quantities
+        for (String[] category : categoryList) {
+            int categoryId = Integer.parseInt(category[0]);
+            String[][] categoryItems = queries.getItemsPerCategory(categoryId);
+            
+            // Store quantity for each item
+            for (String[] itemData : categoryItems) {
+                int itemId = Integer.parseInt(itemData[0]);
+                int quantity = Integer.parseInt(itemData[3]);
+                
+                // Store quantity in itemQuantityMap
+                itemQuantityMap.put(itemId, quantity);
             }
         }
     }
@@ -438,10 +423,9 @@ public class Controller {
         this.borrowerListEntries = queries.getBorrowList();
         this.allBorrowRecords = queries.getAllItemsBorrowed();
         this.allTransactionHistory = queries.getTransactionHistory();
-        // You might want to refresh other cached data as needed
+        loadItemQuantities();
         System.out.println("Cached data refreshed");
     }
-
     // =================================================
     // ========== Borrower List Panel Methods ==========
     // =================================================
@@ -477,12 +461,32 @@ public class Controller {
 
     // Get items for a specific category
     public String[][] getItemsPerCategory(int categoryId) {
-        return queries.getItemsPerCategory(categoryId);
+        List<String> itemsWithUnit = itemsByCategory.get(categoryId);
+        
+        if (itemsWithUnit == null || itemsWithUnit.isEmpty()) {
+            return new String[0][4]; // Return empty array if no items found
+        }
+        
+        String[][] result = new String[itemsWithUnit.size()][4];
+        
+        for (int i = 0; i < itemsWithUnit.size(); i++) {
+            String itemWithUnit = itemsWithUnit.get(i);
+            int itemId = itemIDMap.get(itemWithUnit);
+            String[] itemDetails = itemDetailsMap.get(itemId);
+            Integer quantity = itemQuantityMap.get(itemId);
+            
+            result[i][0] = String.valueOf(itemId);                // item_id
+            result[i][1] = itemDetails[0];                        // item_name
+            result[i][2] = itemDetails[1];                        // unit
+            result[i][3] = String.valueOf(quantity != null ? quantity : 0); // qty
+        }
+        
+        return result;
     }
 
     // Get total number of items
     public int getNoOfItems() {
-        return queries.getNoOfItems();
+        return itemIDMap.size();
     }
 
     // Import items from CSV
