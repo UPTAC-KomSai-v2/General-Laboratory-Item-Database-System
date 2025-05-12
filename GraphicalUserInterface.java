@@ -16,8 +16,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
-
+import javax.swing.SwingWorker;
 public class GraphicalUserInterface implements ActionListener {
 
     private JButton lgnLoginBtn;
@@ -30,10 +31,14 @@ public class GraphicalUserInterface implements ActionListener {
     private JFrame mainFrame;
     private Controller ctrl;
     private Branding branding;
+    private JDialog progressDialog;
+    private JProgressBar progressBar;
+    private LoadingScreen loadingScreen;
 
     public GraphicalUserInterface() {
         ctrl = new Controller();
         branding = new Branding();
+        loadingScreen = new LoadingScreen();
 
         intializeMainFrame();
         initializeLoginPanel();
@@ -125,10 +130,37 @@ public class GraphicalUserInterface implements ActionListener {
 
         if (src == lgnLoginBtn) {
             if(ctrl.controllerLogin(loginPanel, mainFrame, mainPanel, loginPanel.lgnStatusLabel)){
-                //ctrl.controllerGetAllDatabaseInformation();
-                System.out.println("Loading Panels");
-                ((GUIBorrowItemPanel) ctntBorrowItemPanel).LoadCategoryPanel(ctrl.getCategoryList());
-                ((GUIUpdateInventoryPanel) ctntUpdateInventoryPanel).LoadCategoryPanel(ctrl.getCategoryList());
+                ctrl.showLoadingScreen();
+                // progress = startPercent + (currentStep * rangePercent) / totalSteps; -> Formula for progress
+                SwingWorker<Void, Integer> worker = new SwingWorker<>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        publish(2);
+                        ctrl.controllerGetAllDatabaseInformationWithLoading();
+                        ((GUIBorrowItemPanel) ctntBorrowItemPanel).loadCategoryPanel(ctrl.getCategoryList());  // Class2 progress update
+                        ((GUIUpdateInventoryPanel) ctntUpdateInventoryPanel).loadCategoryPanel(ctrl.getCategoryList());
+                        return null;
+                    }
+
+                    @Override
+                    protected void process(java.util.List<Integer> chunks) {
+                        int latestProgress = chunks.get(chunks.size() - 1);
+                        loadingScreen.updateProgress(latestProgress);
+                    }
+
+                    @Override
+                    protected void done() {
+                        ctrl.hideLoadingScreen();
+                        System.out.println("Loading complete!");
+                        loginPanel.lgnInputUsernameField.setText("");
+                        loginPanel.lgnInputPasswordField.setText("");
+                        mainFrame.remove(loginPanel);
+                        mainFrame.add(mainPanel);
+                        mainFrame.revalidate();
+                        mainFrame.repaint();
+                    }
+                };
+                worker.execute();
             } 
         } else if (src == ctntBorrowItemBtn) {
             showPanel(ctntBorrowItemPanel);
@@ -227,7 +259,7 @@ public class GraphicalUserInterface implements ActionListener {
         // Add developers with their roles
         String[] developers = {
             "Sean Harvey Bantanos - Database Architect",
-            "MacDarren Louis Calimba - Frontend Developer",
+            "Mac Darren Louis Calimba - Frontend Developer",
             "Norman Enrico Eulin - Frontend Developer",
             "Rolf Genree Garces - Backend Developer",
             "Jhun Kenneth Iniego - Backend Developer",

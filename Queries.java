@@ -518,6 +518,42 @@ public class Queries {
     // ----------------------------------------------------------
     //                 JHUN KENNETH INIEGO QUERIES
     // ----------------------------------------------------------
+    public List<String> getBorrowedItemsInfo(int borrowId) {
+        String query = "SELECT qty_borrowed, item_name, unit FROM borrow JOIN item USING(item_id) WHERE borrow_id = ?";
+        List<String> itemInfo = new ArrayList<>();
+
+        try{
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            ptmt = conn.prepareStatement(query);
+            ptmt.setInt(1, borrowId);
+            ResultSet rs = ptmt.executeQuery();
+
+            while(rs.next()) {
+                String itemConcat;
+                if(rs.getString("unit") == null) {
+                    itemConcat = "[" + rs.getString("qty_borrowed") + "x] " + rs.getString("item_name");
+                } else {
+                    itemConcat = "[" + rs.getString("qty_borrowed") + "x] " + rs.getString("item_name") + " (" + rs.getString("unit") + ")";
+                }
+                itemInfo.add(itemConcat);
+            }
+
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+        }catch(SQLException e){
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error: " + e1.getMessage());
+            }
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+
+        return itemInfo;
+    }
+
     public int getNoOfItems() {
         int n = 0;
         String query = "SELECT COUNT(item_id) AS no_of_items FROM item";
@@ -682,10 +718,8 @@ public class Queries {
         }
     }
 
-    public void updateActualReturnDate(List<String> borrowID, List<Integer> borrowItemID) {
+    public void updateActualReturnDate(List<String> borrowID, List<Integer> borrowItemID, Timestamp ts) {
         // String updateQuery = "UPDATE borrow SET actual_return_date = ? WHERE borrow_id = ? AND item_id = ?";
-        Timestamp ts = new Timestamp(System.currentTimeMillis());
-        ts.setNanos(0);
         int borrow_id = Integer.parseInt(borrowID.get(0));
 
         System.out.println("Get borrowed ID's");
@@ -1009,4 +1043,48 @@ public class Queries {
 
         return data;
     }
+
+    public List<String> getReturnedItems(int borrowId, Timestamp ts) {
+        String query = "SELECT b.qty_borrowed, i.item_name, i.unit, rl.item_condition, rl.late_fee FROM return_log rl JOIN borrow b ON rl.borrow_id = b.borrow_id AND rl.borrower_id = b.borrower_id AND rl.item_id = b.item_id JOIN item i ON b.item_id = i.item_id WHERE rl.borrow_id = ? AND rl.return_date = ?";
+        List<String> itemInfo = new ArrayList<>();
+        double lateFee = 0.00;
+
+        try{
+            conn.setAutoCommit(false);
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            ptmt = conn.prepareStatement(query);
+            ptmt.setInt(1, borrowId);
+            ptmt.setTimestamp(2, ts);
+            ResultSet rs = ptmt.executeQuery();
+
+            while(rs.next()) {
+                String itemConcat;
+                if(rs.getString("unit") == null) {
+                    itemConcat = "[" + rs.getString("qty_borrowed") + "x] " + rs.getString("item_name")
+                                + "\n    --> Item Condition: " + rs.getString("item_condition")
+                                + "\n    --> Late Fee: " + rs.getString("late_fee");
+                } else {
+                    itemConcat = "[" + rs.getString("qty_borrowed") + "x] " + rs.getString("item_name") + " (" + rs.getString("unit") + ")"
+                                + "\n    --> Item Condition: " + rs.getString("item_condition")
+                                + "\n    --> Late Fee: " + rs.getString("late_fee");
+                }
+                itemInfo.add(itemConcat);
+                lateFee += rs.getDouble("late_fee");
+            }
+            itemInfo.add(String.format("%.2f", lateFee) + "");
+
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+        }catch(SQLException e){
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                System.err.println("SQL Error: " + e1.getMessage());
+            }
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+
+        return itemInfo;
+    } 
 }

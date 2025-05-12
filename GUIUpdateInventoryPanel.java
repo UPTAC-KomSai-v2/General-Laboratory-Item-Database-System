@@ -19,7 +19,6 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -98,8 +97,10 @@ public class GUIUpdateInventoryPanel extends JPanel {
         return categoryPanel;
     }
 
-    public void LoadCategoryPanel(List<String[]> categoryList) {
+    public void loadCategoryPanel(List<String[]> categoryList) {
+        ctrl.updateLoadingStatus("Loading Panels");
         categoryPanelContents.removeAll();
+        int steps = categoryList.size(); int currentStep = 1; int progress = 0;
         int panelCount = 1;
         for (String[] category : categoryList) {
             System.out.printf("Loading Panel (%d/%d)\n",  panelCount++, categoryList.size());
@@ -159,6 +160,8 @@ public class GUIUpdateInventoryPanel extends JPanel {
 
             categoryPanelContents.add(categoryButton);
             categoryPanelContents.add(Box.createVerticalStrut(10));
+            progress = 66 + (currentStep * 34) / steps; currentStep++; // from 66% - 100%
+            ctrl.updateLoadingProgress(progress);
         }
 
         categoryPanelContents.revalidate();

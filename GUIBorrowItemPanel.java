@@ -165,8 +165,10 @@ public class GUIBorrowItemPanel extends JPanel{
         return categoryPanel;
     }
 
-    public void LoadCategoryPanel(List<String[]> categoryList) {
+    public void loadCategoryPanel(List<String[]> categoryList) {
         categoryPanelContents.removeAll();
+        ctrl.updateLoadingStatus("Initializing User Interface");
+        int steps = categoryList.size(); int currentStep = 1; int progress = 0;
         int panelCount = 1;
         for (String[] category : categoryList) {
             System.out.printf("Loading Panel (%d/%d)\n",  panelCount++, categoryList.size());
@@ -223,6 +225,9 @@ public class GUIBorrowItemPanel extends JPanel{
 
             categoryPanelContents.add(categoryButton);
             categoryPanelContents.add(Box.createVerticalStrut(10));
+            
+            progress = 33 + (currentStep * 33) / steps; currentStep++; // from 33% - 63%
+            ctrl.updateLoadingProgress(progress);
         }
 
         categoryPanelContents.revalidate();
@@ -1137,6 +1142,7 @@ public class GUIBorrowItemPanel extends JPanel{
                 }
 
                 if (borrowSuccessful){
+                    ctrl.generateBorrowReceipt(borrowID, ts, studentNumberFields, fullNameFields, ctrl.getQueries().getBorrowedItemsInfo(borrowID));
                     JOptionPane.showMessageDialog(
                     GUIBorrowItemPanel.this,
                     "Transaction Successful!",

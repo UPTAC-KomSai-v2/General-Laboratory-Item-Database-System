@@ -1,5 +1,12 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Frame;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,11 +21,10 @@ import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
-import java.awt.BorderLayout;
-import java.awt.Frame;
 
 public class Controller {
     private Queries queries;
+        private LoadingScreen loadingScreen;
 
     // Data structures to use during runtime
     private List<String[]> borrowerListEntries;
@@ -34,6 +40,7 @@ public class Controller {
 
     public Controller(){
         this.queries = new Queries();
+        this.loadingScreen = new LoadingScreen();
         this.itemsByCategory = new HashMap<>();
         this.itemIDMap = new HashMap<>();
         this.itemDetailsMap = new HashMap<>();
@@ -41,6 +48,56 @@ public class Controller {
         this.courseInstructorsMap = new HashMap<>();
     }
 
+    // ======= Loading Screen ========
+    public void showLoadingScreen() {
+        loadingScreen.setVisible(true);
+    }
+
+    public void hideLoadingScreen() {
+        loadingScreen.setVisible(false);
+        updateLoadingProgress(0);
+        loadingScreen.dispose();
+    }
+
+    public void updateLoadingProgress(int progress) {
+        loadingScreen.updateProgress(progress);
+    }
+
+    public void updateLoadingStatus(String status) {
+        loadingScreen.updateStatus(status);
+    }
+
+    // GETS ALL INFORMATION FROM THE DATABASE AFTER LOG-IN
+    public void controllerGetAllDatabaseInformationWithLoading(){
+        updateLoadingStatus("Fetching Data From Database");
+        int steps = 6; int currentStep = 1; int progress= 0;
+        System.out.println("GETTING DATABASE DATA (1/7)");
+        this.borrowerListEntries = queries.getBorrowList();
+        progress = (currentStep * 33) / steps; currentStep++;
+        updateLoadingProgress(progress);
+        System.out.println("GETTING DATABASE DATA (2/7)");
+        this.allBorrowRecords = queries.getAllItemsBorrowed();
+        progress = (currentStep * 33) / steps; currentStep++;
+        updateLoadingProgress(progress);
+        System.out.println("GETTING DATABASE DATA (3/7)");
+        this.allTransactionHistory = queries.getTransactionHistory();
+        progress = (currentStep * 33) / steps; currentStep++;
+        updateLoadingProgress(progress);
+        System.out.println("GETTING DATABASE DATA (4/7)");
+        this.categoryList = queries.getAllCategories();
+        progress = (currentStep * 33) / steps; currentStep++;
+        updateLoadingProgress(progress);
+        System.out.println("GETTING DATABASE DATA (5/7)");
+        loadData();
+        progress = (currentStep * 33) / steps; currentStep++;
+        updateLoadingProgress(progress);
+        System.out.println("GETTING DATABASE DATA (6/7)");
+        loadCourseData();
+        progress = (currentStep * 33) / steps; currentStep++;
+        updateLoadingProgress(progress);
+        System.out.println("GETTING DATABASE DATA (7/7)");
+        System.out.println("DATABASE DATA RETRIEVED SUCCESSFULLY");
+    }
 
     // GETS ALL INFORMATION FROM THE DATABASE AFTER LOG-IN
     public void controllerGetAllDatabaseInformation(){
@@ -66,7 +123,9 @@ public class Controller {
         JDialog progressDialog = new JDialog((Frame) null, "Loading Database", true);
         JProgressBar progressBar = new JProgressBar(0, 7);
         progressBar.setStringPainted(true);
+        progressBar.setIndeterminate(false);
         progressDialog.setLayout(new BorderLayout());
+        progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         progressDialog.add(new JLabel("Fetching data, please wait...", SwingConstants.CENTER), BorderLayout.NORTH);
         progressDialog.add(progressBar, BorderLayout.CENTER);
         progressDialog.setSize(300, 100);
@@ -181,17 +240,7 @@ public class Controller {
                 loginPanel.lgnStatusLabel.setText("Login Success");
                 loginPanel.lgnStatusLabel.setForeground(Color.GREEN);
                 JOptionPane.showMessageDialog(mainFrame, new JLabel("Login successful!", SwingConstants.CENTER), "Success", JOptionPane.PLAIN_MESSAGE );
-
-                //controllerGetAllDatabaseInformation();
-                controllerGetAllDatabaseInformationWithProgress();
                 loginSuccess = true;
-
-                loginPanel.lgnInputUsernameField.setText("");
-                loginPanel.lgnInputPasswordField.setText("");
-                mainFrame.remove(loginPanel);
-                mainFrame.add(mainPanel);
-                mainFrame.revalidate();
-                mainFrame.repaint();
             } else{
                 statusLabel.setText("Login Denied.\n Please Try Again.");
                 statusLabel.setForeground(Color.RED);
@@ -470,6 +519,74 @@ public class Controller {
     public List<String[]>  getAllTransactionHistory(){
         return allTransactionHistory;
     }
+
+    // =======================================================
+    // =============== Generate borrow receipt ===============
+    // =======================================================
+    public void generateBorrowReceipt(int borrowID, Timestamp ts, List<JTextField> studentNumberFields, List<JTextField> fullNameFields, List<String> itemsBorrowedInfo) {
+        String fileName = "Borrow Receipts\\BorrowReceipt_" + borrowID + ".txt";
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            writer.write("==================  RECEIPT  ==================\n");
+            writer.write("Borrow ID: " + borrowID + "\n");
+            writer.write("Date Borrowed: " + ts + "\n");
+            LocalDateTime ldt = ts.toLocalDateTime();
+            LocalDateTime newLdt = ldt.plusDays(4);
+            writer.write("Expected Return Date: " + Timestamp.valueOf(newLdt) + "\n");
+            writer.write("Borrower:\n");
+
+            if(studentNumberFields.size() == 1) {
+                writer.write("  1. " + fullNameFields.get(0).getText() + "\n");
+            } else {
+                for(int n = 0; n < studentNumberFields.size(); n++) {
+                    if(n == 0) {
+                        writer.write("  " + (n+1) + ". " + fullNameFields.get(n).getText() + " (Leader)\n");
+                    } else {
+                        writer.write("  " + (n+1) + ". " + fullNameFields.get(n).getText() + "\n");
+                    }
+                }
+            }
+
+            writer.write("Items Borrowed:\n");
+            for (String item : itemsBorrowedInfo) {
+                writer.write("  " + item + "\n");
+            }
+
+            writer.write("===============================================");
+
+            System.out.println("Receipt saved to: " + fileName);
+        } catch (IOException e) {
+            System.err.println("Error writing receipt: " + e.getMessage());
+        }
+    }
+
+    // =======================================================
+    // =============== Generate borrow receipt ===============
+    // =======================================================
+    public void generateReturnReceipt(int borrowID, Timestamp ts) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+        String tS = sdf.format(ts);
+        String fileName = "Return Receipts\\ReturnReceipt-BorrowID_" + borrowID + "-" + tS + ".txt";
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            writer.write("==================  RECEIPT  ==================\n");
+            writer.write("Borrow ID: " + borrowID + "\n");
+            writer.write("Date Returned: " + ts + "\n");
+            writer.write("Items Returned:\n");
+            List<String> itemList = queries.getReturnedItems(borrowID, ts);
+            for (int i = 0; i < itemList.size() - 1; i++) {
+                writer.write("  " + itemList.get(i) + "\n");
+            }
+            writer.write("Total Late Fee: " + itemList.get(itemList.size() - 1) + "\n");
+
+            writer.write("===============================================");
+
+            System.out.println("Receipt saved to: " + fileName);
+        } catch (IOException e) {
+            System.err.println("Error writing receipt: " + e.getMessage());
+        }
+    }
+
 
     // =======================================================
     // ================== Get queries class ==================
