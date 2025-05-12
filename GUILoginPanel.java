@@ -79,8 +79,8 @@ public class GUILoginPanel extends JPanel{
         lgnIputPasswordLabel.setForeground(branding.maroon);
 
         // Input fields
-        lgnInputUsernameField = new JTextField(10);
-        lgnInputPasswordField = new JPasswordField(10);
+        lgnInputUsernameField = new JTextField("root");
+        lgnInputPasswordField = new JPasswordField("weoZeizOaesHkpjieIetoaQTyKfFwjKm");
         lgnInputUsernameField.setPreferredSize(new Dimension(200, 30));
         lgnInputPasswordField.setPreferredSize(new Dimension(200, 30));
 

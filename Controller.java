@@ -1,5 +1,10 @@
 import java.awt.Color;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -370,6 +375,73 @@ public class Controller {
 
     public List<String[]>  getAllTransactionHistory(){
         return allTransactionHistory;
+    }
+
+    // =======================================================
+    // =============== Generate borrow receipt ===============
+    // =======================================================
+    public void generateBorrowReceipt(int borrowID, Timestamp ts, List<JTextField> studentNumberFields, List<JTextField> fullNameFields, List<String> itemsBorrowedInfo) {
+        String fileName = "Borrow Receipts\\BorrowReceipt_" + borrowID + ".txt";
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            writer.write("==================  RECEIPT  ==================\n");
+            writer.write("Borrow ID: " + borrowID + "\n");
+            writer.write("Date Borrowed: " + ts + "\n");
+            LocalDateTime ldt = ts.toLocalDateTime();
+            LocalDateTime newLdt = ldt.plusDays(4);
+            writer.write("Expected Return Date: " + Timestamp.valueOf(newLdt) + "\n");
+            writer.write("Borrower:\n");
+
+            if(studentNumberFields.size() == 1) {
+                writer.write("  1. " + fullNameFields.get(0).getText() + "\n");
+            } else {
+                for(int n = 0; n < studentNumberFields.size(); n++) {
+                    if(n == 0) {
+                        writer.write("  " + (n+1) + ". " + fullNameFields.get(n).getText() + " (Leader)\n");
+                    } else {
+                        writer.write("  " + (n+1) + ". " + fullNameFields.get(n).getText() + "\n");
+                    }
+                }
+            }
+
+            writer.write("Items Borrowed:\n");
+            for (String item : itemsBorrowedInfo) {
+                writer.write("  " + item + "\n");
+            }
+
+            writer.write("===============================================");
+
+            System.out.println("Receipt saved to: " + fileName);
+        } catch (IOException e) {
+            System.err.println("Error writing receipt: " + e.getMessage());
+        }
+    }
+
+    // =======================================================
+    // =============== Generate borrow receipt ===============
+    // =======================================================
+    public void generateReturnReceipt(int borrowID, Timestamp ts) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+        String tS = sdf.format(ts);
+        String fileName = "Return Receipts\\ReturnReceipt-BorrowID_" + borrowID + "-" + tS + ".txt";
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            writer.write("==================  RECEIPT  ==================\n");
+            writer.write("Borrow ID: " + borrowID + "\n");
+            writer.write("Date Returned: " + ts + "\n");
+            writer.write("Items Returned:\n");
+            List<String> itemList = queries.getReturnedItems(borrowID, ts);
+            for (int i = 0; i < itemList.size() - 1; i++) {
+                writer.write("  " + itemList.get(i) + "\n");
+            }
+            writer.write("Total Late Fee: " + itemList.get(itemList.size() - 1) + "\n");
+
+            writer.write("===============================================");
+
+            System.out.println("Receipt saved to: " + fileName);
+        } catch (IOException e) {
+            System.err.println("Error writing receipt: " + e.getMessage());
+        }
     }
 
     // =======================================================

@@ -1113,7 +1113,7 @@ public class GUIBorrowItemPanel extends JPanel{
                     int itemID = basketItems.get(0).getItemID();
                     System.out.println("Inserting borrow");
             
-                    for (int i = 0; i < studentNumberFields.size(); i++) {
+                    for (int i = 0; i < 1; i++) {
                         System.out.println(studentNumberFields.size());
                         String studentNumber = studentNumberFields.get(i).getText();
                         String course = (String) courseOptions.getSelectedItem();
@@ -1134,6 +1134,9 @@ public class GUIBorrowItemPanel extends JPanel{
                     basketItems.remove(0);  // Remove processed item
                 }
 
+                // Receipt of transaction
+                ctrl.generateBorrowReceipt(borrowID, ts, studentNumberFields, fullNameFields, ctrl.getQueries().getBorrowedItemsInfo(borrowID));
+                
                 ctrl.refreshCachedData();
                 
                 JOptionPane.showMessageDialog(
