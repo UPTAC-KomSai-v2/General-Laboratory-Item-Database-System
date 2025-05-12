@@ -14,6 +14,7 @@ import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1083,6 +1084,7 @@ public class GUIBorrowItemPanel extends JPanel{
         screen3BorrowBtn.setForeground(branding.white);
 
         screen3BorrowBtn.addActionListener(e -> {
+            Boolean borrowSuccessful = false;
             if (ctrl.validateBorrowerInfoInputs(studentNumberFields, fullNameFields, emailAddressFields, contactNumberFields, degreeProgramComboBoxes)) {
                 int borrowID = ctrl.getLatestBorrowID() + 1;
                 System.out.println("Borrow ID: " + borrowID);
@@ -1096,7 +1098,7 @@ public class GUIBorrowItemPanel extends JPanel{
                         contactNumberFields.get(i).getText() + ", " +
                         degreeProgramComboBoxes.get(i).getSelectedItem()
                     );
-                    ctrl.insertBorrowerInfo(
+                    borrowSuccessful = ctrl.insertBorrowerInfo(
                         studentNumberFields.get(i).getText(),
                         fullNameFields.get(i).getText(),
                         emailAddressFields.get(i).getText(),
@@ -1104,10 +1106,13 @@ public class GUIBorrowItemPanel extends JPanel{
                         degreeProgramComboBoxes.get(i).getSelectedItem().toString()
                     );
                 }
-            
+                // Save current basket incase borrowing goes wrong
+                List<BasketItem> basketItemsCache = basketItems;
                 // For each item, associate with all students
-                while (!basketItems.isEmpty()) {
-                    int itemID = basketItems.get(0).getItemID();
+                Timestamp ts = new Timestamp(System.currentTimeMillis());
+                ts.setNanos(0);
+                while (!basketItemsCache.isEmpty()) {
+                    int itemID = basketItemsCache.get(0).getItemID();
                     System.out.println("Inserting borrow");
             
                     for (int i = 0; i < studentNumberFields.size(); i++) {
@@ -1117,42 +1122,49 @@ public class GUIBorrowItemPanel extends JPanel{
                         String sectionName = (String) sectionOptions.getSelectedItem();
                         int sectionID = ctrl.getSectionID(sectionName);
             
-                        ctrl.borrowItem(
+                        borrowSuccessful = ctrl.borrowItem(
                             borrowID,
                             itemID,
                             studentNumber,
                             course,
                             sectionID,
-                            basketItems.get(0).itemQuantity
+                            basketItemsCache.get(0).itemQuantity,
+                            ts
                         );
                     }
             
-                    basketItems.remove(0);  // Remove processed item
+                    basketItemsCache.remove(0);  // Remove processed item
                 }
 
-                ctrl.refreshCachedData();
-                
-                JOptionPane.showMessageDialog(
+                if (borrowSuccessful){
+                    JOptionPane.showMessageDialog(
                     GUIBorrowItemPanel.this,
                     "Transaction Successful!",
                     "Success",
                     JOptionPane.INFORMATION_MESSAGE
-                );
-
-                // Reset borrower input fields
-                for (JTextField field : studentNumberFields) field.setText("");
-                for (JTextField field : fullNameFields) field.setText("");
-                for (JTextField field : emailAddressFields) field.setText("");
-                for (JTextField field : contactNumberFields) field.setText("");
-                for (JComboBox<String> box : degreeProgramComboBoxes) box.setSelectedIndex(0);
-                courseOptions.setSelectedIndex(0);
-                sectionOptions.setSelectedIndex(0);
-                instructorOptions.setSelectedIndex(0);
-            
-                resetPanel();
-            
-                // Use the saved back button
-                mainBackButton.doClick();
+                    );
+                    // Reset borrower input fields
+                    for (JTextField field : studentNumberFields) field.setText("");
+                    for (JTextField field : fullNameFields) field.setText("");
+                    for (JTextField field : emailAddressFields) field.setText("");
+                    for (JTextField field : contactNumberFields) field.setText("");
+                    for (JComboBox<String> box : degreeProgramComboBoxes) box.setSelectedIndex(0);
+                    courseOptions.setSelectedIndex(0);
+                    sectionOptions.setSelectedIndex(0);
+                    instructorOptions.setSelectedIndex(0);
+                    basketItems.clear();
+                    resetPanel();
+                    ctrl.refreshCachedData();
+                    mainBackButton.doClick();
+                }else{
+                    basketItems = basketItemsCache;
+                    JOptionPane.showMessageDialog(
+                    GUIBorrowItemPanel.this,
+                    "Transaction Unsuccessful!",
+                    "Failed",
+                    JOptionPane.WARNING_MESSAGE
+                    );
+                }
             }
         });
         

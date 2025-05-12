@@ -1,15 +1,21 @@
 import java.awt.Color;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
+import java.awt.BorderLayout;
+import java.awt.Frame;
 
 public class Controller {
     private Queries queries;
@@ -35,23 +41,74 @@ public class Controller {
         this.courseInstructorsMap = new HashMap<>();
     }
 
+
     // GETS ALL INFORMATION FROM THE DATABASE AFTER LOG-IN
     public void controllerGetAllDatabaseInformation(){
-        System.out.println("GETTING DATABASE DATA (1/7)");
-        this.borrowerListEntries = queries.getBorrowList();
-        System.out.println("GETTING DATABASE DATA (2/7)");
-        this.allBorrowRecords = queries.getAllItemsBorrowed();
-        System.out.println("GETTING DATABASE DATA (3/7)");
-        this.allTransactionHistory = queries.getTransactionHistory();
-        System.out.println("GETTING DATABASE DATA (4/7)");
-        this.categoryList = queries.getAllCategories();
-        System.out.println("GETTING DATABASE DATA (5/7)");
-        loadData();
-        System.out.println("GETTING DATABASE DATA (6/7)");
-        loadCourseData();
-        System.out.println("GETTING DATABASE DATA (7/7)");
-        System.out.println("DATABASE DATA RETRIEVED SUCCESSFULLY");
+            System.out.println("GETTING DATABASE DATA (1/7)");
+            this.borrowerListEntries = queries.getBorrowList();
+            System.out.println("GETTING DATABASE DATA (2/7)");
+            this.allBorrowRecords = queries.getAllItemsBorrowed();
+            System.out.println("GETTING DATABASE DATA (3/7)");
+            this.allTransactionHistory = queries.getTransactionHistory();
+            System.out.println("GETTING DATABASE DATA (4/7)");
+            this.categoryList = queries.getAllCategories();
+            System.out.println("GETTING DATABASE DATA (5/7)");
+            loadData();
+            System.out.println("GETTING DATABASE DATA (6/7)");
+            loadCourseData();
+            System.out.println("GETTING DATABASE DATA (7/7)");
+            System.out.println("DATABASE DATA RETRIEVED SUCCESSFULLY");
     }
+
+    
+    public void controllerGetAllDatabaseInformationWithProgress() {
+        // Create progress dialog components
+        JDialog progressDialog = new JDialog((Frame) null, "Loading Database", true);
+        JProgressBar progressBar = new JProgressBar(0, 7);
+        progressBar.setStringPainted(true);
+        progressDialog.setLayout(new BorderLayout());
+        progressDialog.add(new JLabel("Fetching data, please wait...", SwingConstants.CENTER), BorderLayout.NORTH);
+        progressDialog.add(progressBar, BorderLayout.CENTER);
+        progressDialog.setSize(300, 100);
+        progressDialog.setLocationRelativeTo(null);
+
+        // Create a worker thread to perform database loading
+        SwingWorker<Void, Integer> worker = new SwingWorker<Void, Integer>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                publish(1);
+                borrowerListEntries = queries.getBorrowList();
+                publish(2);
+                allBorrowRecords = queries.getAllItemsBorrowed();
+                publish(3);
+                allTransactionHistory = queries.getTransactionHistory();
+                publish(4);
+                categoryList = queries.getAllCategories();
+                publish(5);
+                loadData();
+                publish(6);
+                loadCourseData();
+                publish(7);
+                return null;
+            }
+
+            @Override
+            protected void process(java.util.List<Integer> chunks) {
+                int latestProgress = chunks.get(chunks.size() - 1);
+                progressBar.setValue(latestProgress);
+            }
+
+            @Override
+            protected void done() {
+                progressDialog.dispose();
+                JOptionPane.showMessageDialog(null, "Database data retrieved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            }
+        };
+
+        worker.execute();
+        progressDialog.setVisible(true);
+    }
+
 
     // Cache category data for quick access
      private void loadData() {
@@ -107,9 +164,10 @@ public class Controller {
     // ========== Login Panel Methods ==========
     // =========================================
 
-    public void controllerLogin(GUILoginPanel loginPanel, JFrame mainFrame, GUIMainPanel mainPanel, JLabel statusLabel){
+    public boolean controllerLogin(GUILoginPanel loginPanel, JFrame mainFrame, GUIMainPanel mainPanel, JLabel statusLabel){
         statusLabel.setText("Logging in...");
         statusLabel.setForeground(Color.BLACK);
+        boolean loginSuccess = false;
         try {
             String userInput = loginPanel.lgnInputUsernameField.getText();
             char[] passInputChars = loginPanel.lgnInputPasswordField.getPassword();
@@ -123,13 +181,17 @@ public class Controller {
                 loginPanel.lgnStatusLabel.setText("Login Success");
                 loginPanel.lgnStatusLabel.setForeground(Color.GREEN);
                 JOptionPane.showMessageDialog(mainFrame, new JLabel("Login successful!", SwingConstants.CENTER), "Success", JOptionPane.PLAIN_MESSAGE );
+
+                //controllerGetAllDatabaseInformation();
+                controllerGetAllDatabaseInformationWithProgress();
+                loginSuccess = true;
+
                 loginPanel.lgnInputUsernameField.setText("");
                 loginPanel.lgnInputPasswordField.setText("");
                 mainFrame.remove(loginPanel);
                 mainFrame.add(mainPanel);
                 mainFrame.revalidate();
                 mainFrame.repaint();
-
             } else{
                 statusLabel.setText("Login Denied.\n Please Try Again.");
                 statusLabel.setForeground(Color.RED);
@@ -139,6 +201,7 @@ public class Controller {
             statusLabel.setText("Error occurred.");
             statusLabel.setForeground(Color.RED);
         }
+        return loginSuccess;
     }
     
     // ========================================
@@ -304,9 +367,9 @@ public class Controller {
     }
 
     // Insert borrower information into the database
-    public void insertBorrowerInfo(String borrowerID, String fullName, String email, 
+    public boolean insertBorrowerInfo(String borrowerID, String fullName, String email, 
                                 String contactNumber, String degreeProgram) {
-        queries.insertBorrowerInfo(borrowerID, fullName, email, contactNumber, degreeProgram);
+        return queries.insertBorrowerInfo(borrowerID, fullName, email, contactNumber, degreeProgram);
     }
 
     // Get section ID by section name
@@ -315,9 +378,9 @@ public class Controller {
     }
 
     // Insert borrow record into the database
-    public void borrowItem(int borrowID, int itemID, String borrowerID, 
-                        String courseID, int sectionID, int qtyBorrowed) {
-        queries.borrowItem(borrowID, itemID, borrowerID, courseID, sectionID, qtyBorrowed);
+    public boolean borrowItem(int borrowID, int itemID, String borrowerID, 
+                        String courseID, int sectionID, int qtyBorrowed, Timestamp ts) {
+        return queries.borrowItem(borrowID, itemID, borrowerID, courseID, sectionID, qtyBorrowed, ts);
     }
 
     // Refresh cached data after transaction
@@ -400,18 +463,18 @@ public class Controller {
         loadData();
     }
 
-    // Method to update items when returning
-    public void updateActualReturnDate(int borrowId, String borrowerId) {
-        queries.updateActualReturnDate(borrowId, borrowerId);
-        // Refresh cached data after returning items
-        refreshCachedData();
-    }
-
     // =======================================================
     // ========== Transaction History Panel Methods ==========
     // =======================================================
 
     public List<String[]>  getAllTransactionHistory(){
         return allTransactionHistory;
+    }
+
+    // =======================================================
+    // ================== Get queries class ==================
+    // =======================================================
+    public Queries getQueries() {
+        return queries;
     }
 }
