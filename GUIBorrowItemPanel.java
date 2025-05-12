@@ -1310,6 +1310,9 @@ public class GUIBorrowItemPanel extends JPanel{
     
     public void resetPanel() {
         resetAllEquipmentItemBackgrounds();
+        if (selectedCategoryButton != null) {
+            selectedCategoryButton.setBackground(branding.lightergray);
+        }
         selectedCategoryButton = null;
         selectedItemCards.clear();
         basketItems.clear();
