@@ -83,6 +83,8 @@ public class GUILoginPanel extends JPanel{
         lgnInputPasswordField = new JPasswordField(10);
         lgnInputUsernameField.setPreferredSize(new Dimension(200, 30));
         lgnInputPasswordField.setPreferredSize(new Dimension(200, 30));
+        lgnInputUsernameField.addActionListener(e -> lgnLoginBtn.doClick());
+        lgnInputPasswordField.addActionListener(e -> lgnLoginBtn.doClick());
 
          // Status label for feedback (e.g. "Login Confirmed" or "Login Denied")
         lgnStatusLabel = new JLabel("Please enter login credentials.", SwingConstants.CENTER); //.setText("Login Confirmed, Login Denied")
