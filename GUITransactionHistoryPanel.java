@@ -1,5 +1,4 @@
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -24,7 +23,8 @@ public class GUITransactionHistoryPanel extends JPanel {
     private JButton screen1BackButton, toggleTransactionTypeButton;
     private Controller ctrl;
     private List<String[]> allEntries;
-    private boolean showingBorrows = true;
+    // 0 = all, 1 = borrows, 2 = returns
+    private int currentView = 0;
 
     public GUITransactionHistoryPanel(Controller ctrl, Branding branding, JButton tranBackBtn) {
         this.ctrl = ctrl;
@@ -62,8 +62,8 @@ public class GUITransactionHistoryPanel extends JPanel {
         scrollContentPanel.setBorder(null);
         branding.reskinScrollBar(scrollContentPanel, branding.gray);
 
-        // Add headers panel
-        JPanel headersPanel = createBorrowsHeadersPanel();
+        // Add headers panel - start with all transactions view
+        JPanel headersPanel = createHeadersPanel();
 
         // Create toggle button panel
         JPanel togglePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
@@ -71,8 +71,8 @@ public class GUITransactionHistoryPanel extends JPanel {
         togglePanel.setBackground(branding.maroon);
         togglePanel.setOpaque(false);
 
-        // Toggle transaction type button
-        toggleTransactionTypeButton = new JButton("View Returns");
+        // Toggle transaction type button - start with "View Borrows"
+        toggleTransactionTypeButton = new JButton("View Borrows");
         toggleTransactionTypeButton.setPreferredSize(new Dimension(150, 30));
         toggleTransactionTypeButton.setBackground(branding.maroon);
         toggleTransactionTypeButton.setForeground(branding.lightergray);
@@ -103,52 +103,14 @@ public class GUITransactionHistoryPanel extends JPanel {
         screen1.add(togglePanel, screen1GBC);
     }
     
-    private JPanel createBorrowsHeadersPanel() {
+    private JPanel createHeadersPanel() {
         JPanel headersPanel = new JPanel(new GridBagLayout());
         headersPanel.setBackground(branding.maroon);
 
         GridBagConstraints headerGBC = new GridBagConstraints();
         headerGBC.fill = GridBagConstraints.HORIZONTAL;
         
-        // Create labels for headers
-        JLabel[] headerLabels = new JLabel[3];
-        headerLabels[0] = new JLabel("                     Date and Time");
-        headerLabels[1] = new JLabel("Name");
-        headerLabels[2] = new JLabel("Student Number");
-
-        // Style headers
-        for (JLabel label : headerLabels) {
-            label.setForeground(branding.lightergray);
-            label.setFont(new Font(label.getFont().getName(), Font.BOLD, 12));
-            label.setHorizontalAlignment(SwingConstants.LEFT);
-        }
-
-        // Add headers
-        headerGBC.gridx = 1; // Skipping the first column (for icon)
-        headerGBC.weightx = 0.3;
-        headerGBC.ipadx = 100;
-        //headerGBC.insets = new Insets(0, 80, 0, 0);
-        headersPanel.add(headerLabels[0], headerGBC);
-        
-        headerGBC.gridx++;
-        headerGBC.weightx = 0.2;
-        headerGBC.ipadx = 70;
-        headersPanel.add(headerLabels[1], headerGBC);
-        
-        headerGBC.gridx++;
-        headersPanel.add(headerLabels[2], headerGBC);
-
-        headersPanel.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 0));
-        return headersPanel;
-    }
-    
-    private JPanel createReturnsHeadersPanel() {
-        JPanel headersPanel = new JPanel(new GridBagLayout());
-        headersPanel.setBackground(branding.maroon);
-        GridBagConstraints headerGBC = new GridBagConstraints();
-        headerGBC.fill = GridBagConstraints.HORIZONTAL;
-        
-        // Create labels for headers
+        // Create labels for headers - consistent across all views
         JLabel[] headerLabels = new JLabel[3];
         headerLabels[0] = new JLabel("                     Date and Time");
         headerLabels[1] = new JLabel("Name");
@@ -177,9 +139,13 @@ public class GUITransactionHistoryPanel extends JPanel {
         headersPanel.add(headerLabels[1], headerGBC);
         
         headerGBC.gridx++;
+        headerGBC.weightx = 0.2;
+        headerGBC.ipadx = 70;
         headersPanel.add(headerLabels[2], headerGBC);
         
         headerGBC.gridx++;
+        headerGBC.weightx = 0.2;
+        headerGBC.ipadx = 70;
         headersPanel.add(accountabilityLabel, headerGBC);
 
         headersPanel.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 0));
@@ -187,39 +153,28 @@ public class GUITransactionHistoryPanel extends JPanel {
     }
 
     private void toggleTransactionType() {
-        showingBorrows = !showingBorrows;
+        // Cycle through views: 0 (All) -> 1 (Borrows) -> 2 (Returns) -> 0 (All)
+        currentView = (currentView + 1) % 3;
         
-        // Update button text
-        toggleTransactionTypeButton.setText(showingBorrows ? "View Returns" : "View Borrows");
-        
-        // Update headers panel
-        GridBagConstraints screen1GBC = new GridBagConstraints();
-        screen1GBC.fill = GridBagConstraints.BOTH;
-        screen1GBC.weightx = 1;
-        screen1GBC.weighty = 0.05;
-        screen1GBC.gridx = 0;
-        screen1GBC.gridy = 0;
-        screen1GBC.insets = new Insets(0, 0, 10, 0);
-        
-        // Remove existing component at the specified location
-        Component[] components = screen1.getComponents();
-        for (Component comp : components) {
-            GridBagConstraints constraints = ((GridBagLayout)screen1.getLayout()).getConstraints(comp);
-            if (constraints.gridx == screen1GBC.gridx && constraints.gridy == screen1GBC.gridy) {
-                screen1.remove(comp);
+        // Update button text based on the next view
+        switch (currentView) {
+            case 0: // All transactions
+                toggleTransactionTypeButton.setText("View Borrows");
                 break;
-            }
+            case 1: // Borrows
+                toggleTransactionTypeButton.setText("View Returns");
+                break;
+            case 2: // Returns
+                toggleTransactionTypeButton.setText("View All");
+                break;
         }
         
-        // Add appropriate headers
-        screen1.add(showingBorrows ? createBorrowsHeadersPanel() : createReturnsHeadersPanel(), screen1GBC);
+        // Refresh entries to filter based on current view
+        refreshEntries(allEntries);
         
         // Revalidate and repaint to ensure visual update
         screen1.revalidate();
         screen1.repaint();
-        
-        // Refresh entries
-        refreshEntries(allEntries);
     }
 
     public void refreshEntries(List<String[]> entries) {
@@ -231,7 +186,9 @@ public class GUITransactionHistoryPanel extends JPanel {
         for (String[] tuple : entries) {
             // Determine if the entry should be displayed based on current view
             boolean isBorrowTransaction = tuple[0].equals("Borrow");
-            if ((showingBorrows && !isBorrowTransaction) || (!showingBorrows && isBorrowTransaction)) {
+            
+            // Skip if not matching the current view filter
+            if ((currentView == 1 && !isBorrowTransaction) || (currentView == 2 && isBorrowTransaction)) {
                 continue;
             }
 
@@ -242,91 +199,108 @@ public class GUITransactionHistoryPanel extends JPanel {
                 case "Return" -> stateLabel.setIcon(new ImageIcon(branding.returnIcon));
                 default -> System.err.println("Transaction History Label Error");
             }
-            JLabel label1 = new JLabel(branding.reformatDateLabel(tuple[i++]));
-            JLabel label2 = new JLabel(tuple[i++]);
-            JLabel label3 = new JLabel(tuple[i++]);
-            JLabel label4 = new JLabel("");
-            i++; // Skip an entry if needed
-            JLabel label5 = new JLabel();
-            if(tuple[i] != null) label5.setText("Php " + tuple[i++]);
-            else label5.setText("");
             
-            label1.setForeground(branding.white);
-            label2.setForeground(branding.white);
-            label3.setForeground(branding.white);
-            label4.setForeground(branding.white);
-            label5.setForeground(branding.white);
+            // Date label
+            JLabel dateLabel = new JLabel(branding.reformatDateLabel(tuple[i++]));
+            
+            // Name label
+            JLabel nameLabel = new JLabel(tuple[i++]);
+            
+            // Item label - always show this for both borrows and returns
+            JLabel itemLabel = new JLabel(tuple[i++]);
+            
+            // Skip an entry if needed
+            i++;
+            
+            // Accountability label
+            JLabel accountabilityLabel = new JLabel();
+            if(tuple[i] != null) {
+                accountabilityLabel.setText("Php " + tuple[i++]);
+            } else {
+                accountabilityLabel.setText("---");
+                i++;
+            }
+            
+            // Set foreground color for labels
+            dateLabel.setForeground(branding.white);
+            nameLabel.setForeground(branding.white);
+            itemLabel.setForeground(branding.white);
+            accountabilityLabel.setForeground(branding.white);
 
+            // Create panel containers for labels
             JPanel statePanel = new JPanel();
-            JPanel label1Panel = new JPanel();
-            JPanel label2Panel = new JPanel();
-            JPanel label3Panel = new JPanel();
-            JPanel label4Panel = new JPanel();
-            JPanel label5Panel = new JPanel();
+            JPanel dateLabelPanel = new JPanel();
+            JPanel nameLabelPanel = new JPanel();
+            JPanel itemLabelPanel = new JPanel();
+            JPanel accountabilityLabelPanel = new JPanel();
 
+            // Set layouts
             statePanel.setLayout(new BorderLayout());
-            label1Panel.setLayout(new BorderLayout());
-            label2Panel.setLayout(new BorderLayout());
-            label3Panel.setLayout(new BorderLayout());
-            label4Panel.setLayout(new BorderLayout());
-            label5Panel.setLayout(new BorderLayout());
+            dateLabelPanel.setLayout(new BorderLayout());
+            nameLabelPanel.setLayout(new BorderLayout());
+            itemLabelPanel.setLayout(new BorderLayout());
+            accountabilityLabelPanel.setLayout(new BorderLayout());
 
+            // Set preferred sizes
             statePanel.setPreferredSize(new Dimension(10, 70));
-            label1Panel.setPreferredSize(new Dimension(50, 70));
-            label2Panel.setPreferredSize(new Dimension(70, 70));
-            label3Panel.setPreferredSize(new Dimension(50, 70));
-            label4Panel.setPreferredSize(new Dimension(50, 70));
-            label5Panel.setPreferredSize(new Dimension(50, 70));
+            dateLabelPanel.setPreferredSize(new Dimension(50, 70));
+            nameLabelPanel.setPreferredSize(new Dimension(70, 70));
+            itemLabelPanel.setPreferredSize(new Dimension(50, 70));
+            accountabilityLabelPanel.setPreferredSize(new Dimension(50, 70));
 
+            // Make panels transparent
             statePanel.setOpaque(false);
-            label1Panel.setOpaque(false);
-            label2Panel.setOpaque(false);
-            label3Panel.setOpaque(false);
-            label4Panel.setOpaque(false);
-            label5Panel.setOpaque(false);
+            dateLabelPanel.setOpaque(false);
+            nameLabelPanel.setOpaque(false);
+            itemLabelPanel.setOpaque(false);
+            accountabilityLabelPanel.setOpaque(false);
 
+            // Add labels to panels
             statePanel.add(stateLabel, BorderLayout.WEST);
-            label1Panel.add(label1, BorderLayout.WEST);
-            label2Panel.add(label2, BorderLayout.WEST);
-            label3Panel.add(label3, BorderLayout.WEST);
-            label4Panel.add(label4, BorderLayout.WEST);
-            label5Panel.add(label5, BorderLayout.WEST);
+            dateLabelPanel.add(dateLabel, BorderLayout.WEST);
+            nameLabelPanel.add(nameLabel, BorderLayout.WEST);
+            itemLabelPanel.add(itemLabel, BorderLayout.WEST);
+            accountabilityLabelPanel.add(accountabilityLabel, BorderLayout.WEST);
 
+            // Create panel for entire row
             JPanel tupleInfoPanel = new JPanel();
             tupleInfoPanel.setMaximumSize(new Dimension(900, 70));
             tupleInfoPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
             tupleInfoPanel.setLayout(new GridBagLayout());
             tupleInfoPanel.setBackground(branding.maroon);
 
+            // Add components to row panel
             GridBagConstraints tupleInfoPanelGBC = new GridBagConstraints();
             tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+            
             tupleInfoPanelGBC.gridx = 0;
             tupleInfoPanelGBC.ipadx = 50;
             tupleInfoPanelGBC.weightx = 0.01;
             tupleInfoPanel.add(statePanel, tupleInfoPanelGBC);
+            
             tupleInfoPanelGBC.gridx++;
             tupleInfoPanelGBC.ipadx = 100;
             tupleInfoPanelGBC.weightx = 0.3;
-            tupleInfoPanel.add(label1Panel, tupleInfoPanelGBC);
+            tupleInfoPanel.add(dateLabelPanel, tupleInfoPanelGBC);
+            
             tupleInfoPanelGBC.gridx++;
             tupleInfoPanelGBC.ipadx = 70;
             tupleInfoPanelGBC.weightx = 0.2;
-            tupleInfoPanel.add(label2Panel, tupleInfoPanelGBC);
+            tupleInfoPanel.add(nameLabelPanel, tupleInfoPanelGBC);
+            
             tupleInfoPanelGBC.gridx++;
             tupleInfoPanelGBC.ipadx = 70;
             tupleInfoPanelGBC.weightx = 0.2;
-            tupleInfoPanel.add(label3Panel, tupleInfoPanelGBC);
+            tupleInfoPanel.add(itemLabelPanel, tupleInfoPanelGBC);
+            
+            tupleInfoPanelGBC.gridx++;
+            tupleInfoPanelGBC.ipadx = 70;
+            tupleInfoPanelGBC.weightx = 0.2;
+            tupleInfoPanel.add(accountabilityLabelPanel, tupleInfoPanelGBC);
 
-            // For returns, add accountability column
-            if (!showingBorrows) {
-                tupleInfoPanelGBC.gridx++;
-                tupleInfoPanelGBC.ipadx = 70;
-                tupleInfoPanelGBC.weightx = 0.2;
-                tupleInfoPanel.add(label5Panel, tupleInfoPanelGBC);
-            }
-
+            // Add row to content panel
             scrn1TransactionContentPanel.add(tupleInfoPanel);
-            scrn1TransactionContentPanel.add(Box.createVerticalStrut(10)); //add gaps between tuples
+            scrn1TransactionContentPanel.add(Box.createVerticalStrut(10)); // Add gaps between rows
         }
 
         scrn1TransactionContentPanel.revalidate();

@@ -965,9 +965,10 @@ public class Queries {
 
     public List<String[]> getTransactionHistory() {
         // Get borrow details
-        String borrowQuery = "SELECT DISTINCT date_borrowed, full_name, borrower_id, expected_return_date FROM borrow JOIN borrower USING(borrower_id)";
+        //String borrowQuery = "SELECT DISTINCT date_borrowed, full_name, borrower_id, expected_return_date FROM borrow JOIN borrower USING(borrower_id)";
+        String borrowQuery = "SELECT DISTINCT date_borrowed, full_name, borrower_id, expected_return_date, item_name FROM borrow JOIN borrower USING (borrower_id) JOIN item USING (item_id);";
         // Get return details
-        String returnQuery = "SELECT rl.return_date, b.full_name, i.item_name, rl.item_condition, rl.late_fee FROM return_log rl JOIN borrower b ON rl.borrower_id = b.borrower_id JOIN item i ON rl.item_id = i.item_id ORDER BY rl.return_date DESC";
+        String returnQuery = "SELECT rl.return_date, b.full_name, i.item_name, rl.item_condition, rl.late_fee FROM return_log rl JOIN borrower b ON rl.borrower_id = b.borrower_id JOIN item i ON rl.item_id = i.item_id ORDER BY rl.return_date DESC;";
         List<String[]> data = new ArrayList<>();
 
         try{
@@ -999,7 +1000,7 @@ public class Queries {
                 row[0] = "Borrow";
                 row[1] = rsBorrow.getString("date_borrowed");
                 row[2] = rsBorrow.getString("full_name");
-                row[3] = rsBorrow.getString("borrower_id");
+                row[3] = rsBorrow.getString("item_name");
                 row[4] = rsBorrow.getString("expected_return_date");
                 row[5] = null;
                 data.add(row);
