@@ -16,8 +16,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
-
+import javax.swing.SwingWorker;
 public class GraphicalUserInterface implements ActionListener {
 
     private JButton lgnLoginBtn;
@@ -30,10 +31,14 @@ public class GraphicalUserInterface implements ActionListener {
     private JFrame mainFrame;
     private Queries queries;
     private Branding branding;
+    private JDialog progressDialog;
+    private JProgressBar progressBar;
+    private LoadingScreen loadingScreen;
 
     public GraphicalUserInterface() {
         queries = new Queries();
         branding = new Branding();
+        loadingScreen = new LoadingScreen();
 
         intializeMainFrame();
         initializeLoginPanel();
@@ -66,7 +71,7 @@ public class GraphicalUserInterface implements ActionListener {
     public void initializeMainPanel() {
         // --- Ribbon buttons ---
         rbbnLogoutBtn = new JButton("Logout");
-        rbbnUserBtn = new JButton("User");
+        rbbnUserBtn = new JButton("");
         rbbnAboutBtn = new JButton("About");
 
         JButton[] ribbonButtons = { rbbnLogoutBtn, rbbnUserBtn, rbbnAboutBtn };
@@ -113,10 +118,17 @@ public class GraphicalUserInterface implements ActionListener {
         );
 
         // Sub-panel views with back buttons
+<<<<<<< Updated upstream
         ctntBorrowItemPanel = new GUIBorrowItemPanel(branding, bitmBackBtn);
         ctntBorrowerListPanel = new GUIBorrowerListPanel(branding, blstBackBtn);
         ctntUpdateInventoryPanel = new GUIUpdateInventoryPanel(branding, upinBackBtn);
         ctntTransactionHistoryPanel = new GUITransactionHistoryPanel(branding, tranBackBtn);
+=======
+        ctntBorrowItemPanel = new GUIBorrowItemPanel(ctrl, branding, bitmBackBtn);
+        ctntBorrowerListPanel = new GUIBorrowerListPanel(ctrl, branding, blstBackBtn);
+        ctntUpdateInventoryPanel = new GUIUpdateInventoryPanel(ctrl, branding, upinBackBtn, (GUIBorrowItemPanel)ctntBorrowItemPanel);
+        ctntTransactionHistoryPanel = new GUITransactionHistoryPanel(ctrl, branding, tranBackBtn);
+>>>>>>> Stashed changes
     }
 
     @Override
@@ -124,12 +136,48 @@ public class GraphicalUserInterface implements ActionListener {
         Object src = e.getSource();
 
         if (src == lgnLoginBtn) {
+<<<<<<< Updated upstream
             queries.login(loginPanel.lgnInputUsernameField, loginPanel.lgnInputPasswordField, loginPanel, mainFrame, mainPanel, loginPanel.lgnStatusLabel);
             mainFrame.remove(loginPanel);
             mainFrame.add(mainPanel);
             mainFrame.revalidate();
             mainFrame.repaint();
 
+=======
+            if(ctrl.controllerLogin(loginPanel, mainFrame, mainPanel, loginPanel.lgnStatusLabel)){
+                ctrl.showLoadingScreen();
+                // progress = startPercent + (currentStep * rangePercent) / totalSteps; -> Formula for progress
+                SwingWorker<Void, Integer> worker = new SwingWorker<>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        publish(2);
+                        ctrl.controllerGetAllDatabaseInformationWithLoading();
+                        ((GUIBorrowItemPanel) ctntBorrowItemPanel).loadCategoryPanel(ctrl.getCategoryList());  // Class2 progress update
+                        ((GUIUpdateInventoryPanel) ctntUpdateInventoryPanel).loadContents();
+                        return null;
+                    }
+
+                    @Override
+                    protected void process(java.util.List<Integer> chunks) {
+                        int latestProgress = chunks.get(chunks.size() - 1);
+                        loadingScreen.updateProgress(latestProgress);
+                    }
+
+                    @Override
+                    protected void done() {
+                        ctrl.hideLoadingScreen();
+                        System.out.println("Loading complete!");
+                        loginPanel.lgnInputUsernameField.setText("");
+                        loginPanel.lgnInputPasswordField.setText("");
+                        mainFrame.remove(loginPanel);
+                        mainFrame.add(mainPanel);
+                        mainFrame.revalidate();
+                        mainFrame.repaint();
+                    }
+                };
+                worker.execute();
+            } 
+>>>>>>> Stashed changes
         } else if (src == ctntBorrowItemBtn) {
             showPanel(ctntBorrowItemPanel);
             queries.borrowItems(new java.util.Scanner(System.in));
@@ -165,7 +213,16 @@ public class GraphicalUserInterface implements ActionListener {
         } else if (src == bitmBackBtn) {
             ((GUIBorrowItemPanel) ctntBorrowItemPanel).resetPanel();
             showMainMenu();
+<<<<<<< Updated upstream
         } else if (src == blstBackBtn || src == upinBackBtn || src == tranBackBtn) {
+=======
+        } else if (src == blstBackBtn) {
+            showMainMenu();
+        } else if (src == upinBackBtn) {
+            //((GUIUpdateInventoryPanel) ctntUpdateInventoryPanel).resetPanel();
+            showMainMenu();
+        } else if (src == tranBackBtn) {
+>>>>>>> Stashed changes
             showMainMenu();
         }
     }
@@ -218,7 +275,7 @@ public class GraphicalUserInterface implements ActionListener {
         // Add developers with their roles
         String[] developers = {
             "Sean Harvey Bantanos - Database Architect",
-            "MacDarren Louis Calimba - Frontend Developer",
+            "Mac Darren Louis Calimba - Frontend Developer",
             "Norman Enrico Eulin - Frontend Developer",
             "Rolf Genree Garces - Backend Developer",
             "Jhun Kenneth Iniego - Backend Developer",

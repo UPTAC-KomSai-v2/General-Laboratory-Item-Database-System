@@ -1,0 +1,15 @@
+==================  RECEIPT  ==================
+Date Returned: 2025-05-13 16:24:44.0
+  Borrow ID: 28
+    Items Returned:
+      [1x] Beaker (10 mL)
+    --> Item Condition: Good Condition
+    --> Late Fee: 0.00
+      [1x] Beaker (250 mL)
+    --> Item Condition: Good Condition
+    --> Late Fee: 0.00
+      [1x] Beaker (100 mL)
+    --> Item Condition: Good Condition
+    --> Late Fee: 0.00
+Total Late Fee: 0.00
+===============================================

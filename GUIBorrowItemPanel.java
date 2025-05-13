@@ -137,6 +137,97 @@ public class GUIBorrowItemPanel extends JPanel{
         // Show the initial "No Category is Selected" message
         showNoCategorySelectedMessage();
     }
+<<<<<<< Updated upstream
+=======
+
+    private JPanel createCategoryPanel() {
+        // The panel that contains the category buttons (BoxLayout for vertical stack)
+        categoryPanelContents = new JPanel();
+        categoryPanelContents.setLayout(new BoxLayout(categoryPanelContents, BoxLayout.Y_AXIS));
+        categoryPanelContents.setBackground(branding.maroon);
+        categoryPanelContents.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        categoryPanelContents.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel categoryPanel = new JPanel(new GridBagLayout());
+        categoryPanel.setBackground(branding.maroon);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        categoryPanel.add(categoryPanelContents, gbc);
+        categoryPanel.setPreferredSize(new Dimension(220, 0)); // Force fixed width like before
+        return categoryPanel;
+    }
+
+    public void loadCategoryPanel(List<String[]> categoryList) {
+        categoryPanelContents.removeAll();
+        ctrl.updateLoadingStatus("Initializing User Interface");
+        int steps = categoryList.size(); int currentStep = 1; int progress = 0;
+        int panelCount = 1;
+        for (String[] category : categoryList) {
+            System.out.printf("Loading Panel (%d/%d)\n",  panelCount++, categoryList.size());
+            int categoryId = Integer.parseInt(category[0]);
+            String categoryName = category[1];
+
+            JButton categoryButton = new JButton(categoryName);
+            categoryButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            categoryButton.setPreferredSize(new Dimension(200, 40));
+            categoryButton.setMaximumSize(new Dimension(200, 40));
+            categoryButton.setMinimumSize(new Dimension(200, 40));
+            categoryButton.setBackground(branding.lightergray);
+            categoryButton.setForeground(branding.maroon);
+            categoryButton.setFont(new Font("Arial", Font.PLAIN, 14));
+            categoryButton.setFocusPainted(false);
+            categoryButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+            categoryButton.setMargin(new Insets(0, 0, 0, 0));
+
+            categoryButton.putClientProperty("categoryId", categoryId);
+            
+            JPanel gridPanel = createGridPanelForCategory(categoryId);
+            categoryGridPanels.put(categoryId, gridPanel);
+
+            // Hover effects
+            categoryButton.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    categoryButton.setBackground(branding.lightgray);
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    if (getSelectedCategoryButton() != categoryButton) {
+                        categoryButton.setBackground(branding.lightergray);
+                    }
+                }
+            });
+
+            // Action listener
+            categoryButton.addActionListener(e -> {
+                JButton currentSelectedButton = getSelectedCategoryButton();
+                if (currentSelectedButton != null) {
+                    currentSelectedButton.setBackground(branding.lightergray);
+                }
+
+                categoryButton.setBackground(branding.gray);
+                setSelectedCategoryButton(categoryButton);
+
+                int selectedCategoryId = (int) categoryButton.getClientProperty("categoryId");
+                setCurrentCategoryID(selectedCategoryId);
+
+                showCategoryGridPanel(selectedCategoryId);
+            });
+
+            categoryPanelContents.add(categoryButton);
+            categoryPanelContents.add(Box.createVerticalStrut(10));
+            
+            progress = 33 + (currentStep * 33) / steps; currentStep++; // from 33% - 63%
+            ctrl.updateLoadingProgress(progress);
+        }
+
+        categoryPanelContents.revalidate();
+        categoryPanelContents.repaint();
+    }
+>>>>>>> Stashed changes
     
     private void initializeScreen2() {
         screen2 = new JPanel();
@@ -636,7 +727,23 @@ public class GUIBorrowItemPanel extends JPanel{
         
         // Add each item in the basket to the panel
         for (BasketItem item : basketItems) {
+<<<<<<< Updated upstream
             JLabel itemLabel = new JLabel(item.itemName);
+=======
+
+            int maxQty = Integer.MAX_VALUE;
+            String[][] categoryItems = ctrl.getItemsPerCategory(item.category);
+            for (String[] row : categoryItems) {
+                int id = Integer.parseInt(row[0]); // item_id
+                if (id == item.itemID) {
+                    maxQty = Integer.parseInt(row[3]); // available quantity
+                    break;
+                }
+            }
+            final int finalMaxQty = maxQty; // workaround for lambda access
+            JLabel itemLabel = new JLabel(ctrl.getItemNameWithUnit(item.itemID));
+            System.out.println("Item Label: " + itemLabel.getText());
+>>>>>>> Stashed changes
             JLabel quantityLabel = new JLabel(String.valueOf(item.itemQuantity));
 
             
@@ -656,6 +763,11 @@ public class GUIBorrowItemPanel extends JPanel{
             addBtn.setPreferredSize(new Dimension(50, 35));
             addBtn.setBackground(branding.maroon);
             addBtn.setForeground(branding.white);
+
+            // Disable add button initially if already at or above max quantity
+            if (item.itemQuantity >= maxQty) {
+                addBtn.setEnabled(false);
+            }
             
             JButton subtractBtn = new JButton("-");
             subtractBtn.setPreferredSize(new Dimension(50, 35));
@@ -697,10 +809,22 @@ public class GUIBorrowItemPanel extends JPanel{
             
             // Add button listener
             addBtn.addActionListener(e -> {
+<<<<<<< Updated upstream
                 BasketItem basketItem = basketItemsMap.get(itemName);
                 if (basketItem != null) {
                     basketItem.itemQuantity++;
                     updateBasketDisplayPanel(); // Rebuild the entire panel
+=======
+                BasketItem basketItem = basketItemsMap.get(itemID);
+                if (basketItem != null && basketItem.itemQuantity < finalMaxQty) {
+                    basketItem.itemQuantity++;
+                    quantityLabel.setText(String.valueOf(basketItem.itemQuantity));
+
+                    if (basketItem.itemQuantity >= finalMaxQty) {
+                        addBtn.setEnabled(false);
+                    }
+                    subtractBtn.setEnabled(true);
+>>>>>>> Stashed changes
                 }
             });
             
@@ -710,13 +834,26 @@ public class GUIBorrowItemPanel extends JPanel{
                 if (basketItem != null) {
                     if (basketItem.itemQuantity > 1) {
                         basketItem.itemQuantity--;
+<<<<<<< Updated upstream
+=======
+                        quantityLabel.setText(String.valueOf(basketItem.itemQuantity));
+
+                        if (basketItem.itemQuantity < finalMaxQty) {
+                            addBtn.setEnabled(true);
+                        }
+>>>>>>> Stashed changes
                     } else {
-                        // Remove the item completely
                         basketItems.remove(basketItem);
+<<<<<<< Updated upstream
                         basketItemsMap.remove(itemName);
                         
                         // Update the item's background color in the equipment panel
                         refreshEquipmentItemBackground(itemName);
+=======
+                        basketItemsMap.remove(itemID);
+                        updateBasketDisplayPanel();
+                        refreshEquipmentItemBackground(ctrl.getItemNameWithUnit(itemID));
+>>>>>>> Stashed changes
                     }
                     updateBasketDisplayPanel(); // Rebuild the entire panel
                 }
@@ -809,6 +946,7 @@ public class GUIBorrowItemPanel extends JPanel{
                     }
                 }
             });
+<<<<<<< Updated upstream
             
             // Action listener to update equipment panel when a category is selected
             categoryButton.addActionListener(e -> {
@@ -821,6 +959,213 @@ public class GUIBorrowItemPanel extends JPanel{
                 // Update equipment display with items from the selected category
                 updateEquipmentPanel(categoryIndex);
             });
+=======
+        });
+
+        formsRemoveBorrowerBtn.addActionListener(e -> {
+            if (borrowerPanels.size() > 1) {
+                // Get the index of the last borrower
+                int lastIndex = borrowerPanels.size() - 1;
+                
+                // Remove the last panel from the visual container
+                borrowerInfoInputPanel.remove(borrowerPanels.get(lastIndex));
+                
+                // Remove from our tracking lists
+                borrowerPanels.remove(lastIndex);
+                studentNumberFields.remove(lastIndex);
+                fullNameFields.remove(lastIndex);
+                emailAddressFields.remove(lastIndex);
+                contactNumberFields.remove(lastIndex);
+                degreeProgramComboBoxes.remove(lastIndex);
+                
+                // If we now have only one borrower, disable the remove button
+                if (borrowerPanels.size() <= 1) {
+                    formsRemoveBorrowerBtn.setEnabled(false);
+                }
+                
+                // Re-enable the add button since we're below the maximum
+                formsAddBorrowerBtn.setEnabled(true);
+                
+                // Update the UI
+                borrowerInfoInputPanel.revalidate();
+                borrowerInfoInputPanel.repaint();
+                formsAddBorrowerBtn.requestFocusInWindow();
+                SwingUtilities.invokeLater(() -> {
+                    courseOptions.updateUI();
+                    sectionOptions.updateUI();
+                    instructorOptions.updateUI();
+                });
+            }
+        });
+        
+        formsAddRemoveBorrowerPanel.add(formsAddBorrowerBtn);
+        formsAddRemoveBorrowerPanel.add(formsRemoveBorrowerBtn);
+
+        GridBagConstraints coursPanelGBC = new GridBagConstraints();
+        coursPanelGBC.anchor = GridBagConstraints.WEST;
+        coursPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+        coursPanelGBC.ipadx = 100;
+        coursPanelGBC.gridy = 0;
+        coursInfCoursePanel.add(coursInfCourseLabel, coursPanelGBC);
+        coursPanelGBC.gridy = 1;
+        coursInfCoursePanel.add(courseOptions, coursPanelGBC);
+
+        coursPanelGBC.gridy = 0;
+        coursInfSectionPanel.add(coursInfSectionLabel, coursPanelGBC);
+        coursPanelGBC.gridy = 1;
+        coursInfSectionPanel.add(sectionOptions, coursPanelGBC);
+
+        coursPanelGBC.gridy = 0;
+        coursInfInstructorPanel.add(coursInfInstructorLabel, coursPanelGBC);
+        coursPanelGBC.gridy = 1;
+        coursInfInstructorPanel.add(instructorOptions, coursPanelGBC);
+
+        GridBagConstraints formsCourseInfoInputPanelGBC = new GridBagConstraints();
+        formsCourseInfoInputPanelGBC.anchor = GridBagConstraints.WEST;
+        formsCourseInfoInputPanelGBC.insets = new Insets(10,10,10,0);
+        formsCourseInfoInputPanelGBC.weightx = 0.05;
+        formsCourseInfoInputPanelGBC.gridx = 0;
+        formsCourseInfoInputPanel.add(coursInfCoursePanel, formsCourseInfoInputPanelGBC);
+        formsCourseInfoInputPanelGBC.weightx = 0.05;
+        formsCourseInfoInputPanelGBC.gridx++;
+        formsCourseInfoInputPanel.add(coursInfSectionPanel, formsCourseInfoInputPanelGBC);
+        formsCourseInfoInputPanelGBC.weightx = 0.2;
+        formsCourseInfoInputPanelGBC.gridx++;
+        formsCourseInfoInputPanel.add(coursInfInstructorPanel, formsCourseInfoInputPanelGBC);
+
+        GridBagConstraints scrn3BorrowerInformationFormsPanelGBC = new GridBagConstraints();
+        scrn3BorrowerInformationFormsPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+        scrn3BorrowerInformationFormsPanelGBC.anchor = GridBagConstraints.WEST;
+        scrn3BorrowerInformationFormsPanelGBC.weightx = 1;
+        scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
+        scrn3BorrowerInformationFormsPanelGBC.gridy = 0;
+        scrn3BorrowerInformationFormsPanel.add(formsHeaderPanel, scrn3BorrowerInformationFormsPanelGBC);
+        scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
+        scrn3BorrowerInformationFormsPanelGBC.gridy++;
+        scrn3BorrowerInformationFormsPanel.add(formsBorrowerInfoInputPanel, scrn3BorrowerInformationFormsPanelGBC);
+        scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
+        scrn3BorrowerInformationFormsPanelGBC.gridy++;
+        scrn3BorrowerInformationFormsPanel.add(formsAddRemoveBorrowerPanel, scrn3BorrowerInformationFormsPanelGBC);
+        scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
+        scrn3BorrowerInformationFormsPanelGBC.gridy++;
+        scrn3BorrowerInformationFormsPanel.add(formsCourseInfoPanel, scrn3BorrowerInformationFormsPanelGBC);
+        scrn3BorrowerInformationFormsPanelGBC.weighty = 1;
+        scrn3BorrowerInformationFormsPanelGBC.gridy++;
+        scrn3BorrowerInformationFormsPanel.add(formsCourseInfoInputPanel, scrn3BorrowerInformationFormsPanelGBC);
+    
+        JScrollPane scrn3ScrollContentPanel = new JScrollPane(scrn3BorrowerInformationFormsPanel);
+        scrn3ScrollContentPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrn3ScrollContentPanel.getVerticalScrollBar().setUnitIncrement(16);
+        scrn3ScrollContentPanel.setBackground(branding.maroon);
+        scrn3ScrollContentPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, branding.maroon));
+        branding.reskinScrollBar(scrn3ScrollContentPanel, branding.maroon);
+    
+        JPanel scrn3MenuPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+        scrn3MenuPanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 33));
+        scrn3MenuPanel.setBackground(branding.lightgray);
+    
+        JButton screen3BackBtn = new JButton("Go Back");
+        JButton screen3BorrowBtn = new JButton("Borrow Now");
+    
+        screen3BackBtn.setPreferredSize(new Dimension(150, 30));
+        screen3BackBtn.setBackground(branding.maroon);
+        screen3BackBtn.setForeground(branding.white);
+        screen3BackBtn.addActionListener(e -> {
+            cardLayout.previous(GUIBorrowItemPanel.this);
+        });
+    
+        screen3BorrowBtn.setPreferredSize(new Dimension(150, 30));
+        screen3BorrowBtn.setBackground(branding.maroon);
+        screen3BorrowBtn.setForeground(branding.white);
+
+        screen3BorrowBtn.addActionListener(e -> {
+            Boolean borrowSuccessful = false;
+            if (ctrl.validateBorrowerInfoInputs(studentNumberFields, fullNameFields, emailAddressFields, contactNumberFields, degreeProgramComboBoxes)) {
+                int borrowID = ctrl.getLatestBorrowID() + 1;
+                System.out.println("Borrow ID: " + borrowID);
+                
+                borrowSuccessful = ctrl.insertBorrowerInfo(
+                        studentNumberFields.get(0).getText(),
+                        fullNameFields.get(0).getText(),
+                        emailAddressFields.get(0).getText(),
+                        contactNumberFields.get(0).getText(),
+                        degreeProgramComboBoxes.get(0).getSelectedItem().toString()
+                    );
+                // Insert borrower info once per student
+                for (int i = 0; i < studentNumberFields.size(); i++) {
+                    System.out.println("Inserting borrower info: " +
+                        studentNumberFields.get(i).getText() + ", " +
+                        fullNameFields.get(i).getText() + ", " +
+                        emailAddressFields.get(i).getText() + ", " +
+                        contactNumberFields.get(i).getText() + ", " +
+                        degreeProgramComboBoxes.get(i).getSelectedItem()
+                    );
+                }
+                // Save current basket incase borrowing goes wrong
+                List<BasketItem> basketItemsCache = basketItems;
+                // For each item, associate with all students
+                Timestamp ts = new Timestamp(System.currentTimeMillis());
+                ts.setNanos(0);
+                while (!basketItemsCache.isEmpty()) {
+                    int itemID = basketItemsCache.get(0).getItemID();
+                    System.out.println("Inserting borrow");
+            
+                    for (int i = 0; i < 1; i++) {
+                        System.out.println(studentNumberFields.size());
+                        String studentNumber = studentNumberFields.get(i).getText();
+                        String course = (String) courseOptions.getSelectedItem();
+                        String sectionName = (String) sectionOptions.getSelectedItem();
+                        int sectionID = ctrl.getSectionID(sectionName);
+            
+                        borrowSuccessful = ctrl.borrowItem(
+                            borrowID,
+                            itemID,
+                            studentNumber,
+                            course,
+                            sectionID,
+                            basketItemsCache.get(0).itemQuantity
+                        );
+                    }
+            
+                    basketItemsCache.remove(0);  // Remove processed item
+                }
+
+                if (borrowSuccessful){
+                    ctrl.generateBorrowReceipt(borrowID, ts, studentNumberFields, fullNameFields, ctrl.getQueries().getBorrowedItemsInfo(borrowID));
+                    JOptionPane.showMessageDialog(
+                    GUIBorrowItemPanel.this,
+                    "Transaction Successful!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
+                    );
+                    // Reset borrower input fields
+                    for (JTextField field : studentNumberFields) field.setText("");
+                    for (JTextField field : fullNameFields) field.setText("");
+                    for (JTextField field : emailAddressFields) field.setText("");
+                    for (JTextField field : contactNumberFields) field.setText("");
+                    for (JComboBox<String> box : degreeProgramComboBoxes) box.setSelectedIndex(0);
+                    courseOptions.setSelectedIndex(0);
+                    sectionOptions.setSelectedIndex(0);
+                    instructorOptions.setSelectedIndex(0);
+                    basketItems.clear();
+                    resetPanel();
+                    ctrl.refreshCachedData();
+                    mainBackButton.doClick();
+                }else{
+                    basketItems = basketItemsCache;
+                    JOptionPane.showMessageDialog(
+                    GUIBorrowItemPanel.this,
+                    "Transaction Unsuccessful!",
+                    "Failed",
+                    JOptionPane.WARNING_MESSAGE
+                    );
+                }
+            }
+        });
+        
+        scrn3MenuPanel.add(screen3BackBtn);
+        scrn3MenuPanel.add(screen3BorrowBtn);
+>>>>>>> Stashed changes
     
             categoryPanel.add(categoryButton);
             categoryPanel.add(Box.createVerticalStrut(10)); // Small space between buttons

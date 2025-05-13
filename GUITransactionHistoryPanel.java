@@ -1,9 +1,17 @@
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+<<<<<<< Updated upstream
+=======
+import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.List;
+>>>>>>> Stashed changes
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -48,6 +56,7 @@ public class GUITransactionHistoryPanel extends JPanel{
         scrn1TransactionContentPanel.setLayout(new BoxLayout(scrn1TransactionContentPanel, BoxLayout.Y_AXIS));
         scrn1TransactionContentPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
 
+<<<<<<< Updated upstream
         // Temporary data only. To be replaced by the final sql to java implementation 
         String[][] entries = {
             {"Borrow", "Roberto, Jack Cole", "202300000", "2:43 PM", "1 03 Feb 2023"},
@@ -63,6 +72,61 @@ public class GUITransactionHistoryPanel extends JPanel{
             {"Borrow", "Montes, Jhun Kenneth", "10030302", "11:22 AM", "11 05 Feb 2023"},
             {"Return", "Montes, Jhun Kenneth", "10030302", "3:22 PM", "12 05 Feb 2023"},
         };
+=======
+        JScrollPane scrollContentPanel = new JScrollPane(scrn1TransactionContentPanel);
+        scrollContentPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollContentPanel.getVerticalScrollBar().setUnitIncrement(16);
+        scrollContentPanel.setBorder(null);
+        branding.reskinScrollBar(scrollContentPanel, branding.gray);
+
+        // Add headers panel
+        JPanel headersPanel = createBorrowsHeadersPanel();
+
+        // Create toggle button panel
+        JPanel togglePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        togglePanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 28));
+        togglePanel.setBackground(branding.maroon);
+        togglePanel.setOpaque(false);
+
+        // Toggle transaction type button
+        toggleTransactionTypeButton = new JButton("View Returns");
+        toggleTransactionTypeButton.setPreferredSize(new Dimension(150, 30));
+        toggleTransactionTypeButton.setBackground(branding.maroon);
+        toggleTransactionTypeButton.setForeground(branding.lightergray);
+        toggleTransactionTypeButton.addActionListener(e -> toggleTransactionType());
+        togglePanel.add(toggleTransactionTypeButton);
+
+        // Back button
+        screen1BackButton.setPreferredSize(new Dimension(150, 30));
+        screen1BackButton.setBackground(branding.maroon);
+        screen1BackButton.setForeground(branding.lightergray);
+        togglePanel.add(screen1BackButton);
+
+        GridBagConstraints screen1GBC = new GridBagConstraints();
+        screen1GBC.fill = GridBagConstraints.BOTH;
+        screen1GBC.weightx = 1;
+        screen1GBC.weighty = 0.05; // Reduced to make room for headers
+        screen1GBC.gridx = 0;
+        screen1GBC.gridy = 0;
+        screen1GBC.insets = new Insets(0, 0, 10, 0); 
+        screen1.add(headersPanel, screen1GBC);
+
+        screen1GBC.weighty = 0.9;
+        screen1GBC.gridy = 1;
+        screen1.add(scrollContentPanel, screen1GBC);
+
+        screen1GBC.weighty = 0.01;
+        screen1GBC.gridy = 2;
+        screen1.add(togglePanel, screen1GBC);
+    }
+    
+    private JPanel createBorrowsHeadersPanel() {
+        JPanel headersPanel = new JPanel(new GridBagLayout());
+        headersPanel.setBackground(branding.maroon);
+
+        GridBagConstraints headerGBC = new GridBagConstraints();
+        headerGBC.fill = GridBagConstraints.HORIZONTAL;
+>>>>>>> Stashed changes
         
         for (String[] tuple: entries){
             int i = 0;
