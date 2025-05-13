@@ -22,6 +22,7 @@ public class Queries {
     private Statement stmt;
     private PreparedStatement ptmt;
     private int currentCategoryID = -1;
+    private int currentSessionID = -1;
     
     public Queries(){}
 
@@ -40,12 +41,33 @@ public class Queries {
             conn = DriverManager.getConnection(DB_URL, user, pass);
             stmt = conn.createStatement();
             connected = true;
+
+            String checkUserQuery = "SELECT username FROM staff_user WHERE username = ?";
+            PreparedStatement checkUserStmt = conn.prepareStatement(checkUserQuery);
+            checkUserStmt.setString(1, username);
+            ResultSet userResult = checkUserStmt.executeQuery();
+
+            if(userResult.next()){
+                String insertSessionQuery = "INSERT INTO staff_session (username, login_time) VALUES (?, CURRENT_TIMESTAMP)";
+                PreparedStatement sessionStmt = conn.prepareStatement(insertSessionQuery, Statement.RETURN_GENERATED_KEYS);
+                sessionStmt.setString(1, username);
+                sessionStmt.executeUpdate();
+
+                ResultSet generatedKeys = sessionStmt.getGeneratedKeys();
+                int sessionID = -1;
+                if(generatedKeys.next()){
+                    sessionId = generatedKeys.getInt(1);
+                }
+                this.currentSessionID = sessionID;
+                String updateLastLoginQuery = "UPDATE staff_user SET last_login = CURRENT_TIMESTAMP WHERE username = ?";
+                PreparedStatement updateStmt = conn.prepareStatement(updateLastLoginQuery);
+                updateStmt.setString(1, username);
+                updateStmt.executeUpdate();
+                connected = true;
+            }
         }catch(SQLException e){
             connected = false;
-            JOptionPane.showMessageDialog(mainFrame, 
-                "Login failed: " + e.getMessage(), 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(mainFrame, "Login failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
         return connected;
     }
