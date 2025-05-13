@@ -11,6 +11,8 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -104,7 +106,6 @@ public class GUIBorrowItemPanel extends JPanel{
         this.mainBackButton = backButton;
         this.cardLayout = new CardLayout();
         this.imageStorage = new ImageStorage();
-
 
         this.setLayout(cardLayout);
         this.setBackground(Color.WHITE);
@@ -892,7 +893,7 @@ public class GUIBorrowItemPanel extends JPanel{
         formsBorrowerInfoInputPanelGBC.weighty = 0.8;
         formsBorrowerInfoInputPanelGBC.gridy++;
         formsBorrowerInfoInputPanel.add(borrowerInfoInputScrollPanel, formsBorrowerInfoInputPanelGBC);
-    
+
         JPanel formsAddRemoveBorrowerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         formsAddRemoveBorrowerPanel.setOpaque(false);
 
@@ -1110,6 +1111,7 @@ public class GUIBorrowItemPanel extends JPanel{
         screen3BorrowBtn.setPreferredSize(new Dimension(150, 30));
         screen3BorrowBtn.setBackground(branding.maroon);
         screen3BorrowBtn.setForeground(branding.white);
+        
 
         screen3BorrowBtn.addActionListener(e -> {
             Boolean borrowSuccessful = false;
@@ -1228,18 +1230,50 @@ public class GUIBorrowItemPanel extends JPanel{
         resetInstructorOptions();
     }
 
+    private void autocompleteBorrowerInfo(
+        String studentNumber,
+        int index,
+        List<JTextField> fullNameFields,
+        List<JTextField> emailAddressFields,
+        List<JTextField> contactNumberFields,
+        List<JComboBox<String>> degreeProgramComboBoxes) {
+    
+    // Call the controller to get borrower info
+    List<String[]> borrowerInfo = ctrl.getBorrowerInfo(studentNumber);
+    
+    if (!borrowerInfo.isEmpty()) {
+        // Get the first result (assuming student IDs are unique)
+        String[] borrowerData = borrowerInfo.get(0);
+        
+        // Update the fields with the retrieved data
+        fullNameFields.get(index).setText(borrowerData[0]);
+        emailAddressFields.get(index).setText(borrowerData[1]);
+        contactNumberFields.get(index).setText(borrowerData[2]);
+        
+        // For the degree program combo box, select the matching option
+        String degreeProgram = borrowerData[3];
+        JComboBox<String> programComboBox = degreeProgramComboBoxes.get(index);
+        
+        for (int i = 0; i < programComboBox.getItemCount(); i++) {
+            if (programComboBox.getItemAt(i).equals(degreeProgram)) {
+                programComboBox.setSelectedIndex(i);
+                break;
+            }
+        }
+    } else {
+        fullNameFields.get(index).setText("");
+        emailAddressFields.get(index).setText("");
+        contactNumberFields.get(index).setText("");
+        degreeProgramComboBoxes.get(index).setSelectedIndex(0);
+    }
+}
     public void updateInstructorOptions(String selectedCourse, String selectedSection) {
         // Clear current items, keeping only the default first item
         instructorOptions.removeAllItems();
-        instructorOptions.addItem("Select an Instructor");
-        
+        //instructorOptions.addItem("Select an Instructor");
         // Get instructor data from controller instead of queries
         String[] instructorOptionsData = ctrl.getInstructorOptions(selectedCourse, selectedSection);
-        
-        // Skip first item which is already "Select an Instructor" 
-        for (int i = 1; i < instructorOptionsData.length; i++) {
-            instructorOptions.addItem(instructorOptionsData[i]);
-        }
+        instructorOptions.addItem(instructorOptionsData[1]);
     }
 
     public void updateSectionOptions(String selectedCourse) {
@@ -1302,6 +1336,23 @@ public class GUIBorrowItemPanel extends JPanel{
         String[] degreeProgram = {"Select an Option", "BS in Biology", "BS in Computer Science", "BS in Applied Mathematics"};
         JComboBox<String> degreeProgramOptions = new JComboBox<>(degreeProgram);
         
+        studentNumberTextField.addFocusListener(new FocusAdapter() {
+        @Override
+        public void focusLost(FocusEvent e) {
+            String studentNumber = studentNumberTextField.getText().trim();
+            if (!studentNumber.isEmpty()) {
+                int index = studentNumberFields.indexOf(studentNumberTextField);
+                autocompleteBorrowerInfo(
+                    studentNumber,
+                    index,
+                    fullNameFields,
+                    emailAddressFields,
+                    contactNumberFields,
+                    degreeProgramComboBoxes
+                );
+            }
+        }
+    });
 
         // Add all components to respective lists for later data retrieval
         studentNumberFields.add(studentNumberTextField);
@@ -1331,6 +1382,7 @@ public class GUIBorrowItemPanel extends JPanel{
         gbc.gridx++;
         gbc.fill = GridBagConstraints.VERTICAL;
         panel.add(degreeProgramOptions, gbc);
+
         return panel;
     }
 
@@ -1406,7 +1458,7 @@ public class GUIBorrowItemPanel extends JPanel{
         borrowerInfoInputPanel.add(newBorrowerPanel);
         borrowerInfoInputPanel.revalidate();
         borrowerInfoInputPanel.repaint();
-    
+        
         formsRemoveBorrowerBtn.setEnabled(borrowerPanels.size() > 1);
         formsAddBorrowerBtn.setEnabled(borrowerPanels.size() < 7);
     }

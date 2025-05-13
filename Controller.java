@@ -26,6 +26,7 @@ public class Controller {
     private List<String[]> allBorrowRecords;
     private List<String[]> allTransactionHistory;
     private List<String[]> categoryList;
+    private List<String[]> borrowerInfo;
     private Map<Integer, List<String>> itemsByCategory; 
     private Map<Integer, Integer> itemQuantityMap;
     private Map<String, Integer> itemIDMap; // Maps item name with unit to item ID
@@ -132,6 +133,10 @@ public class Controller {
             System.out.println("DATABASE DATA RETRIEVED SUCCESSFULLY");
     }
 
+    public List<String[]> getBorrowerInfo(String borrowerID){
+        this.borrowerInfo = queries.autoCompleteForm(borrowerID);
+        return this.borrowerInfo;
+    }
     // Cache category data for quick access
      private void loadData() {
         // Load all categories into memory
