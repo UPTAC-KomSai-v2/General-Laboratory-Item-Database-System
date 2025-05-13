@@ -359,20 +359,33 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         JLabel scrn2quantityLabel = new JLabel("Quantity");
         JLabel scrn2ItemNameLabel = new JLabel("Item Name");
         JLabel scrn2UnitLabel = new JLabel("Unit");
+        JLabel scrn2DateBorrowedLabel = new JLabel("Date Borrowed");
+        JLabel scrn2ExpectedReturnLabel = new JLabel("Expected Return Date");
         scrn2quantityLabel.setForeground(branding.white);
         scrn2ItemNameLabel.setForeground(branding.white);
         scrn2UnitLabel.setForeground(branding.white);
+        scrn2DateBorrowedLabel.setForeground(branding.white);
+        scrn2ExpectedReturnLabel.setForeground(branding.white);
         GridBagConstraints scrn2TupleHeaderPanelGBC = new GridBagConstraints();
         scrn2TupleHeaderPanelGBC.fill = GridBagConstraints.HORIZONTAL;
-        scrn2TupleHeaderPanelGBC.weightx = 0.03;
+        scrn2TupleHeaderPanelGBC.weightx = 0.1;
         scrn2TupleHeaderPanelGBC.gridx = 0;
         scrn2TupleHeaderPanel.add(scrn2quantityLabel, scrn2TupleHeaderPanelGBC);
-        scrn2TupleHeaderPanelGBC.weightx = 0.190;
+        scrn2TupleHeaderPanelGBC.weightx = 0.1;
         scrn2TupleHeaderPanelGBC.gridx++;
         scrn2TupleHeaderPanel.add(scrn2ItemNameLabel, scrn2TupleHeaderPanelGBC);
-        scrn2TupleHeaderPanelGBC.weightx = 0.6;
+        scrn2TupleHeaderPanelGBC.weightx = 0.1;
         scrn2TupleHeaderPanelGBC.gridx++;
         scrn2TupleHeaderPanel.add(scrn2UnitLabel, scrn2TupleHeaderPanelGBC);
+        scrn2TupleHeaderPanelGBC.weightx = 0.2;
+        scrn2TupleHeaderPanelGBC.gridx++;
+        scrn2TupleHeaderPanel.add(scrn2DateBorrowedLabel, scrn2TupleHeaderPanelGBC);
+        scrn2TupleHeaderPanelGBC.weightx = 0.2;
+        scrn2TupleHeaderPanelGBC.gridx++;
+        scrn2TupleHeaderPanel.add(scrn2ExpectedReturnLabel, scrn2TupleHeaderPanelGBC);
+        scrn2TupleHeaderPanelGBC.weightx = 0.30;
+        scrn2TupleHeaderPanelGBC.gridx++;
+        scrn2TupleHeaderPanel.add(new JLabel(), scrn2TupleHeaderPanelGBC);
 
         GridBagConstraints screen2GBC = new GridBagConstraints();
         screen2GBC.fill = GridBagConstraints.BOTH;
@@ -438,7 +451,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
             quantityPanel.setLayout(new BorderLayout());
             itemPanel.setLayout(new BorderLayout());
             unitPanel.setLayout(new BorderLayout());
-            dateBorrowedPanel.setLayout(new GridBagLayout());
+            dateBorrowedPanel.setLayout(new BorderLayout());
             expectedReturPanel.setLayout(new BorderLayout());
             returnPanel.setLayout(new GridBagLayout());
 
@@ -473,29 +486,29 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
             tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
             tupleInfoPanelGBC.gridx = 0;
             tupleInfoPanelGBC.ipadx = 10;
-            tupleInfoPanelGBC.weightx = 0.05;
+            tupleInfoPanelGBC.weightx = 0.1;
             tupleInfoPanel.add(quantityPanel, tupleInfoPanelGBC);
             tupleInfoPanelGBC.gridx++;
             tupleInfoPanelGBC.ipadx = 10;
-            tupleInfoPanelGBC.weightx = 0.3;
+            tupleInfoPanelGBC.weightx = 0.2;
             tupleInfoPanel.add(itemPanel, tupleInfoPanelGBC);
             tupleInfoPanelGBC.gridx++;
             tupleInfoPanelGBC.ipadx = 10;
-            tupleInfoPanelGBC.weightx = 0.3;
+            tupleInfoPanelGBC.weightx = 0.1;
             tupleInfoPanel.add(unitPanel, tupleInfoPanelGBC);
             tupleInfoPanelGBC.gridx++;
-            tupleInfoPanelGBC.ipadx = 10;
-            tupleInfoPanelGBC.weightx = 0.3;
+            tupleInfoPanelGBC.ipadx = 50;
+            tupleInfoPanelGBC.weightx = 0.25;
             tupleInfoPanel.add(dateBorrowedPanel, tupleInfoPanelGBC);
             tupleInfoPanelGBC.gridx++;
-            tupleInfoPanelGBC.ipadx = 10;
-            tupleInfoPanelGBC.weightx = 0.3;
+            tupleInfoPanelGBC.ipadx = 50;
+            tupleInfoPanelGBC.weightx = 0.2;
             tupleInfoPanel.add(expectedReturPanel, tupleInfoPanelGBC);
             tupleInfoPanelGBC.fill = GridBagConstraints.NONE;
             tupleInfoPanelGBC.anchor = GridBagConstraints.EAST;
             tupleInfoPanelGBC.gridx++;
             tupleInfoPanelGBC.ipadx = 100;
-            tupleInfoPanelGBC.weightx = 0.2;
+            tupleInfoPanelGBC.weightx = 0.15;
             tupleInfoPanel.add(returnPanel, tupleInfoPanelGBC);
 
             returnItemBtn.addActionListener(new ActionListener() {
@@ -596,7 +609,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
                         Timestamp ts = new Timestamp(System.currentTimeMillis());
                         ts.setNanos(0);
                         ctrl.getQueries().updateActualReturnDate(selectedItems, ts, entries[1]);
-                        //ctrl.generateReturnReceipt(Integer.parseInt(selectedBorrowerIds.get(0)), ts);
+                        ctrl.generateReturnReceipt(selectedItems, ts);
 
                         for (JButton btn : returnButtons) {
                             btn.setBackground(branding.maroon);
@@ -663,11 +676,10 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
     private void printHashMap(HashMap<String, List<Integer>> map) {
         System.out.println("Selected Borrow ID's: ");
         for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {
-            String student = entry.getKey();
-            List<Integer> scores = entry.getValue();
-            System.out.println("Student: " + student);
-            for (Integer scoreEntry : scores) {
-                System.out.println("  Subject: " + student + ", Score: " + scoreEntry);
+            String borrowid = entry.getKey();
+            List<Integer> itemList = entry.getValue();
+            for (Integer itemid : itemList) {
+                System.out.println("  Borrow ID: " + borrowid + ", Item ID: " + itemid);
             }
         }
     }

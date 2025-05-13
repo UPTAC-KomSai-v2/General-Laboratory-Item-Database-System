@@ -442,7 +442,7 @@ public class Controller {
             //     rowExpectedReturnDate.equals(expectedReturnDate)) {
             if (rowBorrowerId.equals(borrowerID)) {
                 // Convert to String[] directly
-                filteredList.add(new String[] { row[0], row[1], row[2], row[3], row[4] });
+                filteredList.add(new String[] { row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7] });
             }
         }
         return filteredList;
@@ -565,23 +565,28 @@ public class Controller {
     }
 
     // =======================================================
-    // =============== Generate borrow receipt ===============
+    // =============== Generate return receipt ===============
     // =======================================================
-    public void generateReturnReceipt(int borrowID, Timestamp ts) {
+    public void generateReturnReceipt(HashMap<String, List<Integer>> map, Timestamp ts) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
         String tS = sdf.format(ts);
-        String fileName = "Return Receipts\\ReturnReceipt-BorrowID_" + borrowID + "-" + tS + ".txt";
+        String fileName = "Return Receipts\\ReturnReceipt_" + tS + ".txt";
+        double lateFee = 0.0;
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
             writer.write("==================  RECEIPT  ==================\n");
-            writer.write("Borrow ID: " + borrowID + "\n");
             writer.write("Date Returned: " + ts + "\n");
-            writer.write("Items Returned:\n");
-            List<String> itemList = queries.getReturnedItems(borrowID, ts);
-            for (int i = 0; i < itemList.size() - 1; i++) {
-                writer.write("  " + itemList.get(i) + "\n");
+            for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {
+                String borrowID = entry.getKey();
+                writer.write("  Borrow ID: " + borrowID + "\n");
+                writer.write("    Items Returned:\n");
+                List<String> itemList = queries.getReturnedItems(Integer.parseInt(borrowID), ts);
+                for (int i = 0; i < itemList.size() - 1; i++) {
+                    writer.write("      " + itemList.get(i) + "\n");
+                }
+                lateFee += Double.parseDouble(itemList.get(itemList.size() - 1));
             }
-            writer.write("Total Late Fee: " + itemList.get(itemList.size() - 1) + "\n");
+            writer.write("Total Late Fee: " + String.format("%.2f", lateFee) + "\n");
 
             writer.write("===============================================");
 
