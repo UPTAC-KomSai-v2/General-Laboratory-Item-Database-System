@@ -1,9 +1,0 @@
-==================  RECEIPT  ==================
-Date Returned: 2025-05-13 16:06:21.0
-  Borrow ID: 22
-    Items Returned:
-      [1x] aquflas (100ml)
-    --> Item Condition: Good Condition
-    --> Late Fee: 0.00
-Total Late Fee: 0.00
-===============================================

@@ -1,9 +1,0 @@
-==================  RECEIPT  ==================
-Borrow ID: 12
-Date Returned: 2025-05-12 23:58:15.0
-Items Returned:
-  [1x] Centrifuge Tube
-    --> Item Condition: Good Condition
-    --> Late Fee: 0.00
-Total Late Fee: 0.00
-===============================================

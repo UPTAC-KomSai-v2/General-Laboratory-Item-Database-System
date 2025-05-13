@@ -1,9 +1,0 @@
-==================  RECEIPT  ==================
-Date Returned: 2025-05-13 15:56:44.0
-  Borrow ID: 2
-    Items Returned:
-      [1x] Culture Flask
-    --> Item Condition: Good Condition
-    --> Late Fee: 0.00
-Total Late Fee: 0.00
-===============================================

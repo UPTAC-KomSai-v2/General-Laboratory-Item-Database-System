@@ -1,9 +1,0 @@
-==================  RECEIPT  ==================
-Date Returned: 2025-05-13 17:08:36.0
-  Borrow ID: 31
-    Items Returned:
-      [2x] Hot Plate
-    --> Item Condition: Good Condition
-    --> Late Fee: 0.00
-Total Late Fee: 0.00
-===============================================
