@@ -22,7 +22,7 @@ public class Queries {
     private Statement stmt;
     private PreparedStatement ptmt;
     private int currentCategoryID = -1;
-    private int currentLogID = -1;
+    private int currentSessionID = -1;
     
     public Queries(){}
 
@@ -40,7 +40,6 @@ public class Queries {
         try{
             conn = DriverManager.getConnection(DB_URL, user, pass);
             stmt = conn.createStatement();
-            connected = true;
 
             String checkUserQuery = "SELECT username FROM staff_user WHERE username = ?";
             PreparedStatement checkUserStmt = conn.prepareStatement(checkUserQuery);
@@ -48,21 +47,21 @@ public class Queries {
             ResultSet userResult = checkUserStmt.executeQuery();
 
             if(userResult.next()){
-                String insertSessionQuery = "INSERT INTO staff_session (username, login_time) VALUES (?, CURRENT_TIMESTAMP)";
-                PreparedStatement sessionStmt = conn.prepareStatement(insertSessionQuery, Statement.RETURN_GENERATED_KEYS);
-                sessionStmt.setString(1, username);
-                sessionStmt.executeUpdate();
-
-                ResultSet generatedKeys = sessionStmt.getGeneratedKeys();
-                int sessionID = -1;
-                if(generatedKeys.next()){
-                    sessionId = generatedKeys.getInt(1);
-                }
-                this.currentLogID = sessionID;
                 String updateLastLoginQuery = "UPDATE staff_user SET last_login = CURRENT_TIMESTAMP WHERE username = ?";
                 PreparedStatement updateStmt = conn.prepareStatement(updateLastLoginQuery);
                 updateStmt.setString(1, username);
                 updateStmt.executeUpdate();
+
+                String loginQuery = "INSERT INTO staff_activity_log (username, activity_type) VALUES (?, 'login')";
+                PreparedStatement logStmt = conn.prepareStatement(loginQuery, Statement.RETURN_GENERATED_KEYS);
+                logStmt.setString(1, username);
+                logStmt.executeUpdate();
+
+                ResultSet generatedKeys = logStmt.getGeneratedKeys();
+                int sessionID = -1;
+                if(generatedKeys.next()) sessionID = generatedKeys.getInt(1);
+                this.currentSessionID = sessionID;
+                
                 connected = true;
             }
         }catch(SQLException e){
