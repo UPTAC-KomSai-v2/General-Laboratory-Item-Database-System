@@ -24,6 +24,7 @@ public class Queries {
     private Statement stmt;
     private PreparedStatement ptmt;
     private int currentCategoryID = -1;
+    private int logID = -1;
     
     public Queries(){}
 
@@ -47,7 +48,6 @@ public class Queries {
             logInStmt.setString(1, username);
             logInStmt.executeUpdate();
 
-            logStaffActivity("login", null, null, null);
             connected = true;
         }catch(SQLException e){
             connected = false;
@@ -482,7 +482,6 @@ public class Queries {
             ptmt.setTimestamp(7, ts);
             ptmt.executeUpdate();
             conn.commit();
-            logStaffActivity("borrow_processed", borrowID, itemID, borrowerID);
             success = true;
         } catch (SQLException e) {
             success = false;
@@ -690,7 +689,6 @@ public class Queries {
             ptmt.executeUpdate();
 
             conn.commit();
-            logStaffActivity("item_updated", null, null, null);
             conn.setAutoCommit(true);
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         }catch(SQLException e){
@@ -714,7 +712,6 @@ public class Queries {
             ptmt.executeUpdate();
 
             conn.commit();
-            logStaffActivity("item_updated", null, itemID, null);
             conn.setAutoCommit(true);
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         }catch(SQLException e){
@@ -1067,29 +1064,5 @@ public class Queries {
         }
 
         return itemInfo;
-    }
-
-    private void logStaffActivity(String activityType, Integer borrowId, Integer itemId, String borrowerId){        
-        String logQuery = "INSERT INTO staff_activity_log(username, activity_type, borrow_id, item_id, borrower_id) VALUES(?, ?, ?, ?, ?)";
-        try{
-            PreparedStatement logStmt = conn.prepareStatement(logQuery);
-            logStmt.setString(1, user);
-            logStmt.setString(2, activityType);
-            
-            if(borrowId != null) logStmt.setInt(3, borrowId);
-            else logStmt.setNull(3, java.sql.Types.INTEGER);
-            
-            if(itemId != null) logStmt.setInt(4, itemId);
-            else logStmt.setNull(4, java.sql.Types.INTEGER);
-            
-            if(borrowerId != null) logStmt.setString(5, borrowerId);
-            else logStmt.setNull(5, java.sql.Types.VARCHAR);
-            
-            logStmt.executeUpdate();
-            conn.commit();
-            logStmt.close();
-        }catch(SQLException e){
-            System.err.println("Failed to log staff activity: " + e.getMessage());
-        }
     }
 }
