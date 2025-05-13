@@ -1,0 +1,12 @@
+==================  RECEIPT  ==================
+Date Returned: 2025-05-13 17:02:20.0
+  Borrow ID: 30
+    Items Returned:
+      [6x] Centrifuge Tube
+    --> Item Condition: Good Condition
+    --> Late Fee: 0.00
+      [2x] Multimeter
+    --> Item Condition: Good Condition
+    --> Late Fee: 0.00
+Total Late Fee: 0.00
+===============================================

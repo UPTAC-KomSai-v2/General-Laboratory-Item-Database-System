@@ -1,0 +1,9 @@
+==================  RECEIPT  ==================
+Date Returned: 2025-05-13 16:56:09.0
+  Borrow ID: 14
+    Items Returned:
+      [1x] hello (er)
+    --> Item Condition: Good Condition
+    --> Late Fee: 0.00
+Total Late Fee: 0.00
+===============================================

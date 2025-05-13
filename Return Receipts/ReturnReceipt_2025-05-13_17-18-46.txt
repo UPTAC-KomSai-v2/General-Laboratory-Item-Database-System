@@ -1,0 +1,12 @@
+==================  RECEIPT  ==================
+Date Returned: 2025-05-13 17:18:46.0
+  Borrow ID: 10
+    Items Returned:
+      [1x] Electrophoresis Apparatus
+    --> Item Condition: Good Condition
+    --> Late Fee: 0.00
+      [1x] Multimeter
+    --> Item Condition: Good Condition
+    --> Late Fee: 0.00
+Total Late Fee: 0.00
+===============================================

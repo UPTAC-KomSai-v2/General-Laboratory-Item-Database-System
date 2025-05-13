@@ -1,0 +1,17 @@
+Legend: ☑ - Done, ☐ - Task
+
+
+
+ TO DO LIST FOR GLIMS PROJECT
+☑  Fix Program continuity errors
+☑  Update GUIBorrowItemPanel integration with controller
+☑  Update GUIBorrowerListPanel integration with controller
+☐  Update GUIUpdateInventoryPanel integration with controller
+☑  Update GUITransactionHistoryPanel integration with controller
+☐  Update borrower list query (remove duplicated transactions per person)
+☐  Update transacion history panel to include final attributes and add label headers
+☐  Update update inventory panel to have remove selection tick box
+☐  Update return buttons query (waiting for jhun)
+☐  Create a loading icon/screen pop up or etc
+☐  Category buttons remain dark even after resetPanel
+☐  Borrow Now button error "SQL Error: Field 'full_name' doesn't have a default value"
