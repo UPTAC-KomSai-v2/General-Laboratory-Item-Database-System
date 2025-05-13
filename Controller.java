@@ -431,24 +431,23 @@ public class Controller {
     // =================================================
 
     // get items borrowed by specific borrower
-    public List<String[]> getItemsBorrowedByBorrower(String borrowerID, String dateBorrowed, String expectedReturnDate) {
+    public List<String[]> getItemsBorrowedByBorrower(String borrowerID) {
         List<String[]> filteredList = new ArrayList<>();
 
         for (String[] row : allBorrowRecords) {
             String rowBorrowerId = row[5]; // borrower_id
-            String rowDateBorrowed = row[6]; // date_borrowed
-            String rowExpectedReturnDate = row[7]; // expected_return_date
 
-            if (rowBorrowerId.equals(borrowerID) &&
-                rowDateBorrowed.equals(dateBorrowed) &&
-                rowExpectedReturnDate.equals(expectedReturnDate)) {
-                
+            // if (rowBorrowerId.equals(borrowerID) &&
+            //     rowDateBorrowed.equals(dateBorrowed) &&
+            //     rowExpectedReturnDate.equals(expectedReturnDate)) {
+            if (rowBorrowerId.equals(borrowerID)) {
                 // Convert to String[] directly
                 filteredList.add(new String[] { row[0], row[1], row[2], row[3], row[4] });
             }
         }
         return filteredList;
     }
+
 
     // Getters
     public List<String[]> getBorrowerListEntries(){
@@ -500,6 +499,7 @@ public class Controller {
 
     // Remove item from database
     public void removeItemFromDatabase(int itemId) {
+        
         queries.removeItemFromDatabase(itemId);
         // Refresh cached data after removal
         refreshCachedData();

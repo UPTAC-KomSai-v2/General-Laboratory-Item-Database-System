@@ -1,10 +1,10 @@
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Font;
-import java.awt.Component;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +66,7 @@ public class GUITransactionHistoryPanel extends JPanel {
         JPanel headersPanel = createBorrowsHeadersPanel();
 
         // Create toggle button panel
-        JPanel togglePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+        JPanel togglePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         togglePanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 28));
         togglePanel.setBackground(branding.maroon);
         togglePanel.setOpaque(false);
@@ -94,11 +94,11 @@ public class GUITransactionHistoryPanel extends JPanel {
         screen1GBC.insets = new Insets(0, 0, 10, 0); 
         screen1.add(headersPanel, screen1GBC);
 
-        screen1GBC.weighty = 0.85;
+        screen1GBC.weighty = 0.9;
         screen1GBC.gridy = 1;
         screen1.add(scrollContentPanel, screen1GBC);
 
-        screen1GBC.weighty = 0.1;
+        screen1GBC.weighty = 0.01;
         screen1GBC.gridy = 2;
         screen1.add(togglePanel, screen1GBC);
     }

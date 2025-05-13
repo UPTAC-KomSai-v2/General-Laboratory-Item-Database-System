@@ -12,7 +12,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -33,8 +36,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
     private List<JButton> returnButtons = new ArrayList<>();
     private List<String> borrowIds = new ArrayList<>();
     private List<String> borrowerIds = new ArrayList<>();
-    private List<String> selectedBorrowerIds = new ArrayList<>();
-    private List<Integer> selectedBorrowItemIds = new ArrayList<>();
+    private HashMap<String, List<Integer>> selectedItems = new HashMap<>();
     private String[] borrowerInfo;
 
     public GUIBorrowerListPanel(Controller ctrl, Branding branding, JButton blstBackBtn){
@@ -95,8 +97,8 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         
         JLabel tupleNameLabel = new JLabel("Borrower Name");
         JLabel tupleStudentIdLabel = new JLabel("Student ID");
-        JLabel tupleBorrowDateLabel = new JLabel("Borrow Date");
-        JLabel tupleExpectedReturnLabel = new JLabel("Expected Return Date");
+        JLabel tupleBorrowDateLabel = new JLabel("Degree Program");
+        JLabel tupleExpectedReturnLabel = new JLabel("");
         tupleNameLabel.setForeground(branding.maroon);
         tupleStudentIdLabel.setForeground(branding.maroon);
         tupleBorrowDateLabel.setForeground(branding.maroon);
@@ -139,19 +141,17 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         scrn1BorrowerListContentPanel.removeAll();
     
         for (String[] tuple : entries) {
-            int i = 0;
-            
-            JLabel nameLabel = new JLabel(tuple[i++]);
-            JLabel studentIdLabel = new JLabel(tuple[i++]);
-            JLabel dateBorrowedLabel = new JLabel(branding.reformatDateLabel(tuple[i++]));
-            JLabel expectedDateLabel = new JLabel(branding.reformatDateLabel(tuple[i++]));
+            JLabel nameLabel = new JLabel(tuple[0]);
+            JLabel studentIdLabel = new JLabel(tuple[1]);
+            JLabel dateBorrowedLabel = new JLabel(tuple[2]);
+            JLabel expectedDateLabel = new JLabel("");
             JButton viewButton = new JButton("View");
             viewButton.setPreferredSize(new Dimension(70, 30));
 
             viewButton.addActionListener(e ->{
                         cardLayout.next(GUIBorrowerListPanel.this);
-                        borrowerInfo = new String[]{tuple[0],tuple[1],tuple[4],tuple[5] + " - " + tuple[6]};
-                        refreshEntries2(borrowerInfo, ctrl.getItemsBorrowedByBorrower(tuple[1],tuple[2],tuple[3]));
+                        borrowerInfo = new String[]{tuple[0],tuple[1],tuple[2],null};
+                        refreshEntries2(borrowerInfo, ctrl.getItemsBorrowedByBorrower(tuple[1]));
             });
 
             nameLabel.setForeground(branding.white);
@@ -255,7 +255,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         scrn2BorrowerInfoPanel.setLayout(new GridBagLayout());
         scrn2BorrowerInfoPanel.setOpaque(false);
         int i = 0;
-        borrowerLabel = new JLabel("Borrower: ");
+        borrowerLabel = new JLabel("BORROWER   ");
         borrowerNameLabel = new JLabel(borrowerInfo[i++]);
         studentIdLabel = new JLabel(borrowerInfo[i++]);
         dateBorrowedLabel = new JLabel(borrowerInfo[i++]);
@@ -333,7 +333,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         scrn2MenuPanel.setOpaque(true);
 
         screen2BackBtn = new JButton("Go Back");
-        screen2ReturnAllBtn = new JButton("Complete All");
+        screen2ReturnAllBtn = new JButton("Return All");
         screen2ConfirmBtn = new JButton("Confirm");
 
         screen2BackBtn.setPreferredSize(new Dimension(150, 30));
@@ -396,30 +396,31 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         returnButtons.clear();
         borrowIds.clear();
         borrowerIds.clear();
-        selectedBorrowerIds.clear();
-        selectedBorrowItemIds.clear();
+        selectedItems.clear();
 
         int i = 0;
         borrowerNameLabel.setText(entries[i++]);
         studentIdLabel.setText(entries[i++]);
-        dateBorrowedLabel.setText(entries[i++]);
-        expectedDateLabel.setText(entries[i++]);
+        dateBorrowedLabel.setText("");
+        expectedDateLabel.setText("");
 
         for (String[] tuple: items){
-            int j = 0;
-
-            JLabel quantityLabel = new JLabel(tuple[j++] + "x");
-            JLabel itemLabel = new JLabel(tuple[j++]);
+            JLabel quantityLabel = new JLabel(tuple[0] + "x");
+            JLabel itemLabel = new JLabel(tuple[1]);
             JLabel unitLabel = new JLabel();
-            if(tuple[j] != null) {
-                unitLabel.setText(tuple[j++]);
+            if(tuple[2] != null) {
+                unitLabel.setText(tuple[2]);
             } else {
                 unitLabel.setText("No unit");
             }
+            JLabel dateBorrowLabel = new JLabel(branding.reformatDateLabel(tuple[6]));
+            JLabel expectedReturnLabel = new JLabel(branding.reformatDateLabel(tuple[7]));
 
             quantityLabel.setForeground(branding.maroon);
             itemLabel.setForeground(branding.maroon);
             unitLabel.setForeground(branding.maroon);
+            dateBorrowLabel.setForeground(branding.maroon);
+            expectedReturnLabel.setForeground(branding.maroon);
 
             JButton returnItemBtn = new JButton("Return");
             returnItemBtn.setPreferredSize(new Dimension(100, 35));
@@ -430,26 +431,36 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
             JPanel quantityPanel = new JPanel();
             JPanel itemPanel = new JPanel();
             JPanel unitPanel = new JPanel();
+            JPanel dateBorrowedPanel = new JPanel();
+            JPanel expectedReturPanel = new JPanel();
             JPanel returnPanel = new JPanel();
 
             quantityPanel.setLayout(new BorderLayout());
             itemPanel.setLayout(new BorderLayout());
             unitPanel.setLayout(new BorderLayout());
+            dateBorrowedPanel.setLayout(new GridBagLayout());
+            expectedReturPanel.setLayout(new BorderLayout());
             returnPanel.setLayout(new GridBagLayout());
 
             quantityPanel.setPreferredSize(new Dimension(10, 70));
             itemPanel.setPreferredSize(new Dimension(10, 70));
             unitPanel.setPreferredSize(new Dimension(10, 70));
+            dateBorrowedPanel.setPreferredSize(new Dimension(10, 70));
+            expectedReturPanel.setPreferredSize(new Dimension(10, 70));
             returnPanel.setPreferredSize(new Dimension(10, 70));
             
             quantityPanel.setOpaque(false);
             itemPanel.setOpaque(false);
             unitPanel.setOpaque(false);
+            dateBorrowedPanel.setOpaque(false);
+            expectedReturPanel.setOpaque(false);
             returnPanel.setOpaque(false);
 
             quantityPanel.add(quantityLabel, BorderLayout.WEST);
             itemPanel.add(itemLabel, BorderLayout.WEST);
             unitPanel.add(unitLabel, BorderLayout.WEST);
+            dateBorrowedPanel.add(dateBorrowLabel, BorderLayout.WEST);
+            expectedReturPanel.add(expectedReturnLabel, BorderLayout.WEST);
             returnPanel.add(returnItemBtn);
 
             JPanel tupleInfoPanel = new JPanel();
@@ -461,17 +472,25 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
             GridBagConstraints tupleInfoPanelGBC = new GridBagConstraints();
             tupleInfoPanelGBC.fill = GridBagConstraints.HORIZONTAL;
             tupleInfoPanelGBC.gridx = 0;
-            tupleInfoPanelGBC.ipadx = 20;
+            tupleInfoPanelGBC.ipadx = 10;
             tupleInfoPanelGBC.weightx = 0.05;
             tupleInfoPanel.add(quantityPanel, tupleInfoPanelGBC);
             tupleInfoPanelGBC.gridx++;
-            tupleInfoPanelGBC.ipadx = 20;
+            tupleInfoPanelGBC.ipadx = 10;
             tupleInfoPanelGBC.weightx = 0.3;
             tupleInfoPanel.add(itemPanel, tupleInfoPanelGBC);
             tupleInfoPanelGBC.gridx++;
-            tupleInfoPanelGBC.ipadx = 20;
+            tupleInfoPanelGBC.ipadx = 10;
             tupleInfoPanelGBC.weightx = 0.3;
             tupleInfoPanel.add(unitPanel, tupleInfoPanelGBC);
+            tupleInfoPanelGBC.gridx++;
+            tupleInfoPanelGBC.ipadx = 10;
+            tupleInfoPanelGBC.weightx = 0.3;
+            tupleInfoPanel.add(dateBorrowedPanel, tupleInfoPanelGBC);
+            tupleInfoPanelGBC.gridx++;
+            tupleInfoPanelGBC.ipadx = 10;
+            tupleInfoPanelGBC.weightx = 0.3;
+            tupleInfoPanel.add(expectedReturPanel, tupleInfoPanelGBC);
             tupleInfoPanelGBC.fill = GridBagConstraints.NONE;
             tupleInfoPanelGBC.anchor = GridBagConstraints.EAST;
             tupleInfoPanelGBC.gridx++;
@@ -484,16 +503,20 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
                 public void actionPerformed(ActionEvent e) {
                     if(returnItemBtn.getBackground().equals(branding.maroon)) {
                         System.out.println("Borrow ID: " + tuple[4] + " --> Enabled");
-                        returnItemBtn.setBackground(branding.darkermaroon);
-                        selectedBorrowerIds.add(tuple[4]);
-                        selectedBorrowItemIds.add(Integer.parseInt(tuple[3]));
-                        printSelectedBorrowID(selectedBorrowerIds, selectedBorrowItemIds);
+                        returnItemBtn.setBackground(Color.YELLOW);
+                        selectedItems.computeIfAbsent(tuple[4], k -> new ArrayList<>()).add(Integer.parseInt(tuple[3]));
+                        printHashMap(selectedItems);
                     } else {
                         System.out.println("Borrow ID: " + tuple[4] + " --> Disabled");
                         returnItemBtn.setBackground(branding.maroon);
-                        selectedBorrowerIds.remove(tuple[4]);
-                        selectedBorrowItemIds.remove(Integer.valueOf(Integer.parseInt(tuple[3])));
-                        printSelectedBorrowID(selectedBorrowerIds, selectedBorrowItemIds);
+                        List<Integer> list = selectedItems.get(tuple[4]);
+                        if (list != null) {
+                            list.remove(Integer.valueOf(tuple[3]));
+                            if (list.isEmpty()) {
+                                selectedItems.remove(tuple[4]);
+                            }
+                        }
+                        printHashMap(selectedItems);
                     }
 
                     boolean allSameColor = true;
@@ -529,34 +552,31 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(screen2ReturnAllBtn.getBackground().equals(branding.maroon)) {
-                    for (int k = 0; k < returnButtons.size(); k++) {
-                        JButton btn = returnButtons.get(k);
-                        String borrowId = borrowIds.get(k);
-                        int borrowItem = Integer.parseInt(items.get(k)[3]);
+                    for (int l = 0; l < returnButtons.size(); l++) {
+                        JButton btn = returnButtons.get(l);
+                        String borrowId = borrowIds.get(l);
+                        int borrowItem = Integer.parseInt(items.get(l)[3]);
                         if (btn.getBackground().equals(branding.maroon)) {
-                            btn.setBackground(branding.darkermaroon);
-                            selectedBorrowerIds.add(borrowId);
-                            selectedBorrowItemIds.add(borrowItem);
+                            btn.setBackground(Color.YELLOW);
+                            selectedItems.computeIfAbsent(borrowId, k -> new ArrayList<>()).add(borrowItem);
+                            printHashMap(selectedItems);
                         }
                     }
 
                     System.out.println("Returned All 2");
                     screen2ReturnAllBtn.setText("Undo Return All");
-                    screen2ReturnAllBtn.setBackground(branding.darkermaroon);
-                    printSelectedBorrowID(selectedBorrowerIds, selectedBorrowItemIds);
+                    screen2ReturnAllBtn.setBackground(Color.YELLOW);
                 } else {
                     for (int k = 0; k < returnButtons.size(); k++) {
                         JButton btn = returnButtons.get(k);
                         btn.setBackground(branding.maroon);
                     }
 
-                    selectedBorrowerIds.clear();
-                    selectedBorrowItemIds.clear();
+                    selectedItems.clear();
 
                     System.out.println("Undo Return All 2");
                     screen2ReturnAllBtn.setText("Return All");
                     screen2ReturnAllBtn.setBackground(branding.maroon);
-                    printSelectedBorrowID(selectedBorrowerIds, selectedBorrowItemIds);
                 }
             }
         });
@@ -564,7 +584,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         screen2ConfirmBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(!selectedBorrowerIds.isEmpty()) {
+                if(!selectedItems.isEmpty()) {
                     int result = JOptionPane.showConfirmDialog(
                         null, "Are you sure you want to return selected items?",
                         "Confirm Return",
@@ -575,8 +595,8 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
                     if (result == JOptionPane.YES_OPTION) {
                         Timestamp ts = new Timestamp(System.currentTimeMillis());
                         ts.setNanos(0);
-                        ctrl.getQueries().updateActualReturnDate(selectedBorrowerIds, selectedBorrowItemIds, ts);
-                        ctrl.generateReturnReceipt(Integer.parseInt(selectedBorrowerIds.get(0)), ts);
+                        ctrl.getQueries().updateActualReturnDate(selectedItems, ts, entries[1]);
+                        //ctrl.generateReturnReceipt(Integer.parseInt(selectedBorrowerIds.get(0)), ts);
 
                         for (JButton btn : returnButtons) {
                             btn.setBackground(branding.maroon);
@@ -633,22 +653,22 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
                 screen2ConfirmBtn.removeActionListener(al2);
             }
 
-            selectedBorrowerIds.clear();
+            selectedItems.clear();
             screen2ReturnAllBtn.setText("Return All");
             screen2ReturnAllBtn.setBackground(branding.maroon);
             cardLayout.previous(GUIBorrowerListPanel.this);
         }
     }
 
-    private void printSelectedBorrowID(List<String> borrowIDs, List<Integer> borrowItems) {
-        System.out.print("Selected Borrow ID's: ");
-        for(String str : borrowIDs) {
-            System.out.print(str + " ");
-        } System.out.println("");
-        System.out.print("Selected Items: ");
-        for(Integer i : borrowItems) {
-            System.out.print(i + ", ");
-        } System.out.println("");
+    private void printHashMap(HashMap<String, List<Integer>> map) {
+        System.out.println("Selected Borrow ID's: ");
+        for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {
+            String student = entry.getKey();
+            List<Integer> scores = entry.getValue();
+            System.out.println("Student: " + student);
+            for (Integer scoreEntry : scores) {
+                System.out.println("  Subject: " + student + ", Score: " + scoreEntry);
+            }
+        }
     }
-    
 }

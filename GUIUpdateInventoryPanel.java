@@ -8,14 +8,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -29,34 +23,47 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 
 public class GUIUpdateInventoryPanel extends JPanel {
     private Branding branding;
-    private JPanel mainContentPanel, categoryPanelContents;
+    private JPanel mainContentPanel, categoryPanel;
     private JButton selectedCategoryButton = null, removeItemButton, addItemButton;
     private JTable inventoryTable;
     private DefaultTableModel tableModel;
     private JPanel inventoryPanel; // Panel to hold the inventory table
     private Controller ctrl;
-    private int currentCategoryID = -1;
-    private Map<Integer, JPanel> categoryGridPanels = new HashMap<>();
-    
+    private int selectedCategoryIndexDatabase, selectedCategoryIndexArray;
+    private JButton backButton;
+
+    // Categories of laboratory equipment (we'll load this from the controller)
+    private String[] categories;
+
+    /**
+     * Constructor - creates the panel structure but doesn't load data
+     * @param ctrl Controller instance
+     * @param branding Branding instance
+     * @param backButton Back button reference
+     */
     public GUIUpdateInventoryPanel(Controller ctrl, Branding branding, JButton backButton) {
         this.ctrl = ctrl;
         this.branding = branding;
+        this.backButton = backButton;
+        
+        // Set up panel properties
         this.setLayout(new BorderLayout());
         this.setBackground(Color.WHITE);
         this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.setPreferredSize(new Dimension(900, 500));
         
-        // Create main content panel
-        initializeMainContentPanel(backButton);
-        add(mainContentPanel, BorderLayout.CENTER);
+        // Create the panel structure without loading data
+        createPanelStructure();
     }
     
-    private void initializeMainContentPanel(JButton backButton) {
-        // Main panel with border layout
+    /**
+     * Creates the basic panel structure without loading data
+     */
+    private void createPanelStructure() {
+        // Create main content panel with border layout
         mainContentPanel = new JPanel(new BorderLayout());
         mainContentPanel.setBorder(BorderFactory.createLineBorder(branding.maroon, 2));
         
@@ -64,50 +71,84 @@ public class GUIUpdateInventoryPanel extends JPanel {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBorder(BorderFactory.createLineBorder(branding.maroon, 1));
         
-        // Create and add category panel to the left side
-        JPanel categoryPanel = createCategoryPanel();
-        contentPanel.add(categoryPanel, BorderLayout.WEST);
-        
-        // Create inventory display panel
-        inventoryPanel = createItemInventoryPanel(backButton);
-        contentPanel.add(inventoryPanel, BorderLayout.CENTER);
-        
-        mainContentPanel.add(contentPanel, BorderLayout.CENTER);
-        
-        // Show the initial "No Category is Selected" message
-        showNoCategorySelectedMessage();
-    }
-    
-    private JPanel createCategoryPanel() {
-        // The panel that contains the category buttons (BoxLayout for vertical stack)
-        categoryPanelContents = new JPanel();
-        categoryPanelContents.setLayout(new BoxLayout(categoryPanelContents, BoxLayout.Y_AXIS));
-        categoryPanelContents.setBackground(branding.maroon);
-        categoryPanelContents.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        categoryPanelContents.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JPanel categoryPanel = new JPanel(new GridBagLayout());
+        // Create category panel structure (without adding category buttons yet)
+        categoryPanel = new JPanel();
+        categoryPanel.setLayout(new BoxLayout(categoryPanel, BoxLayout.Y_AXIS));
         categoryPanel.setBackground(branding.maroon);
+        categoryPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        categoryPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Wrapper panel to center the category panel vertically
+        JPanel centeredPanel = new JPanel(new GridBagLayout());
+        centeredPanel.setBackground(branding.maroon);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.CENTER;
-        categoryPanel.add(categoryPanelContents, gbc);
-        categoryPanel.setPreferredSize(new Dimension(220, 0)); // Force fixed width like before
-        return categoryPanel;
+        centeredPanel.add(categoryPanel, gbc);
+        centeredPanel.setPreferredSize(new Dimension(220, 0)); // Force fixed width
+        
+        // Create the inventory display panel structure
+        inventoryPanel = createItemInventoryPanel();
+        
+        // Add panels to the content panel
+        contentPanel.add(centeredPanel, BorderLayout.WEST);
+        contentPanel.add(inventoryPanel, BorderLayout.CENTER);
+        
+        // Add content panel to main panel
+        mainContentPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        // Add main content panel to this panel
+        add(mainContentPanel, BorderLayout.CENTER);
     }
-
-    public void loadCategoryPanel(List<String[]> categoryList) {
-        ctrl.updateLoadingStatus("Loading Panels");
-        categoryPanelContents.removeAll();
-        int steps = categoryList.size(); int currentStep = 1; int progress = 0;
-        int panelCount = 1;
-        for (String[] category : categoryList) {
-            System.out.printf("Loading Panel (%d/%d)\n",  panelCount++, categoryList.size());
-            int categoryId = Integer.parseInt(category[0]);
-            String categoryName = category[1];
-
-            JButton categoryButton = new JButton(categoryName);
+    
+    /**
+     * Loads data and initializes interactive elements after login
+     */
+    public void loadContents() {
+        // Get categories from the controller
+        loadCategories();
+        
+        // Initialize category buttons
+        loadCategoryButtons();
+        
+        // Create button panel with action listeners
+        JPanel buttonPanel = createButtonPanel();
+        inventoryPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        // Configure initial state - show "No Category Selected" message
+        showNoCategorySelectedMessage();
+        
+        // Set up add/remove item buttons based on database state
+        refreshAddItemButton();
+        
+        // Refresh the panel
+        revalidate();
+        repaint();
+    }
+    
+    /**
+     * Loads categories from the controller
+     */
+    private void loadCategories() {
+        List<String[]> categoryList = ctrl.getCategoryList();
+        categories = new String[categoryList.size()];
+        
+        for (int i = 0; i < categoryList.size(); i++) {
+            categories[i] = categoryList.get(i)[1]; // Category name is at index 1
+        }
+    }
+    
+    /**
+     * Creates and adds category buttons to the category panel
+     */
+    private void loadCategoryButtons() {
+        // Clear any existing buttons
+        categoryPanel.removeAll();
+        
+        for (int i = 0; i < categories.length; i++) {
+            final int categoryIndex = i;
+            JButton categoryButton = new JButton(categories[i]);
             categoryButton.setAlignmentX(Component.CENTER_ALIGNMENT);
             categoryButton.setPreferredSize(new Dimension(200, 40));
             categoryButton.setMaximumSize(new Dimension(200, 40));
@@ -118,57 +159,48 @@ public class GUIUpdateInventoryPanel extends JPanel {
             categoryButton.setFocusPainted(false);
             categoryButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
             categoryButton.setMargin(new Insets(0, 0, 0, 0));
-
-            categoryButton.putClientProperty("categoryId", categoryId);
-            categoryButton.putClientProperty("categoryName", categoryName);
-            
-            // Hover effects
+    
+            // Hover and selection effect
             categoryButton.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseEntered(java.awt.event.MouseEvent evt) {
                     categoryButton.setBackground(branding.lightgray);
                 }
-
+    
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent evt) {
-                    if (getSelectedCategoryButton() != categoryButton) {
+                    if (selectedCategoryButton != categoryButton) {
                         categoryButton.setBackground(branding.lightergray);
                     }
                 }
             });
-
-            // Action listener
+            
+            // Action listener to update inventory panel when a category is selected
             categoryButton.addActionListener(e -> {
-                JButton currentSelectedButton = getSelectedCategoryButton();
-                if (currentSelectedButton != null) {
-                    currentSelectedButton.setBackground(branding.lightergray);
+                if (selectedCategoryButton != null) {
+                    selectedCategoryButton.setBackground(branding.lightergray);
                 }
-
                 categoryButton.setBackground(branding.gray);
-                setSelectedCategoryButton(categoryButton);
-
-                int selectedCategoryId = (int) categoryButton.getClientProperty("categoryId");
-                String selectedCategoryName = (String) categoryButton.getClientProperty("categoryName");
-                setCurrentCategoryID(selectedCategoryId);
-
-                // Update the inventory panel with the selected category
-                updateInventoryPanel(selectedCategoryId, selectedCategoryName);
+                selectedCategoryButton = categoryButton;
+                
+                // Update inventory display with items from the selected category
+                selectedCategoryIndexDatabase = ctrl.getCategoryID(categories[categoryIndex]);
+                selectedCategoryIndexArray = categoryIndex;
+                System.out.println("Selected Category ID from Database: " + selectedCategoryIndexDatabase);
+                System.out.println("Selected Category ID from Array: " + selectedCategoryIndexArray);
+                updateInventoryPanel(selectedCategoryIndexDatabase, categoryIndex);
             });
-
-            JPanel tablePanel = createInventoryTablePanel(categoryId);
-            categoryGridPanels.put(categoryId, tablePanel);
-
-            categoryPanelContents.add(categoryButton);
-            categoryPanelContents.add(Box.createVerticalStrut(10));
-            progress = 66 + (currentStep * 34) / steps; currentStep++; // from 66% - 100%
-            ctrl.updateLoadingProgress(progress);
+    
+            categoryPanel.add(categoryButton);
+            categoryPanel.add(Box.createVerticalStrut(10)); // Small space between buttons
         }
-
-        categoryPanelContents.revalidate();
-        categoryPanelContents.repaint();
+        
+        // Refresh the panel
+        categoryPanel.revalidate();
+        categoryPanel.repaint();
     }
     
-    private JPanel createItemInventoryPanel(JButton backButton) {
+    private JPanel createItemInventoryPanel() {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(branding.lightgray);
     
@@ -186,112 +218,38 @@ public class GUIUpdateInventoryPanel extends JPanel {
     
         // Add components
         mainPanel.add(scrollPane, BorderLayout.CENTER);
-        JPanel buttonPanel = createButtonPanel(backButton);
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
         
         // Store the tableContainerPanel as a property of the main panel for later access
         mainPanel.putClientProperty("tableContainerPanel", tableContainerPanel);
     
         return mainPanel;
     }
-
-    // Method to update inventory panel based on selected category
-    private void updateInventoryPanel(int categoryId, String categoryName) {
-        if (inventoryPanel == null) return;
     
-        JPanel tableContainerPanel = (JPanel) inventoryPanel.getClientProperty("tableContainerPanel");
-        if (tableContainerPanel == null) return;
-    
-        tableContainerPanel.removeAll();
-    
-        // Get cached panel
-        JPanel cachedPanel = categoryGridPanels.get(categoryId);
-        if (cachedPanel != null) {
-            tableContainerPanel.add(cachedPanel, BorderLayout.CENTER);
-        }
-    
-        // Header
-        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        headerPanel.setBackground(branding.lightgray);
-        JLabel headerLabel = new JLabel(categoryName + " Inventory");
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        headerLabel.setForeground(branding.maroon);
-        headerPanel.add(headerLabel);
-        tableContainerPanel.add(headerPanel, BorderLayout.NORTH);
-    
-        tableContainerPanel.revalidate();
-        tableContainerPanel.repaint();
-    
-        refreshAddItemButton();
+    private JPanel createButtonPanel() {
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+        buttonPanel.setBackground(branding.lightgray);
+        
+        // Configure the back button
+        backButton.setText("Go Back");
+        styleActionButton(backButton);
+        
+        // Create and style action buttons
+        removeItemButton = new JButton("Remove Item");
+        addItemButton = new JButton("Add Item");
+        
+        styleActionButton(removeItemButton);
+        styleActionButton(addItemButton);
+        
+        // Add action listener for Remove Item button
+        removeItemButton.addActionListener(e -> removeSelectedItem());
+        
+        buttonPanel.add(backButton);
+        buttonPanel.add(removeItemButton);
+        buttonPanel.add(addItemButton);
+        
+        return buttonPanel;
     }
     
-    private JPanel createInventoryTablePanel(int categoryId) {
-        JPanel tablePanel = new JPanel(new GridBagLayout());
-        tablePanel.setBackground(branding.lightgray);
-        Border lineBorder = BorderFactory.createLineBorder(branding.maroon, 5);
-        Border emptyBorder = BorderFactory.createEmptyBorder(20, 20, 20, 20);
-        CompoundBorder compoundBorder = new CompoundBorder(emptyBorder, lineBorder);
-        tablePanel.setBorder(compoundBorder);
-    
-        String[][] data = ctrl.getItemsPerCategory(categoryId);
-        // Add checkbox column as the first column
-        String[] columnNames = {"Select", "Item ID", "Item Name", "Unit", "Quantity"};
-    
-        // Create a table model that properly handles the checkbox column
-        tableModel = new DefaultTableModel(columnNames, 0) {
-            @Override
-            public Class<?> getColumnClass(int columnIndex) {
-                return columnIndex == 0 ? Boolean.class : String.class;
-            }
-            
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return column == 0; // Only checkbox column is editable
-            }
-        };
-        
-        // Add data to the table model with checkboxes
-        if (data != null) {
-            for (String[] row : data) {
-                Object[] rowData = new Object[5];
-                rowData[0] = Boolean.FALSE; // Checkbox (unchecked by default)
-                rowData[1] = row[0]; // Item ID
-                rowData[2] = row[1]; // Item Name
-                rowData[3] = row[2]; // Unit
-                rowData[4] = row[3]; // Quantity
-                tableModel.addRow(rowData);
-            }
-        }
-    
-        inventoryTable = new JTable(tableModel);
-        inventoryTable.setRowHeight(50);
-        inventoryTable.setForeground(branding.maroon);
-        inventoryTable.setBackground(branding.lightgray);
-        
-        // Set checkbox column width
-        inventoryTable.getColumnModel().getColumn(0).setPreferredWidth(50);
-        inventoryTable.getColumnModel().getColumn(0).setMaxWidth(50);
-        
-        // Make sure table properly renders Boolean values as checkboxes
-        TableCellRenderer checkboxRenderer = inventoryTable.getDefaultRenderer(Boolean.class);
-        inventoryTable.getColumnModel().getColumn(0).setCellRenderer(checkboxRenderer);
-    
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1;
-    
-        gbc.gridy = 0;
-        gbc.ipady = 20;
-        tablePanel.add(inventoryTable.getTableHeader(), gbc);
-    
-        gbc.gridy = 1;
-        gbc.ipady = 0;
-        gbc.weighty = 1;
-        tablePanel.add(inventoryTable, gbc);
-    
-        return tablePanel;
-    }
-
     // Method to show "No Category is Selected" message
     private void showNoCategorySelectedMessage() {
         if (inventoryPanel == null) return;
@@ -321,47 +279,101 @@ public class GUIUpdateInventoryPanel extends JPanel {
         tableContainerPanel.repaint();
     }
     
-    private JPanel createButtonPanel(JButton backButton) {
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
-        buttonPanel.setBackground(branding.lightgray);
+    // Method to update inventory panel based on selected category
+    private void updateInventoryPanel(int categoryIndexDatabase, int categoryIndex) {
+        if (inventoryPanel == null) return;
         
-        // Use the provided back button
-        backButton.setText("Go Back");
-        styleActionButton(backButton);
+        // Get the table container panel
+        JPanel tableContainerPanel = (JPanel) inventoryPanel.getClientProperty("tableContainerPanel");
+        if (tableContainerPanel == null) return;
         
-        // Update the remove item button text to reflect multiple selection capability
-        removeItemButton = new JButton("Remove Item(s)");
-        addItemButton = new JButton("Add Item");
+        // Clear the panel
+        tableContainerPanel.removeAll();
         
-        styleActionButton(removeItemButton);
-        styleActionButton(addItemButton);
+        // Create table panel with a border
+        JPanel tablePanel = new JPanel(new GridBagLayout());
+        tablePanel.setBackground(branding.lightgray);
+        Border lineBorder = BorderFactory.createLineBorder(branding.maroon, 5);
+        Border emptyBorder = BorderFactory.createEmptyBorder(20, 20, 20, 20);
+        CompoundBorder compoundBorder = new CompoundBorder(emptyBorder, lineBorder);
+        tablePanel.setBorder(compoundBorder);
+
+        // Get data for selected category using controller
+        String[][] data = ctrl.getItemsPerCategory(categoryIndexDatabase);
+
+        // Column names
+        String[] columnNames = {"Item Name", "Unit", "Quantity"};
+
+        // Transform data to exclude item_id (index 0)
+        String[][] trimmedData = new String[data.length][3];
+        for (int i = 0; i < data.length; i++) {
+            trimmedData[i][0] = data[i][1]; // Item Name
+            trimmedData[i][1] = data[i][2]; // Unit
+            trimmedData[i][2] = data[i][3]; // Quantity
+        }
+
+        // Create table model with trimmed data
+        tableModel = new DefaultTableModel(trimmedData, columnNames) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return true; // or false depending on your requirement
+            }
+        };
+
+        // Create JTable with the table model
+        inventoryTable = new JTable(tableModel);
+        inventoryTable.setRowHeight(50);
+        inventoryTable.setForeground(branding.maroon);
+        inventoryTable.setBackground(branding.lightgray);
+
+        GridBagConstraints tablePanelGBC = new GridBagConstraints();
+        tablePanelGBC.fill = GridBagConstraints.BOTH;
+        tablePanelGBC.weightx = 1;
+        tablePanelGBC.ipady = 20;
+        tablePanelGBC.gridy = 0;
+        tablePanel.add(inventoryTable.getTableHeader(), tablePanelGBC); 
+        tablePanelGBC.weighty = 1;
+        tablePanelGBC.ipady = 0;
+        tablePanelGBC.gridy = 1;
+        tablePanel.add(inventoryTable, tablePanelGBC);  
         
-        // Add action listener for Remove Item button
-        removeItemButton.addActionListener(e -> removeSelectedItems());
+        // Add the table panel to the container
+        tableContainerPanel.add(tablePanel, BorderLayout.CENTER);
         
-        buttonPanel.add(backButton);
-        buttonPanel.add(removeItemButton);
-        buttonPanel.add(addItemButton);
+        // Add a header label showing which category is selected
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        headerPanel.setBackground(branding.lightgray);
+        JLabel headerLabel = new JLabel(categories[categoryIndex] + " Inventory");
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        headerLabel.setForeground(branding.maroon);
+        headerPanel.add(headerLabel);
+        tableContainerPanel.add(headerPanel, BorderLayout.NORTH);
         
-        return buttonPanel;
+        // Refresh the panel
+        tableContainerPanel.revalidate();
+        tableContainerPanel.repaint();
     }
 
     public void refreshAddItemButton() {
-        // Get the number of items from the controller
-        int itemCount = ctrl.getNoOfItems();
-        
-        // Remove existing action listeners
-        for (ActionListener listener : addItemButton.getActionListeners()) {
-            addItemButton.removeActionListener(listener);
-        }
-        
-        if (itemCount != 0) {
+        if (ctrl.getNoOfItems() != 0) {
             addItemButton.setText("Add Item");
+            
+            // Clear previous action listeners
+            for (ActionListener listener : addItemButton.getActionListeners()) {
+                addItemButton.removeActionListener(listener);
+            }
+            
             addItemButton.addActionListener(e -> addNewItem());
             removeItemButton.setEnabled(true);
         } else {
             removeItemButton.setEnabled(false);
             addItemButton.setText("Import From File");
+            
+            // Clear previous action listeners
+            for (ActionListener listener : addItemButton.getActionListeners()) {
+                addItemButton.removeActionListener(listener);
+            }
+            
             addItemButton.addActionListener(e -> {
                 boolean success = importItemsFromCSV();
                 if (success) {
@@ -393,53 +405,8 @@ public class GUIUpdateInventoryPanel extends JPanel {
         addItemButton.addActionListener(e -> addNewItem());
     }
 
-    public void resetPanel() {
-        // Visually reset the category button
-        if (selectedCategoryButton != null) {
-            selectedCategoryButton.setBackground(branding.lightergray);
-            selectedCategoryButton = null;
-        }
-
-        // Reset current category ID
-        currentCategoryID = -1;
-
-        // Force-clear table model and selection
-        if (inventoryTable != null && tableModel != null) {
-            inventoryTable.clearSelection(); // Remove highlight
-            for (int i = 0; i < tableModel.getRowCount(); i++) {
-                tableModel.setValueAt(false, i, 0); // Uncheck
-            }
-        }
-
-        // Refresh or clear categoryGridPanels (optional cache reset)
-        for (Map.Entry<Integer, JPanel> entry : categoryGridPanels.entrySet()) {
-            int categoryId = entry.getKey();
-            JPanel newTablePanel = createInventoryTablePanel(categoryId); // recreate fresh version
-            categoryGridPanels.put(categoryId, newTablePanel);
-        }
-
-        // Clear visible inventory panel
-        if (inventoryPanel != null) {
-            JPanel tableContainerPanel = (JPanel) inventoryPanel.getClientProperty("tableContainerPanel");
-            if (tableContainerPanel != null) {
-                tableContainerPanel.removeAll();
-                tableContainerPanel.revalidate();
-                tableContainerPanel.repaint();
-            }
-        }
-
-        // Display fallback message
-        showNoCategorySelectedMessage();
-
-        this.revalidate();
-        this.repaint();
-    }
-
-
-
     private boolean importItemsFromCSV() {
         try {
-            String filepath = null;
             JFileChooser chooser = new JFileChooser();
             chooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
 
@@ -447,55 +414,81 @@ public class GUIUpdateInventoryPanel extends JPanel {
             chooser.setFileFilter(filter);
             chooser.setAcceptAllFileFilterUsed(false);
 
-            int result = chooser.showOpenDialog(chooser);
+            int result = chooser.showOpenDialog(this);
 
-            if(result == JFileChooser.APPROVE_OPTION){
+            if(result == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = chooser.getSelectedFile();
-                filepath = selectedFile.getAbsolutePath();
+                String filepath = selectedFile.getAbsolutePath();
+                System.out.println("Selected file: " + filepath);
                 
-                System.out.println(filepath);
+                // Use the controller to handle the import process
+                // We'll parse the file here since controller needs the data array
+                String[][] data = parseCSVFile(selectedFile);
+                
+                if (data != null && data.length > 0) {
+                    ctrl.importItemsFromCSV(filepath, data);
+                    
+                    // If a category is selected, refresh its display
+                    if (selectedCategoryButton != null) {
+                        updateInventoryPanel(selectedCategoryIndexDatabase, selectedCategoryIndexArray);
+                    }
+                    
+                    return true;
+                }
             } else {
                 JOptionPane.showMessageDialog(null, "Opening file terminated.", "Terminated", JOptionPane.WARNING_MESSAGE);
-                return false;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(
+                this,
+                "Error importing file: " + e.getMessage(),
+                "Import Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
 
-            BufferedReader br1 = new BufferedReader(new FileReader(filepath));
+        return false;
+    }
+    
+    /**
+     * Helper method to parse CSV file
+     */
+    private String[][] parseCSVFile(File file) {
+        try {
+            java.io.BufferedReader br1 = new java.io.BufferedReader(new java.io.FileReader(file));
             String line = "";
             int numItems = 0;
             while ((line = br1.readLine()) != null) {
                 numItems++;
             }
+            br1.close();
 
             String[][] data = new String[numItems][5];
             int rowsIndex = 0;
-            BufferedReader br2 = new BufferedReader(new FileReader(filepath));
+            java.io.BufferedReader br2 = new java.io.BufferedReader(new java.io.FileReader(file));
             while ((line = br2.readLine()) != null) {
                 String[] values = line.split(",");
-                data[rowsIndex][0] = values[1];
-                data[rowsIndex][1] = values[2];
-                data[rowsIndex][2] = values[3];
-                data[rowsIndex][3] = values[4];
-                data[rowsIndex][4] = values[5];
+                data[rowsIndex][0] = values[1]; // category_id
+                data[rowsIndex][1] = values[2]; // item_name
+                data[rowsIndex][2] = values[3]; // unit
+                data[rowsIndex][3] = values[4]; // quantity
+                data[rowsIndex][4] = values[5]; // ???
                 rowsIndex++;
             }
-
-            br1.close();
             br2.close();
-
-            // Use the controller to import items
-            ctrl.importItemsFromCSV(filepath, data);
-            return true;
-        } catch (IOException e) {
+            
+            return data;
+        } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
     
     /**
-     * Removes multiple selected items from the inventory table after confirming with the user
+     * Removes the selected item from the inventory table after confirming with the user
      */
-    private void removeSelectedItems() {
-        // Check if a category is selected
+    private void removeSelectedItem() {
         if (selectedCategoryButton == null) {
             JOptionPane.showMessageDialog(
                 this,
@@ -505,70 +498,55 @@ public class GUIUpdateInventoryPanel extends JPanel {
             );
             return;
         }
-        
-        // Get all selected items
-        List<Integer> selectedRows = new ArrayList<>();
-        List<String> selectedItemNames = new ArrayList<>();
-        List<Integer> selectedItemIds = new ArrayList<>();
-        
-        for (int i = 0; i < tableModel.getRowCount(); i++) {
-            Boolean isSelected = (Boolean) tableModel.getValueAt(i, 0);
-            if (isSelected != null && isSelected) {
-                selectedRows.add(i);
-                selectedItemNames.add((String) tableModel.getValueAt(i, 2));
-                selectedItemIds.add(Integer.parseInt((String) tableModel.getValueAt(i, 1)));
+
+        int selectedRow = inventoryTable.getSelectedRow();
+        if (selectedRow != -1) {
+            String itemName = (String) tableModel.getValueAt(selectedRow, 0); // Item Name
+            String unit = (String) tableModel.getValueAt(selectedRow, 1);     // Unit
+
+            String itemNameWithUnit = (unit == null || unit.trim().isEmpty())
+                ? itemName
+                : itemName + " - " + unit;
+
+            int itemId = ctrl.getItemIDWithUnit(itemNameWithUnit);
+            if (itemId == -1) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Item could not be found in the database.",
+                    "Invalid Item",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
             }
-        }
-        
-        // Check if any items are selected
-        if (selectedRows.isEmpty()) {
-            JOptionPane.showMessageDialog(
+
+            int choice = JOptionPane.showConfirmDialog(
                 this,
-                "Please select at least one item to remove.",
-                "No Items Selected",
+                "Are you sure you want to remove '" + itemName + "' from the inventory database?",
+                "Confirm Removal",
+                JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE
             );
-            return;
-        }
-        
-        // Confirmation dialog
-        String message = selectedRows.size() == 1 
-            ? "Are you sure you want to remove '" + selectedItemNames.get(0) + "' from the inventory database?"
-            : "Are you sure you want to remove these " + selectedRows.size() + " items from the inventory database?";
-        
-        int choice = JOptionPane.showConfirmDialog(
-            this,
-            message,
-            "Confirm Removal",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-        );
-        
-        if (choice == JOptionPane.YES_OPTION) {
-            // Remove items in reverse order to avoid index shifting issues
-            for (int i = selectedRows.size() - 1; i >= 0; i--) {
-                int row = selectedRows.get(i);
-                int itemId = selectedItemIds.get(i);
-                
-                // Use controller to remove the item
+
+            if (choice == JOptionPane.YES_OPTION) {
                 ctrl.removeItemFromDatabase(itemId);
-                
-                // Update the table model
-                tableModel.removeRow(row);
+                updateInventoryPanel(selectedCategoryIndexDatabase, selectedCategoryIndexArray);
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Item '" + itemName + "' has been removed from inventory.",
+                    "Item Removed",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
             }
-            
-            String successMessage = selectedRows.size() == 1 
-                ? "Item '" + selectedItemNames.get(0) + "' has been removed from inventory."
-                : selectedRows.size() + " items have been removed from inventory.";
-            
+        } else {
             JOptionPane.showMessageDialog(
                 this,
-                successMessage,
-                "Items Removed",
-                JOptionPane.INFORMATION_MESSAGE
+                "Please select an item to remove.",
+                "No Selection",
+                JOptionPane.WARNING_MESSAGE
             );
         }
     }
+
     
     /**
      * Adds a new empty row to the inventory table that the user can edit
@@ -585,85 +563,73 @@ public class GUIUpdateInventoryPanel extends JPanel {
             return;
         }
         
-        // Add a new row with empty fields for the user to fill in
-        // First column is checkbox (false), then other columns
-        tableModel.addRow(new Object[]{Boolean.FALSE, "", "", "", "0"});
+        // Request user input for item details
+        String[] input = new String[3];
+        String[] labels = {"Item Name", "Unit", "Quantity"};
         
-        // Select the newly added row
-        int newRowIndex = tableModel.getRowCount() - 1;
-        inventoryTable.setRowSelectionInterval(newRowIndex, newRowIndex);
-        
-        // Scroll to the new row
-        inventoryTable.scrollRectToVisible(inventoryTable.getCellRect(newRowIndex, 0, true));
-        
-        // Request user input for columns 2–4 (index 1–3)
-        String input[] = new String[3];
-        for (int col = 2; col <= 4; col++) {
+        // Collect input for each field
+        for (int i = 0; i < 3; i++) {
             boolean validInput = false;
             while (!validInput) {
-                input[col-2] = JOptionPane.showInputDialog(
+                input[i] = JOptionPane.showInputDialog(
                     this,
-                    "Enter value for " + inventoryTable.getColumnName(col) + ":"
+                    "Enter " + labels[i] + ":",
+                    "Add New Item",
+                    JOptionPane.QUESTION_MESSAGE
                 );
-                if (input[col-2] == null || input[col-2].trim().isEmpty()) {
+                
+                // User cancelled
+                if (input[i] == null) {
+                    return;
+                }
+                
+                // Validate input
+                if (input[i].trim().isEmpty()) {
                     JOptionPane.showMessageDialog(
                         this,
-                        "You must enter a value for " + inventoryTable.getColumnName(col) + ".",
+                        "You must enter a value for " + labels[i] + ".",
                         "Input Required",
                         JOptionPane.WARNING_MESSAGE
                     );
                 } else {
-                    tableModel.setValueAt(input[col-2].trim(), newRowIndex, col);
                     validInput = true;
                 }
             }
         }
-
+        
+        // Validate quantity
         try {
             int qty = Integer.parseInt(input[2]);
-            int categoryId = getCurrentCategoryID();
-
-            if(qty > 0) {
+            
+            if (qty > 0) {
                 // Use controller to add the item
-                ctrl.addItemToDatabase(input[0], input[1], qty, categoryId);
+                ctrl.addItemToDatabase(input[0], input[1], qty, selectedCategoryIndexDatabase);
                 
-                // Update the panel
-                ctrl.refreshCachedData(); // Ensure latest DB state is reflected
-                updateInventoryPanel(categoryId, getCategoryNameById(categoryId));
+                // Refresh the display
+                updateInventoryPanel(selectedCategoryIndexDatabase, selectedCategoryIndexArray);
                 
                 JOptionPane.showMessageDialog(
                     this,
-                    "New item added. You may now edit other details if needed.",
-                    "New Item",
+                    "New item added successfully.",
+                    "Item Added",
                     JOptionPane.INFORMATION_MESSAGE
                 );
             } else {
                 JOptionPane.showMessageDialog(
                     this,
-                    "Quantity input is invalid.",
+                    "Quantity must be greater than zero.",
                     "Invalid Input",
                     JOptionPane.WARNING_MESSAGE
                 );
             }
-            
-        } catch(NumberFormatException e) {
+        } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(
                 this,
-                "Quantity input is invalid.",
+                "Quantity must be a valid number.",
                 "Invalid Input",
                 JOptionPane.WARNING_MESSAGE
             );
         }
-    }
-    
-    // Helper method to get the category name by ID
-    private String getCategoryNameById(int categoryId) {
-        if (selectedCategoryButton != null) {
-            return (String) selectedCategoryButton.getClientProperty("categoryName");
-        }
-        
-        // Fallback to getting it from the controller
-        return ctrl.getCategoryName(categoryId);
     }
     
     private void styleActionButton(JButton button) {
@@ -682,21 +648,5 @@ public class GUIUpdateInventoryPanel extends JPanel {
             panel.setPreferredSize(new Dimension(0, height));
             return panel;
         }
-    }
-    
-    public JButton getSelectedCategoryButton() {
-        return selectedCategoryButton;
-    }
-
-    public void setSelectedCategoryButton(JButton selectedCategoryButton) {
-        this.selectedCategoryButton = selectedCategoryButton;
-    }
-
-    public int getCurrentCategoryID() {
-        return currentCategoryID;
-    }
-
-    public void setCurrentCategoryID(int currentCategoryID) {
-        this.currentCategoryID = currentCategoryID;
     }
 }

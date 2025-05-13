@@ -138,7 +138,7 @@ public class GraphicalUserInterface implements ActionListener {
                         publish(2);
                         ctrl.controllerGetAllDatabaseInformationWithLoading();
                         ((GUIBorrowItemPanel) ctntBorrowItemPanel).loadCategoryPanel(ctrl.getCategoryList());  // Class2 progress update
-                        ((GUIUpdateInventoryPanel) ctntUpdateInventoryPanel).loadCategoryPanel(ctrl.getCategoryList());
+                        ((GUIUpdateInventoryPanel) ctntUpdateInventoryPanel).loadContents();
                         return null;
                     }
 
@@ -204,7 +204,7 @@ public class GraphicalUserInterface implements ActionListener {
         } else if (src == blstBackBtn) {
             showMainMenu();
         } else if (src == upinBackBtn) {
-            ((GUIUpdateInventoryPanel) ctntUpdateInventoryPanel).resetPanel();
+            //((GUIUpdateInventoryPanel) ctntUpdateInventoryPanel).resetPanel();
             showMainMenu();
         } else if (src == tranBackBtn) {
             showMainMenu();

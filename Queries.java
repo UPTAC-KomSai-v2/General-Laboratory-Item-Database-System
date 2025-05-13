@@ -7,7 +7,9 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -22,7 +24,6 @@ public class Queries {
     private Statement stmt;
     private PreparedStatement ptmt;
     private int currentCategoryID = -1;
-    private int currentSessionID = -1;
     
     public Queries(){}
 
@@ -40,30 +41,14 @@ public class Queries {
         try{
             conn = DriverManager.getConnection(DB_URL, user, pass);
             stmt = conn.createStatement();
+            
+            String logIn = "INSERT INTO staff_user (username, last_login) VALUES (?, CURRENT_TIMESTAMP)";
+            PreparedStatement logInStmt = conn.prepareStatement(logIn);
+            logInStmt.setString(1, username);
+            logInStmt.executeUpdate();
 
-            String checkUserQuery = "SELECT username FROM staff_user WHERE username = ?";
-            PreparedStatement checkUserStmt = conn.prepareStatement(checkUserQuery);
-            checkUserStmt.setString(1, username);
-            ResultSet userResult = checkUserStmt.executeQuery();
-
-            if(userResult.next()){
-                String updateLastLoginQuery = "UPDATE staff_user SET last_login = CURRENT_TIMESTAMP WHERE username = ?";
-                PreparedStatement updateStmt = conn.prepareStatement(updateLastLoginQuery);
-                updateStmt.setString(1, username);
-                updateStmt.executeUpdate();
-
-                String loginQuery = "INSERT INTO staff_activity_log (username, activity_type) VALUES (?, 'login')";
-                PreparedStatement logStmt = conn.prepareStatement(loginQuery, Statement.RETURN_GENERATED_KEYS);
-                logStmt.setString(1, username);
-                logStmt.executeUpdate();
-
-                ResultSet generatedKeys = logStmt.getGeneratedKeys();
-                int sessionID = -1;
-                if(generatedKeys.next()) sessionID = generatedKeys.getInt(1);
-                this.currentSessionID = sessionID;
-                
-                connected = true;
-            }
+            logStaffActivity("login", null, null, null);
+            connected = true;
         }catch(SQLException e){
             connected = false;
             JOptionPane.showMessageDialog(mainFrame, "Login failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -497,6 +482,7 @@ public class Queries {
             ptmt.setTimestamp(7, ts);
             ptmt.executeUpdate();
             conn.commit();
+            logStaffActivity("borrow_processed", borrowID, itemID, borrowerID);
             success = true;
         } catch (SQLException e) {
             success = false;
@@ -704,6 +690,7 @@ public class Queries {
             ptmt.executeUpdate();
 
             conn.commit();
+            logStaffActivity("item_updated", null, null, null);
             conn.setAutoCommit(true);
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         }catch(SQLException e){
@@ -727,6 +714,7 @@ public class Queries {
             ptmt.executeUpdate();
 
             conn.commit();
+            logStaffActivity("item_updated", null, itemID, null);
             conn.setAutoCommit(true);
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         }catch(SQLException e){
@@ -739,50 +727,22 @@ public class Queries {
         }
     }
 
-    public void updateActualReturnDate(List<String> borrowID, List<Integer> borrowItemID, Timestamp ts) {
+    public void updateActualReturnDate(HashMap<String, List<Integer>> map, Timestamp ts, String borrowerID) {
         // String updateQuery = "UPDATE borrow SET actual_return_date = ? WHERE borrow_id = ? AND item_id = ?";
-        int borrow_id = Integer.parseInt(borrowID.get(0));
-
-        System.out.println("Get borrowed ID's");
-        List<String> borrowerIDList = new ArrayList<>();
-        for(Integer itemId : borrowItemID) {
-            borrowerIDList.clear();
-            String selectQuery = "SELECT borrower_id FROM borrow WHERE borrow_id = ? AND item_id = ?";
-            try{
-                conn.setAutoCommit(false);
-                conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-                PreparedStatement ptmt1 = conn.prepareStatement(selectQuery);
-                ptmt1.setInt(1, borrow_id);
-                ptmt1.setInt(2, itemId);
-                ResultSet rs1 = ptmt1.executeQuery();
-
-                while(rs1.next()) {
-                    System.out.println(rs1.getString("borrower_id"));
-                    borrowerIDList.add(rs1.getString("borrower_id"));
-                }
-
-                conn.commit();
-                conn.setAutoCommit(true);
-                conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
-            } catch(SQLException e){
-                try {
-                    conn.rollback();
-                } catch (SQLException e1) {
-                    System.err.println("SQL Error1.1B: " + e1.getMessage());
-                }
-                System.err.println("SQL Error1.2B: " + e.getMessage());
-            }
-
-            System.out.println("Updated actual return date");
-            String addQuery = "INSERT INTO return_log(borrow_id, borrower_id, item_id, return_date, item_condition) VALUES(?, ?, ?, ?, ?)";
-            try{
-                for(String borrower : borrowerIDList) {
+        for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {
+            String borrowID = entry.getKey();
+            List<Integer> itemList = entry.getValue();
+            for (Integer itemID : itemList) {
+                System.out.println("Borrow ID: " + borrowID + ", Item ID: " + itemID);
+                System.out.println("Updated actual return date");
+                String addQuery = "INSERT INTO return_log(borrow_id, borrower_id, item_id, return_date, item_condition) VALUES(?, ?, ?, ?, ?)";
+                try{
                     conn.setAutoCommit(false);
                     conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
                     PreparedStatement ptmt2 = conn.prepareStatement(addQuery);
-                    ptmt2.setInt(1, borrow_id);
-                    ptmt2.setString(2, borrower);
-                    ptmt2.setInt(3, itemId);
+                    ptmt2.setInt(1, Integer.parseInt(borrowID));
+                    ptmt2.setString(2, borrowerID);
+                    ptmt2.setInt(3, itemID);
                     ptmt2.setTimestamp(4, ts);
                     ptmt2.setString(5, "Good Condition");
                     System.out.println("X");
@@ -791,38 +751,38 @@ public class Queries {
                     conn.commit();
                     conn.setAutoCommit(true);
                     conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+                }catch(SQLException e){
+                    try {
+                        conn.rollback();
+                    } catch (SQLException e1) {
+                        System.err.println("SQL Error2.1B: " + e1.getMessage());
+                    }
+                    System.err.println("SQL Error2.2B: " + e.getMessage());
                 }
-            }catch(SQLException e){
-                try {
-                    conn.rollback();
-                } catch (SQLException e1) {
-                    System.err.println("SQL Error2.1B: " + e1.getMessage());
-                }
-                System.err.println("SQL Error2.2B: " + e.getMessage());
             }
         }
     }
     
     public List<String[]> getBorrowList() {
-        String query = "SELECT DISTINCT full_name, borrower_id, date_borrowed, expected_return_date, " +
-                        "degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id) WHERE actual_return_date IS NULL ORDER BY date_borrowed DESC, expected_return_date DESC";
-        String query1 = "SELECT DISTINCT full_name, borrower_id, degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id)";
+        // String query = "SELECT DISTINCT full_name, borrower_id, date_borrowed, expected_return_date, " +
+        //                 "degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id) WHERE actual_return_date IS NULL ORDER BY date_borrowed DESC, expected_return_date DESC";
+        String query1 = "SELECT DISTINCT full_name, borrower_id, degree_prog FROM borrow JOIN borrower USING(borrower_id) WHERE actual_return_date IS NULL";
         // Updated Query as of May 7 2025: "SELECT DISTINCT full_name, borrower_id," + "degree_prog, course_id, section_name FROM borrow JOIN borrower USING(borrower_id) JOIN course USING(course_id) JOIN section USING(section_id)"
         List<String[]> data = new ArrayList<>();
 
         try{
-            ptmt = conn.prepareStatement(query);
+            ptmt = conn.prepareStatement(query1);
             ResultSet rs = ptmt.executeQuery();
 
             while (rs.next()) {
                 String[] row = new String[] {
                     rs.getString("full_name"),
                     rs.getString("borrower_id"),
-                    rs.getString("date_borrowed"),
-                    rs.getString("expected_return_date"),
-                    rs.getString("degree_prog"),
-                    rs.getString("course_id"),
-                    rs.getString("section_name")
+                    // rs.getString("date_borrowed"),
+                    // rs.getString("expected_return_date"),
+                    rs.getString("degree_prog")
+                    // rs.getString("course_id"),
+                    // rs.getString("section_name")
                 };
                 data.add(row);
             }
@@ -1107,5 +1067,28 @@ public class Queries {
         }
 
         return itemInfo;
-    } 
+    }
+
+    private void logStaffActivity(String activityType, Integer borrowId, Integer itemId, String borrowerId){        
+        String logQuery = "INSERT INTO staff_activity_log(username, activity_type, borrow_id, item_id, borrower_id) VALUES(?, ?, ?, ?, ?)";
+        try{
+            PreparedStatement logStmt = conn.prepareStatement(logQuery);
+            logStmt.setString(1, user);
+            logStmt.setString(2, activityType);
+            
+            if(borrowId != null) logStmt.setInt(3, borrowId);
+            else logStmt.setNull(3, java.sql.Types.INTEGER);
+            
+            if(itemId != null) logStmt.setInt(4, itemId);
+            else logStmt.setNull(4, java.sql.Types.INTEGER);
+            
+            if(borrowerId != null) logStmt.setString(5, borrowerId);
+            else logStmt.setNull(5, java.sql.Types.VARCHAR);
+            
+            logStmt.executeUpdate();
+            logStmt.close();
+        }catch(SQLException e){
+            System.err.println("Failed to log staff activity: " + e.getMessage());
+        }
+    }
 }
