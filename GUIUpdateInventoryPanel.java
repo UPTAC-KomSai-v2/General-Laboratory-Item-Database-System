@@ -34,6 +34,7 @@ public class GUIUpdateInventoryPanel extends JPanel {
     private Controller ctrl;
     private int selectedCategoryIndexDatabase, selectedCategoryIndexArray;
     private JButton backButton;
+    private GUIBorrowItemPanel borrowItemPanel;
 
     // Categories of laboratory equipment (we'll load this from the controller)
     private String[] categories;
@@ -44,10 +45,11 @@ public class GUIUpdateInventoryPanel extends JPanel {
      * @param branding Branding instance
      * @param backButton Back button reference
      */
-    public GUIUpdateInventoryPanel(Controller ctrl, Branding branding, JButton backButton) {
+    public GUIUpdateInventoryPanel(Controller ctrl, Branding branding, JButton backButton, GUIBorrowItemPanel borrowItemPanel) {
         this.ctrl = ctrl;
         this.branding = branding;
         this.backButton = backButton;
+        this.borrowItemPanel = borrowItemPanel;
         
         // Set up panel properties
         this.setLayout(new BorderLayout());
@@ -536,6 +538,7 @@ public class GUIUpdateInventoryPanel extends JPanel {
                     "Item Removed",
                     JOptionPane.INFORMATION_MESSAGE
                 );
+                borrowItemPanel.loadCategoryPanel(ctrl.getCategoryList());
             }
         } else {
             JOptionPane.showMessageDialog(
@@ -614,6 +617,7 @@ public class GUIUpdateInventoryPanel extends JPanel {
                     "Item Added",
                     JOptionPane.INFORMATION_MESSAGE
                 );
+                borrowItemPanel.loadCategoryPanel(ctrl.getCategoryList());
             } else {
                 JOptionPane.showMessageDialog(
                     this,

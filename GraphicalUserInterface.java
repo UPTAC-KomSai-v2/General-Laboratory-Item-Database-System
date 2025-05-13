@@ -71,7 +71,7 @@ public class GraphicalUserInterface implements ActionListener {
     public void initializeMainPanel() {
         // --- Ribbon buttons ---
         rbbnLogoutBtn = new JButton("Logout");
-        rbbnUserBtn = new JButton("User");
+        rbbnUserBtn = new JButton("");
         rbbnAboutBtn = new JButton("About");
 
         JButton[] ribbonButtons = { rbbnLogoutBtn, rbbnUserBtn, rbbnAboutBtn };
@@ -120,7 +120,7 @@ public class GraphicalUserInterface implements ActionListener {
         // Sub-panel views with back buttons
         ctntBorrowItemPanel = new GUIBorrowItemPanel(ctrl, branding, bitmBackBtn);
         ctntBorrowerListPanel = new GUIBorrowerListPanel(ctrl, branding, blstBackBtn);
-        ctntUpdateInventoryPanel = new GUIUpdateInventoryPanel(ctrl, branding, upinBackBtn);
+        ctntUpdateInventoryPanel = new GUIUpdateInventoryPanel(ctrl, branding, upinBackBtn, (GUIBorrowItemPanel)ctntBorrowItemPanel);
         ctntTransactionHistoryPanel = new GUITransactionHistoryPanel(ctrl, branding, tranBackBtn);
     }
 

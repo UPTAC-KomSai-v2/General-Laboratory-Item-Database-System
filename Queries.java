@@ -1086,6 +1086,7 @@ public class Queries {
             else logStmt.setNull(5, java.sql.Types.VARCHAR);
             
             logStmt.executeUpdate();
+            conn.commit();
             logStmt.close();
         }catch(SQLException e){
             System.err.println("Failed to log staff activity: " + e.getMessage());
