@@ -22,7 +22,7 @@ public class Queries {
     private Statement stmt;
     private PreparedStatement ptmt;
     private int currentCategoryID = -1;
-    private int currentSessionID = -1;
+    private int currentLogID = -1;
     
     public Queries(){}
 
@@ -58,7 +58,7 @@ public class Queries {
                 if(generatedKeys.next()){
                     sessionId = generatedKeys.getInt(1);
                 }
-                this.currentSessionID = sessionID;
+                this.currentLogID = sessionID;
                 String updateLastLoginQuery = "UPDATE staff_user SET last_login = CURRENT_TIMESTAMP WHERE username = ?";
                 PreparedStatement updateStmt = conn.prepareStatement(updateLastLoginQuery);
                 updateStmt.setString(1, username);
