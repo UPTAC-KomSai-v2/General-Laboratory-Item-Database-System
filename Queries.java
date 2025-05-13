@@ -91,6 +91,29 @@ public class Queries {
         return currentCategoryID;
     }
 
+    public List<String[]> autoCompleteForm(String studentID){
+        String query = "SELECT full_name, email, contact_number, degree_prog FROM borrower WHERE borrower_id = ?";
+        List<String[]> data = new ArrayList<>();
+        try{
+            ptmt = conn.prepareStatement(query);
+            ptmt.setString(1, studentID);
+            ResultSet rs = ptmt.executeQuery();
+
+            while (rs.next()) {
+                String[] row = new String[] {
+                    rs.getString("full_name"),
+                    rs.getString("email"),
+                    rs.getString("contact_number"),
+                    rs.getString("degree_prog")
+                };
+                data.add(row);
+            }
+        }catch(SQLException e){
+            System.err.println("SQL Error: " + e.getMessage());
+        }
+        return data;
+    }
+
     public List<String[]> getAllCategories() {
         List<String[]> categories = new ArrayList<>();
         try {
