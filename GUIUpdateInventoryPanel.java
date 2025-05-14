@@ -318,12 +318,61 @@ public class GUIUpdateInventoryPanel extends JPanel {
         tableModel = new DefaultTableModel(trimmedData, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return true; // or false depending on your requirement
+                return column ==2; // or false depending on your requirement
             }
         };
 
         // Create JTable with the table model
         inventoryTable = new JTable(tableModel);
+        inventoryTable.getModel().addTableModelListener(e -> {
+            System.out.println("SUMULOD HEREEEEE");
+            if (e.getType() == javax.swing.event.TableModelEvent.UPDATE && e.getColumn() == 2) {
+                int row = e.getFirstRow();
+                String quantityStr = tableModel.getValueAt(row, 2).toString();
+                String itemName = tableModel.getValueAt(row, 0).toString();
+                String unit = tableModel.getValueAt(row, 1).toString();
+                
+                try {
+                    int quantity = Integer.parseInt(quantityStr);
+                    if (quantity <= 0) {
+                        JOptionPane.showMessageDialog(
+                            GUIUpdateInventoryPanel.this,
+                            "Quantity must be greater than zero.",
+                            "Invalid Input",
+                            JOptionPane.WARNING_MESSAGE
+                        );
+                        // Reset to previous value
+                        tableModel.setValueAt(data[row][3], row, 2);
+                    } else {
+                        // Get the item ID
+                        String itemNameWithUnit = (unit == null || unit.trim().isEmpty()) 
+                            ? itemName 
+                            : itemName + " - " + unit;
+                        int itemId = ctrl.getItemIDWithUnit(itemNameWithUnit);
+                        // Update the quantity in database
+                        ctrl.updateItemQuantity(itemId, quantity);
+
+                        // Notify user
+                        JOptionPane.showMessageDialog(
+                            GUIUpdateInventoryPanel.this,
+                            "Quantity updated successfully.",
+                            "Update Successful",
+                            JOptionPane.INFORMATION_MESSAGE
+                        );
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(
+                        GUIUpdateInventoryPanel.this,
+                        "Please enter a valid number for quantity.",
+                        "Invalid Input",
+                        JOptionPane.WARNING_MESSAGE
+                    );
+                    // Reset to previous value
+                    tableModel.setValueAt(data[row][3], row, 2);
+                }
+            }
+        });
+
         inventoryTable.setRowHeight(50);
         inventoryTable.setForeground(branding.maroon);
         inventoryTable.setBackground(branding.lightgray);

@@ -1098,6 +1098,19 @@ public class Queries {
         return itemInfo;
     }
 
+    public void updateItemQuantity(int itemId, int newQuantity) {
+        String query = "UPDATE item SET qty = ? WHERE item_id = ?";
+        try {
+            PreparedStatement ptmt = conn.prepareStatement(query);
+            ptmt.setInt(1, newQuantity);
+            ptmt.setInt(2, itemId);
+            ptmt.executeUpdate();
+            ptmt.close();
+        } catch (SQLException e) {
+            System.err.println("SQL Error while updating quantity: " + e.getMessage());
+        }
+    }
+
     private void logStaffActivity(String activityType, Integer borrowId, Integer itemId, String borrowerId){        
         String logQuery = "INSERT INTO staff_activity_log(username, activity_type, borrow_id, item_id, borrower_id) VALUES(?, ?, ?, ?, ?)";
         try{

@@ -462,7 +462,12 @@ public class Controller {
     // ====================================================
     // ========== Update Inventory Panel Methods ==========
     // ====================================================
-
+    public void updateItemQuantity(int itemId, int newQuantity) {
+        queries.updateItemQuantity(itemId, newQuantity);
+        // Update the cached quantity
+        itemQuantityMap.put(itemId, newQuantity);
+    }
+    
     // Get items for a specific category
     public String[][] getItemsPerCategory(int categoryId) {
         List<String> itemsWithUnit = itemsByCategory.get(categoryId);
