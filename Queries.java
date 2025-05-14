@@ -14,7 +14,8 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 public class Queries {
-    static final String DB_URL = "jdbc:mysql://caboose.proxy.rlwy.net:51384/genlab_db";
+    //static final String DB_URL = "jdbc:mysql://caboose.proxy.rlwy.net:51384/genlab_db";
+    static final String DB_URL = "jdbc:mysql://localhost:3306/genlab_db";
     //private String user = "root";
     //private String pass = "weoZeizOaesHkpjieIetoaQTyKfFwjKm";
     private String user;
@@ -750,15 +751,18 @@ public class Queries {
         }
     }
 
-    public void updateActualReturnDate(HashMap<String, List<Integer>> map, Timestamp ts, String borrowerID) {
+    public void updateActualReturnDate(HashMap<String, List<Integer[]>> map, Timestamp ts, String borrowerID) {
         // String updateQuery = "UPDATE borrow SET actual_return_date = ? WHERE borrow_id = ? AND item_id = ?";
-        for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {
+        for (Map.Entry<String, List<Integer[]>> entry : map.entrySet()) {
             String borrowID = entry.getKey();
-            List<Integer> itemList = entry.getValue();
-            for (Integer itemID : itemList) {
-                System.out.println("Borrow ID: " + borrowID + ", Item ID: " + itemID);
+            List<Integer[]> itemList = entry.getValue();
+            System.out.println("Borrow ID: " + borrowID);
+            for (Integer[] itemEntry : itemList) {
+                int itemID = itemEntry[0];
+                int qtyReturned = itemEntry[1];
                 System.out.println("Updated actual return date");
-                String addQuery = "INSERT INTO return_log(borrow_id, borrower_id, item_id, return_date, item_condition) VALUES(?, ?, ?, ?, ?)";
+                System.out.println("  Item ID: " + itemID + ", Quantity: " + qtyReturned);
+                String addQuery = "INSERT INTO return_log(borrow_id, borrower_id, item_id, return_date, item_condition, qty_returned) VALUES(?, ?, ?, ?, ?, ?)";
                 try{
                     conn.setAutoCommit(false);
                     conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
@@ -768,6 +772,7 @@ public class Queries {
                     ptmt2.setInt(3, itemID);
                     ptmt2.setTimestamp(4, ts);
                     ptmt2.setString(5, "Good Condition");
+                    ptmt2.setInt(6, qtyReturned);
                     System.out.println("X");
                     ptmt2.executeUpdate();
 
@@ -1049,7 +1054,7 @@ public class Queries {
     }
 
     public List<String> getReturnedItems(int borrowId, Timestamp ts) {
-        String query = "SELECT b.qty_borrowed, i.item_name, i.unit, rl.item_condition, rl.late_fee FROM return_log rl JOIN borrow b ON rl.borrow_id = b.borrow_id AND rl.borrower_id = b.borrower_id AND rl.item_id = b.item_id JOIN item i ON b.item_id = i.item_id WHERE rl.borrow_id = ? AND rl.return_date = ?";
+        String query = "SELECT rl.qty_returned, i.item_name, i.unit, rl.item_condition, rl.late_fee FROM return_log rl JOIN item i ON rl.item_id = i.item_id WHERE rl.borrow_id = ? AND rl.return_date = ?";
         List<String> itemInfo = new ArrayList<>();
         double lateFee = 0.00;
 
@@ -1063,14 +1068,15 @@ public class Queries {
 
             while(rs.next()) {
                 String itemConcat;
+                System.out.println("Get items returned");
                 if(rs.getString("unit") == null) {
-                    itemConcat = "[" + rs.getString("qty_borrowed") + "x] " + rs.getString("item_name")
-                                + "\n    --> Item Condition: " + rs.getString("item_condition")
-                                + "\n    --> Late Fee: " + rs.getString("late_fee");
+                    itemConcat = "[" + rs.getString("qty_returned") + "x] " + rs.getString("item_name")
+                                + "\n        --> Item Condition: " + rs.getString("item_condition")
+                                + "\n        --> Late Fee: " + rs.getString("late_fee");
                 } else {
-                    itemConcat = "[" + rs.getString("qty_borrowed") + "x] " + rs.getString("item_name") + " (" + rs.getString("unit") + ")"
-                                + "\n    --> Item Condition: " + rs.getString("item_condition")
-                                + "\n    --> Late Fee: " + rs.getString("late_fee");
+                    itemConcat = "[" + rs.getString("qty_returned") + "x] " + rs.getString("item_name") + " (" + rs.getString("unit") + ")"
+                                + "\n        --> Item Condition: " + rs.getString("item_condition")
+                                + "\n        --> Late Fee: " + rs.getString("late_fee");
                 }
                 itemInfo.add(itemConcat);
                 lateFee += rs.getDouble("late_fee");

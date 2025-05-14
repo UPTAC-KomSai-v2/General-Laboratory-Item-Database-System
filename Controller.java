@@ -572,7 +572,7 @@ public class Controller {
     // =======================================================
     // =============== Generate return receipt ===============
     // =======================================================
-    public void generateReturnReceipt(HashMap<String, List<Integer>> map, Timestamp ts) {
+    public void generateReturnReceipt(HashMap<String, List<Integer[]>> map, Timestamp ts) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
         String tS = sdf.format(ts);
         String fileName = "Return Receipts\\ReturnReceipt_" + tS + ".txt";
@@ -581,7 +581,7 @@ public class Controller {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
             writer.write("==================  RECEIPT  ==================\n");
             writer.write("Date Returned: " + ts + "\n");
-            for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {
+            for (Map.Entry<String, List<Integer[]>> entry : map.entrySet()) {
                 String borrowID = entry.getKey();
                 writer.write("  Borrow ID: " + borrowID + "\n");
                 writer.write("    Items Returned:\n");

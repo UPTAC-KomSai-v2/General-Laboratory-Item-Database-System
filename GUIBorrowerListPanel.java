@@ -36,7 +36,7 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
     private List<JButton> returnButtons = new ArrayList<>();
     private List<String> borrowIds = new ArrayList<>();
     private List<String> borrowerIds = new ArrayList<>();
-    private HashMap<String, List<Integer>> selectedItems = new HashMap<>();
+    private HashMap<String, List<Integer[]>> selectedItems = new HashMap<>();
     private String[] borrowerInfo;
 
     public GUIBorrowerListPanel(Controller ctrl, Branding branding, JButton blstBackBtn){
@@ -514,17 +514,48 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
             returnItemBtn.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    if(returnItemBtn.getBackground().equals(branding.maroon)) {
-                        System.out.println("Borrow ID: " + tuple[4] + " --> Enabled");
-                        returnItemBtn.setBackground(Color.YELLOW);
-                        selectedItems.computeIfAbsent(tuple[4], k -> new ArrayList<>()).add(Integer.parseInt(tuple[3]));
-                        printHashMap(selectedItems);
+                    if (returnItemBtn.getBackground().equals(branding.maroon)) {
+                        String input = JOptionPane.showInputDialog(
+                            GUIBorrowerListPanel.this,
+                            "Enter quantity to return:",
+                            "Return Quantity",
+                            JOptionPane.PLAIN_MESSAGE
+                        );
+
+                        try {
+                            if (input != null && !input.trim().isEmpty()) {
+                                int qtyToReturn = Integer.parseInt(input.trim());
+                                int maxQty = Integer.parseInt(tuple[0]);
+
+                                if (qtyToReturn <= 0 || qtyToReturn > maxQty) {
+                                    throw new IllegalArgumentException("Entered quantity must be between 1 and " + maxQty);
+                                }
+
+                                Integer[] itemEntry = new Integer[] {Integer.parseInt(tuple[3]), qtyToReturn};
+                                selectedItems.computeIfAbsent(tuple[4], k -> new ArrayList<>()).add(itemEntry);
+                                returnItemBtn.setBackground(branding.yellow);
+                                printHashMap(selectedItems);
+                            }
+                        } catch (NumberFormatException ex) {
+                            JOptionPane.showMessageDialog(
+                                GUIBorrowerListPanel.this,
+                                "Please enter a valid whole number.",
+                                "Invalid Input",
+                                JOptionPane.ERROR_MESSAGE
+                            );
+                        } catch (IllegalArgumentException ex) {
+                            JOptionPane.showMessageDialog(
+                                GUIBorrowerListPanel.this,
+                                ex.getMessage(),
+                                "Invalid Quantity",
+                                JOptionPane.WARNING_MESSAGE
+                            );
+                        }
                     } else {
-                        System.out.println("Borrow ID: " + tuple[4] + " --> Disabled");
                         returnItemBtn.setBackground(branding.maroon);
-                        List<Integer> list = selectedItems.get(tuple[4]);
+                        List<Integer[]> list = selectedItems.get(tuple[4]);
                         if (list != null) {
-                            list.remove(Integer.valueOf(tuple[3]));
+                            list.removeIf(entry -> entry[0] == Integer.parseInt(tuple[3])); // remove all entries with matching itemId
                             if (list.isEmpty()) {
                                 selectedItems.remove(tuple[4]);
                             }
@@ -542,16 +573,16 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
                         }
                     }
                     if (allSameColor) {
-                        System.out.println("Returned All 1");
                         screen2ReturnAllBtn.setText("Undo Return All");
                         screen2ReturnAllBtn.setBackground(branding.darkermaroon);
                     } else {
-                        System.out.println("Undo Return All 1");
                         screen2ReturnAllBtn.setText("Return All");
                         screen2ReturnAllBtn.setBackground(branding.maroon);
                     }
                 }
             });
+
+
 
             returnButtons.add(returnItemBtn);
             borrowIds.add(tuple[4]);
@@ -565,15 +596,16 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(screen2ReturnAllBtn.getBackground().equals(branding.maroon)) {
+                    selectedItems.clear();
                     for (int l = 0; l < returnButtons.size(); l++) {
                         JButton btn = returnButtons.get(l);
                         String borrowId = borrowIds.get(l);
                         int borrowItem = Integer.parseInt(items.get(l)[3]);
-                        if (btn.getBackground().equals(branding.maroon)) {
-                            btn.setBackground(Color.YELLOW);
-                            selectedItems.computeIfAbsent(borrowId, k -> new ArrayList<>()).add(borrowItem);
-                            printHashMap(selectedItems);
-                        }
+                        int qtyToReturn = Integer.parseInt(items.get(l)[0]);
+                        btn.setBackground(branding.yellow);
+                        Integer[] itemEntry = new Integer[] {borrowItem, qtyToReturn};
+                        selectedItems.computeIfAbsent(borrowId, k -> new ArrayList<>()).add(itemEntry);
+                        printHashMap(selectedItems);
                     }
 
                     System.out.println("Returned All 2");
@@ -673,13 +705,16 @@ public class GUIBorrowerListPanel extends JPanel implements ActionListener{
         }
     }
 
-    private void printHashMap(HashMap<String, List<Integer>> map) {
+    private void printHashMap(HashMap<String, List<Integer[]>> map) {
         System.out.println("Selected Borrow ID's: ");
-        for (Map.Entry<String, List<Integer>> entry : map.entrySet()) {
-            String borrowid = entry.getKey();
-            List<Integer> itemList = entry.getValue();
-            for (Integer itemid : itemList) {
-                System.out.println("  Borrow ID: " + borrowid + ", Item ID: " + itemid);
+        for (Map.Entry<String, List<Integer[]>> entry : map.entrySet()) {
+            String borrowId = entry.getKey();
+            List<Integer[]> itemList = entry.getValue();
+            System.out.println("Borrow ID: " + borrowId);
+            for (Integer[] itemEntry : itemList) {
+                int itemId = itemEntry[0];
+                int quantity = itemEntry[1];
+                System.out.println("  Item ID: " + itemId + ", Quantity: " + quantity);
             }
         }
     }
