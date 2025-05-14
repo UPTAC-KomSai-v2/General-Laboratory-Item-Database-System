@@ -653,13 +653,13 @@ public class GUIBorrowItemPanel extends JPanel{
             gbc.insets = new Insets(0, 5, 0, 5);
             gbc.gridx = 0;
             gbc.ipadx = 0;
-            quantityPanel.add(addBtn, gbc);
+            quantityPanel.add(subtractBtn, gbc);
             gbc.gridx = 1;
             gbc.ipadx = 10;
             quantityPanel.add(quantityLabelPanel, gbc);
             gbc.gridx = 2;
             gbc.ipadx = 0;
-            quantityPanel.add(subtractBtn, gbc);
+            quantityPanel.add(addBtn, gbc);
             
             // Add button listeners
             final int itemID = item.itemID; // Capture the item name for the lambda expressions
