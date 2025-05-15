@@ -26,7 +26,15 @@ A Java-based system for managing laboratory equipment and materials in education
    CREATE USER _username_@_hostname_ IDENTIFIED BY _password_;
    GRANT ALL PRIVILEGES ON genlab_db.* TO _username_@_hostname_;
    FLUSH PRIVILEGES;
-4. Update Queries.java with the newly created credentials.
+   **Note**: For this implementation the following users are added since the triggers were created online and the definers are the following users:
+   CREATE USER 'rolf'@'%';
+   CREATE USER 'jade'@'%';
+   CREATE USER 'root'@'%';
+   GRANT ALL PRIVILEGES ON genlab_db.* TO 'rolf'@'%';
+   GRANT ALL PRIVILEGES ON genlab_db.* TO 'jade'@'%';
+   GRANT ALL PRIVILEGES ON genlab_db.* TO 'root'@'%';
+   FLUSH PRIVILEGES;
+5. Update Queries.java with the newly created credentials.
 ## 🖥️ **System Operations**
 - **Borrow Item**
 1. Select items (highlighted gray) from categories.
