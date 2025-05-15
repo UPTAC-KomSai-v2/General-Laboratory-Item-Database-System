@@ -14,16 +14,16 @@ A Java-based system for managing laboratory equipment and materials in education
    mysql -u root -p genlab_db < dumpfile.sql
 3. Configure database credentials in the Queries.java code for localization:
    db.url=jdbc:mysql://localhost:3306/genlab_db
-   db.username=<username>
-   db.password=<password>
+   db.username = _username_
+   db.password = _password_
 4. Run the application:
    java -jar GLIMS.jar
 ## 🔐**User Authentication**
 1. Open Command Prompt (Windows) or Terminal (macOS/Linux).
 2. Log in to MySQL:
-   mysql -u <username> -p
+   mysql -u _username_ -p
 3. Create a user with privileges:
-   CREATE USER <username>@<hostname> IDENTIFIED BY <password>;
-   GRANT ALL PRIVILEGES ON genlab_db.* TO <username>@<hostname>;
+   CREATE USER _username_@_hostname_ IDENTIFIED BY _password_;
+   GRANT ALL PRIVILEGES ON genlab_db.* TO _username_@_hostname_;
    FLUSH PRIVILEGES;
 4. 
