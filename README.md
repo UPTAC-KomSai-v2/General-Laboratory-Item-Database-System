@@ -6,7 +6,7 @@ A Java-based system for managing laboratory equipment and materials at the Unive
 - MySQL Connector/J (JDBC driver)
 - Minimum 4GB RAM (8GB recommended)
 - 100MB disk space (excluding database storage)
-## **Installation Guide**
+## ⬇️ **Installation Guide**
 1. Clone the repository:
    git clone https://github.com/UPTAC-KomSai-v2/General-Laboratory-Item-Database-System.git
 2. Set up the MySQL database:
@@ -18,7 +18,7 @@ A Java-based system for managing laboratory equipment and materials at the Unive
    - db.password = _password_
 4. Run the application:
    java -jar GLIMS.jar
-## 🔐**User Authentication**
+## 🔐 **User Authentication**
 1. Open Command Prompt (Windows) or Terminal (macOS/Linux).
 2. Log in to MySQL:
    mysql -u _username_ -p
