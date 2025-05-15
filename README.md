@@ -72,6 +72,6 @@ A Java-based system for managing laboratory equipment and materials at the Unive
 |  **Table** |     **Description**	  |          **Attributes**           |
 | ---------- | ---------------------- | --------------------------------- |
 | staff_user | Staff accounts	        | log_ID, username, last_login      |
-> [!Note] > Full schema details in [Manual](https://docs.google.com/document/d/1EVQ7p3KOsQOIELyjSVW_Fpy6ftP8OWDzCSxuCZ_2DTs/edit?usp=sharing)
+> [!Note] > Full schema details in [Manual](https://drive.google.com/file/d/1e0TyWiKuyI2YetULpiuvUu9ubblc_amI/view?usp=sharing)
 
-Support: Contact rlgarces@up.edu.ph
+For troubleshooting and technical support, contact rlgarces@up.edu.ph
