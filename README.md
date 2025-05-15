@@ -47,3 +47,11 @@ A Java-based system for managing laboratory equipment and materials in education
 2. Filter by:
    - "View Borrow" (outgoing).
    - "View Return" (ingoing).
+## 🗃️ **Database Schema**
+### Core Tables
+|  **Table** |     **Description**	  |          **Attributes**           |
+ ------------ ------------------------ -----------------------------------
+| item	    | Laboratory items	     | item_id, item_name, status        |
+| borrower	 | Student borrowers	     | borrower_id, full_name, email     |
+| borrow	    | Borrowing transactions | borrow_id, item_id, date_borrowed |
+| return_log |	Item returns	        | return_id, late_fee               |
