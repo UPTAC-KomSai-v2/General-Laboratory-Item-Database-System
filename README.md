@@ -19,7 +19,7 @@ A Java-based system for managing laboratory equipment and materials at the Unive
    > **Note**: Before running the application, make sure to accomplish user authentication and necessary user additions for the database.
 4. b.) Configure database credentials in the Queries.java code for localization:
    - db.url=jdbc:mysql://localhost:3306/genlab_db
-6. Run the application:
+5. Run the application:
    java -jar GLIMS.jar
    > **Note**: Before running the application, make sure to accomplish user authentication and necessary user additions for the database.
 ## 🔐 **User Authentication**
