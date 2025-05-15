@@ -13,22 +13,26 @@ A Java-based system for managing laboratory equipment and materials at the Unive
    - Access the newly addded folder:
       > cd 'General-Laboratory-Item-Management-System'
    - Open 'cmd' and import the provided SQL dump:
-      > mysql -u root -p genlab_db < dumpfile.sql
+      > mysql -u root -p genlab_db < genlab_db.sql (Note: Make sure you have create a database named "genlab_db")
+3. Open the folder using your coding environment.
 4. Configure database credentials in the Queries.java code for localization:
    - db.url=jdbc:mysql://localhost:3306/genlab_db
    - db.username = _username_
    - db.password = _password_
 5. Run the application:
    java -jar GLIMS.jar
+   > **Note**: Before running the application, make sure to accomplish user authentication and necessary user additions for the database.
 ## 🔐 **User Authentication**
 1. Open Command Prompt (Windows) or Terminal (macOS/Linux).
 2. Log in to MySQL:
    mysql -u _username_ -p
 3. Create a user with privileges:
    - CREATE USER _username_@_hostname_ IDENTIFIED BY _password_;
+   - CREATE DATABASE genlab_db;
    - GRANT ALL PRIVILEGES ON genlab_db.* TO _username_@_hostname_;
    - FLUSH PRIVILEGES;
    > **Note**: For this implementation the following users are added since the triggers were created online and the definers are the following users:
+      - use genlab_db;
       - CREATE USER 'rolf'@'%';
       - CREATE USER 'jade'@'%';
       - CREATE USER 'root'@'%';
@@ -36,7 +40,7 @@ A Java-based system for managing laboratory equipment and materials at the Unive
       - GRANT ALL PRIVILEGES ON genlab_db.* TO 'jade'@'%';
       - GRANT ALL PRIVILEGES ON genlab_db.* TO 'root'@'%';
       - FLUSH PRIVILEGES;
-5. Update Queries.java with the newly created credentials.
+4. Update Queries.java with the newly created credentials.
 ## 🖥️ **System Operations**
 - **Borrow Item**
 1. Select items (highlighted gray) from categories.
