@@ -40,8 +40,7 @@ A Java-based system for managing laboratory equipment and materials at the Unive
       - GRANT ALL PRIVILEGES ON genlab_db.* TO 'jade'@'%';
       - GRANT ALL PRIVILEGES ON genlab_db.* TO 'root'@'%';
       - FLUSH PRIVILEGES;
-4. To add a test data, run the application software and click “Update Inventory” to import .csv from the “Import CSV” folder containing ‘Lab_Material_Items.csv’.
-
+4. _To add a test data, run the application software and click “Update Inventory” to import .csv from the “Import CSV” folder containing ‘Lab_Material_Items.csv’._
 ## 🖥️ **System Operations**
 - **Borrow Item**
 1. Select items (highlighted gray) from categories.
