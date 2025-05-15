@@ -50,7 +50,7 @@ A Java-based system for managing laboratory equipment and materials in education
 ## 🗃️ **Database Schema**
 ### Core Tables
 |  **Table** |     **Description**	  |          **Attributes**           |
- ------------ ------------------------ -----------------------------------
+| ---------- | ---------------------- | --------------------------------- |
 | item	    | Laboratory items	     | item_id, item_name, status        |
 | borrower	 | Student borrowers	     | borrower_id, full_name, email     |
 | borrow	    | Borrowing transactions | borrow_id, item_id, date_borrowed |
