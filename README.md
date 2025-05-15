@@ -29,21 +29,21 @@ A Java-based system for managing laboratory equipment and materials in education
 4. Update Queries.java with the newly created credentials.
 ## 🖥️ **System Operations**
 - **Borrow Item**
-  1. Select items (highlighted gray) from categories.
-  2. Click "Add to basket" (items turn yellow).
-  3. Adjust quantities with +/- buttons.
-  4. Click "Continue", enter borrower details, and confirm with "Borrow Now".
+1. Select items (highlighted gray) from categories.
+2. Click "Add to basket" (items turn yellow).
+3. Adjust quantities with +/- buttons.
+4. Click "Continue", enter borrower details, and confirm with "Borrow Now".
 - **Borrower List**
-  1. View all borrowers and their details.
-  2. Click a borrower to see borrowed items.
-  3. Use "Return" or "Return All" to process returns.
-  4. Click "Confirm" to update and commite operations done.
+1. View all borrowers and their details.
+2. Click a borrower to see borrowed items.
+3. Use "Return" or "Return All" to process returns.
+4. Click "Confirm" to update and commite operations done.
 - **Update Inventory**
-  1. Modify item quantities by clicking table cells.
-  2. Add Item: Enter details in the prompted window forms.
-  3. Remove Item: Select and click "Remove Item".
+1. Modify item quantities by clicking table cells.
+2. Add Item: Enter details in the prompted window forms.
+3. Remove Item: Select and click "Remove Item".
 - Transaction History
-  1. Default view: All transactions.
-  2. Filter by:
-     - "View Borrow" (outgoing).
-     - "View Return" (ingoing).
+1. Default view: All transactions.
+2. Filter by:
+   - "View Borrow" (outgoing).
+   - "View Return" (ingoing).
