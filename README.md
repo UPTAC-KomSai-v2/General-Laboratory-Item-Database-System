@@ -55,3 +55,10 @@ A Java-based system for managing laboratory equipment and materials in education
 | borrower	 | Student borrowers	     | borrower_id, full_name, email     |
 | borrow	    | Borrowing transactions | borrow_id, item_id, date_borrowed |
 | return_log |	Item returns	        | return_id, late_fee               |
+### Administrative Tables
+|  **Table** |     **Description**	  |          **Attributes**           |
+| ---------- | ---------------------- | --------------------------------- |
+| staff_user | Staff accounts	        | log_ID, username, last_login      |
+> [!Note] > Full schema details in [Manual](https://docs.google.com/document/d/1EVQ7p3KOsQOIELyjSVW_Fpy6ftP8OWDzCSxuCZ_2DTs/edit?usp=sharing)
+
+Support: Contact rlgarces@up.edu.ph
