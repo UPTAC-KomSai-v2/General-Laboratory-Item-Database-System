@@ -26,4 +26,16 @@ A Java-based system for managing laboratory equipment and materials in education
    CREATE USER _username_@_hostname_ IDENTIFIED BY _password_;
    GRANT ALL PRIVILEGES ON genlab_db.* TO _username_@_hostname_;
    FLUSH PRIVILEGES;
-4. 
+4. Update Queries.java with the newly created credentials.
+## 🖥️ **System Operations**
+- **Borrow Item**
+  1. Select items (highlighted gray) from categories.
+  2. Click "Add to basket" (items turn yellow).
+  3. Adjust quantities with +/- buttons.
+  4. Click "Continue", enter borrower details, and confirm with "Borrow Now".
+- **Borrower List**
+  1. View all borrowers and their details.
+  2. Click a borrower to see borrowed items.
+  3. Use "Return" or "Return All" to process returns.
+  4. Click "Confirm" to update database
+- 
