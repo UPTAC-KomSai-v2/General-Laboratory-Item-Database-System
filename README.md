@@ -1,6 +1,6 @@
 # **General Laboratory Item Management System (GLIMS)**
 A Java-based system for managing laboratory equipment and materials in educational institutions.
-##⚙️ **System Requirements**
+## ⚙️ **System Requirements**
 - Java Runtime Environment (JRE) 11+
 - MySQL Server 8.0+
 - MySQL Connector/J (JDBC driver)
