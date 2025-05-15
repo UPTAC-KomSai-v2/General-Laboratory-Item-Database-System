@@ -13,8 +13,8 @@ A Java-based system for managing laboratory equipment and materials at the Unive
    - Access the newly addded folder:
       > cd 'General-Laboratory-Item-Management-System'
    - Open Command Prompt (Windows) or Terminal (macOS/Linux) and import the provided SQL dump:
-      > **For Structure Only**: mysql -u _username_ -p genlab_db < genlab_db_schema.sql (Note: Make sure you have create a database named "genlab_db")
-      > **For Structure with Data**: mysql -u _username_ -p genlab_db < genlab_db_data.sql (Note: Make sure you have create a database named "genlab_db")
+     - **For Structure Only**: > mysql -u _username_ -p genlab_db < genlab_db_schema.sql (Note: Make sure you have create a database named "genlab_db")
+     - **For Structure with Data**: > mysql -u _username_ -p genlab_db < genlab_db_data.sql (Note: Make sure you have create a database named "genlab_db")
 3. Open the folder using your coding environment.
 - Around this point, you may just opt to run the installer GLIMS.exe for program usage (no need to proceed the succeeding steps).
    > **Note**: Before running the application, make sure to accomplish user authentication and necessary user additions for the database.
