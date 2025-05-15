@@ -511,10 +511,12 @@ public class Queries {
         } catch (SQLException e) {
             success = false;
             System.err.println("SQL Error: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Transaction failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             try{
                 conn.rollback();
             } catch (SQLException ex) {
                 System.err.println("Rollback Error: " + ex.getMessage());
+                JOptionPane.showMessageDialog(null, "Transaction failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
         return success;
@@ -538,14 +540,17 @@ public class Queries {
         } catch (SQLException e) {  
             System.err.println("SQL Error: " + e.getMessage());
             success = false;
+            JOptionPane.showMessageDialog(null, "Transaction failed: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             try{
                 conn.rollback();
             }catch(SQLException ex){
+                JOptionPane.showMessageDialog(null, "Transaction failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 System.err.println("Rollback Error: " + ex.getMessage());
             }
         }
         return success;
     }
+    
     // ----------------------------------------------------------
     //                 JHUN KENNETH INIEGO QUERIES
     // ----------------------------------------------------------
@@ -998,7 +1003,7 @@ public class Queries {
         // Get borrow details
         String borrowQuery = "SELECT DISTINCT date_borrowed, full_name, borrower_id, expected_return_date, item_name FROM borrow JOIN borrower USING (borrower_id) JOIN item USING (item_id);";
         // Get return details
-        String returnQuery = "SELECT rl.return_date, b.full_name, i.item_name, rl.item_condition, rl.late_fee FROM return_log rl JOIN borrower b ON rl.borrower_id = b.borrower_id JOIN item i ON rl.item_id = i.item_id ORDER BY rl.return_date ASC;";
+        String returnQuery = "SELECT rl.return_date, b.full_name, rl.qty_returned, i.item_name, rl.item_condition, rl.late_fee FROM return_log rl JOIN borrower b ON rl.borrower_id = b.borrower_id JOIN item i ON rl.item_id = i.item_id ORDER BY rl.return_date ASC;";
         List<String[]> data = new ArrayList<>();
 
         try{
@@ -1011,7 +1016,7 @@ public class Queries {
                 row[0] = "Return";
                 row[1] = rsReturn.getString("return_date");
                 row[2] = rsReturn.getString("full_name");
-                row[3] = rsReturn.getString("item_name");
+                row[3] = "[" + rsReturn.getString("qty_returned") + "x] " + rsReturn.getString("item_name");
                 row[4] = rsReturn.getString("item_condition");
                 row[5] = rsReturn.getString("late_fee");
                 data.add(row);
