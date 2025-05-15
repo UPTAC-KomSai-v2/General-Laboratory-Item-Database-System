@@ -45,7 +45,7 @@ A Java-based system for managing laboratory equipment and materials at the Unive
 1. View all borrowers and their details.
 2. Click a borrower to see borrowed items.
 3. Use "Return" or "Return All" to process returns.
-4. Click "Confirm" to update and commite operations done.
+4. Click "Confirm" to update and commit operations done.
 - **Update Inventory**
 1. Modify item quantities by clicking table cells.
 2. Add Item: Enter details in the prompted window forms.
