@@ -37,5 +37,13 @@ A Java-based system for managing laboratory equipment and materials in education
   1. View all borrowers and their details.
   2. Click a borrower to see borrowed items.
   3. Use "Return" or "Return All" to process returns.
-  4. Click "Confirm" to update database
-- 
+  4. Click "Confirm" to update and commite operations done.
+- **Update Inventory**
+  1. Modify item quantities by clicking table cells.
+  2. Add Item: Enter details in the prompted window forms.
+  3. Remove Item: Select and click "Remove Item".
+- Transaction History
+  1. Default view: All transactions.
+  2. Filter by:
+     - "View Borrow" (outgoing).
+     - "View Return" (ingoing).
