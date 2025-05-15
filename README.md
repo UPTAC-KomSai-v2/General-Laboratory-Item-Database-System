@@ -32,7 +32,7 @@ A Java-based system for managing laboratory equipment and materials at the Unive
    - GRANT ALL PRIVILEGES ON genlab_db.* TO _username_@_hostname_;
    - FLUSH PRIVILEGES;
    > **Note**: For this implementation the following users are added since the triggers were created online and the definers are the following users:
-      - use genlab_db;
+      - USE genlab_db;
       - CREATE USER 'rolf'@'%';
       - CREATE USER 'jade'@'%';
       - CREATE USER 'root'@'%';
