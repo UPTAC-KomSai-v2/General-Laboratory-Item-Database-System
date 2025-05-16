@@ -20,7 +20,6 @@ A Java-based system for managing laboratory equipment and materials at the Unive
    mysql -u _username_ -p
 3. Create a user with privileges:
    - CREATE USER _username_@_hostname_ IDENTIFIED BY _password_;
-   - CREATE DATABASE genlab_db;
    - GRANT ALL PRIVILEGES ON genlab_db.* TO _username_@_hostname_;
    - FLUSH PRIVILEGES;
    > **Note**: For this implementation,  any of the following users should be added since the triggers were created online and the definers are the following users:
@@ -64,6 +63,6 @@ A Java-based system for managing laboratory equipment and materials at the Unive
 |  **Table** |     **Description**	  |          **Attributes**           |
 | ---------- | ---------------------- | --------------------------------- |
 | staff_user | Staff accounts	        | log_ID, username, last_login      |
-> [!Note] > Full schema details in [Manual](https://drive.google.com/file/d/1gF3SFGmO8xV0P0zx6hz7W23yC9aX7-Tq/view?usp=sharing)
+> [!Note] > Full schema details in [Manual](https://drive.google.com/file/d/1W5zm0mHQmzFvs8H9uMmxPTNqgcPY5iYR/view?usp=drive_link)
 
 For troubleshooting and technical support, contact rlgarces@up.edu.ph
