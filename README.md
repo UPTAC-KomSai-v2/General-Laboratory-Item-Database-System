@@ -9,19 +9,9 @@ A Java-based system for managing laboratory equipment and materials at the Unive
 ## ⬇️ **Installation Guide**
 1. Clone the repository:
    git clone https://github.com/UPTAC-KomSai-v2/General-Laboratory-Item-Database-System.git
-2. Set up the MySQL database:
-   - Access the newly addded folder:
-      > cd 'General-Laboratory-Item-Management-System'
-   - Open Command Prompt (Windows) or Terminal (macOS/Linux) and import the provided SQL dump:
-     (Note: Make sure you have create a database named "genlab_db")
-     - **For Structure Only**: mysql -u _username_ -p genlab_db < genlab_db_schema.sql
-     - **For Structure with Data**: mysql -u _username_ -p genlab_db < genlab_db_data.sql 
-3. Open the folder using your coding environment.
-- Around this point, you may just opt to run the installer GLIMS.exe for program usage (no need to proceed the succeeding steps).
+   - You may just opt to run the installer GLIMS.exe for program usage (no need to proceed the succeeding step).
    > **Note**: Before running the application, make sure to accomplish user authentication and necessary user additions for the database.
-4. Configure database credentials in the Queries.java code for localization (if necessary):
-   - db.url=jdbc:mysql://localhost:3306/genlab_db
-6. Run the application:
+2. Run the application:
    java -jar GLIMS.jar
    > **Note**: Before running the application, make sure to accomplish user authentication and necessary user additions for the database.
 ## 🔐 **User Authentication**
