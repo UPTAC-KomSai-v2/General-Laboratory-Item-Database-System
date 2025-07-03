@@ -69,8 +69,6 @@ The system is built with data integrity and user experience as top priorities, f
 
 ## Screenshots
 
-*(Here you would insert actual screenshots of your application)*
-
 | Login Screen                                     | Main Menu                               |
 | ------------------------------------------------ | --------------------------------------- |
 | ![Login Screen](docs/screenshots/login.png)      | ![Main Menu](docs/screenshots/main_menu.png) |
