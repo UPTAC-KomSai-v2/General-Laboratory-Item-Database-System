@@ -94,7 +94,7 @@ Follow these instructions to get a local copy of GLIMS up and running on your ma
 
 You must have the following software installed on your system:
 
-- **Java Development Kit (JDK):** Version 11 or newer.
+- **Java Development Kit (JDK):** Version 24 or newer.
 - **MySQL Server:** Version 8.0 or newer.
 - **An IDE (Optional but Recommended):** IntelliJ IDEA, Eclipse, or VS Code with Java extensions.
 
@@ -173,7 +173,6 @@ A brief overview of the key tables:
 
 An Entity-Relationship Diagram (ERD) would look like this:
 
-*(Placeholder for an ERD image)*
 ![ERD](docs/erd/database_schema.png)
 
 ---
